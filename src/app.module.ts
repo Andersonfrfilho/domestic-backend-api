@@ -1,4 +1,3 @@
-import { SharedModule as SharedModuleLib } from '@backend/package-nestjs';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 

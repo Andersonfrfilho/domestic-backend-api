@@ -1,4 +1,3 @@
-import { SHARED_SERVICE_PROVIDE, SharedServiceInterface } from '@backend/package-nestjs';
 import { Controller, Get, Inject, Injectable } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 
@@ -20,8 +19,6 @@ export class HealthController {
     private readonly cacheProvider: CacheProviderInterface,
     @Inject(QUEUE_PRODUCER_PROVIDER)
     private readonly messageProducer: QueueProducerMessageProviderInterface,
-    @Inject(SHARED_SERVICE_PROVIDE)
-    private readonly sharedService: SharedServiceInterface,
   ) {}
 
   @Get()
@@ -33,8 +30,6 @@ export class HealthController {
   })
   @ApiOkResponse({ type: HealthCheckResponseDto })
   check(): HealthCheckResponseDto {
-    const data = this.sharedService.getPrefix(); // Test shared service access
-    console.log('✅ Shared service prefix:', data);
     return this.healthCheckService.execute();
   }
 
