@@ -3,6 +3,7 @@
 ## 🔧 Comandos Essenciais
 
 ### Setup & Ambiente
+
 ```bash
 # Instalar dependências
 npm install
@@ -22,6 +23,7 @@ docker-compose logs -f keycloak
 ```
 
 ### Testes
+
 ```bash
 # Rodar testes unitários
 npm run test
@@ -40,6 +42,7 @@ npm run test -- src/modules/auth/auth.service.spec.ts
 ```
 
 ### Desenvolvimento
+
 ```bash
 # Dev server com reload
 npm run start:dev
@@ -56,6 +59,7 @@ npm run lint:fix
 ```
 
 ### Migrations
+
 ```bash
 # Criar nova migração
 npm run typeorm -- migration:create src/modules/shared/infrastructure/providers/database/migrations/CreateTableName
@@ -71,6 +75,7 @@ npm run typeorm -- migration:show
 ```
 
 ### Database
+
 ```bash
 # Conectar PostgreSQL (terminal)
 psql -h localhost -U postgres -d domestic_db
@@ -90,6 +95,7 @@ psql -h localhost -U postgres -d domestic_db < backup.sql
 ## 📐 Padrão de Arquitetura
 
 ### Clean Architecture Layer
+
 ```
 ┌─────────────────────────────────────────┐
 │       PRESENTATION LAYER                │
@@ -113,6 +119,7 @@ psql -h localhost -U postgres -d domestic_db < backup.sql
 ```
 
 ### Estrutura de Pasta (por módulo)
+
 ```
 src/modules/user/
 ├── domain/
@@ -147,8 +154,16 @@ src/modules/user/
 ## 🏗️ Templates Rápidos
 
 ### Entity Template
+
 ```typescript
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
 @Entity('tablename')
 export class TableEntity {
@@ -173,6 +188,7 @@ export class TableEntity {
 ```
 
 ### Repository Template
+
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -217,6 +233,7 @@ export class TableRepository {
 ```
 
 ### Use Case Template
+
 ```typescript
 import { Inject, Injectable } from '@nestjs/common';
 import { TableRepository } from '../../infrastructure/persistence/table.repository';
@@ -241,8 +258,19 @@ export class CreateTableUseCase {
 ```
 
 ### Controller Template
+
 ```typescript
-import { Controller, Get, Post, Put, Delete, Param, Body, HttpStatus, HttpCode } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  HttpStatus,
+  HttpCode,
+} from '@nestjs/common';
 import { TableService } from '../services/table.service';
 import { CreateTableDto } from '../dto/create-table.dto';
 import { UpdateTableDto } from '../dto/update-table.dto';
@@ -281,6 +309,7 @@ export class TableController {
 ```
 
 ### Test Template
+
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { TableService } from './table.service';
@@ -333,6 +362,7 @@ describe('TableService', () => {
 ## 🔐 Padrões de Segurança
 
 ### Roles Disponíveis
+
 ```typescript
 enum UserRole {
   ADMIN = 'admin',
@@ -350,6 +380,7 @@ enum UserRole {
 ```
 
 ### Usando @Roles() Decorator
+
 ```typescript
 import { Controller, Get } from '@nestjs/common';
 import { Roles } from '../core/decorators/roles.decorator';
@@ -367,6 +398,7 @@ export class AdminController {
 ```
 
 ### Soft Delete Automatizado
+
 ```typescript
 // No repository:
 async findAll() {
@@ -388,6 +420,7 @@ async delete(id: string) {
 ## 📊 Enums Mais Usados
 
 ### User Status
+
 ```typescript
 enum UserStatus {
   PENDING = 'PENDING',
@@ -398,6 +431,7 @@ enum UserStatus {
 ```
 
 ### Phone Type
+
 ```typescript
 enum PhoneType {
   MOBILE = 'MOBILE',
@@ -407,6 +441,7 @@ enum PhoneType {
 ```
 
 ### Price Type (Services)
+
 ```typescript
 enum PriceType {
   FIXED = 'FIXED',
@@ -416,6 +451,7 @@ enum PriceType {
 ```
 
 ### Service Request Status
+
 ```typescript
 enum ServiceRequestStatus {
   PENDING = 'PENDING',
@@ -428,6 +464,7 @@ enum ServiceRequestStatus {
 ```
 
 ### Document Type
+
 ```typescript
 enum DocumentType {
   CNH = 'CNH',
@@ -440,6 +477,7 @@ enum DocumentType {
 ```
 
 ### Document Status
+
 ```typescript
 enum DocumentStatus {
   PENDING = 'PENDING',
@@ -455,6 +493,7 @@ enum DocumentStatus {
 ## 🗄️ Query Patterns
 
 ### Buscar com Relacionamentos
+
 ```typescript
 async findUserWithDetails(userId: string) {
   return this.userRepository.findOne({
@@ -471,6 +510,7 @@ async findUserWithDetails(userId: string) {
 ```
 
 ### Paginação
+
 ```typescript
 async findPaginated(page: number = 1, limit: number = 10) {
   const skip = (page - 1) * limit;
@@ -494,6 +534,7 @@ async findPaginated(page: number = 1, limit: number = 10) {
 ```
 
 ### Com Filtros
+
 ```typescript
 async findByFilters(filters: FilterDto) {
   const query = this.repository.createQueryBuilder('u');
@@ -519,6 +560,7 @@ async findByFilters(filters: FilterDto) {
 ```
 
 ### Agregação
+
 ```typescript
 async getAverageRating(providerId: string) {
   const result = await this.reviewRepository
@@ -537,6 +579,7 @@ async getAverageRating(providerId: string) {
 ## 🚀 Dicas de Performance
 
 ### Índices Obrigatórios
+
 ```typescript
 // No Entity
 @Index() // Busca rápida
@@ -553,6 +596,7 @@ status: string;
 ```
 
 ### Cache com Redis
+
 ```typescript
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -577,6 +621,7 @@ export class CachedService {
 ```
 
 ### Query Optimization
+
 ```typescript
 // ❌ Ruim: N+1
 const users = await this.userRepository.find();
@@ -611,6 +656,7 @@ Antes de marcar módulo como DONE:
 ## 🐛 Debug Comum
 
 ### "Cannot find module"
+
 ```bash
 # Limpar node_modules e reinstalar
 rm -rf node_modules package-lock.json
@@ -619,6 +665,7 @@ npm run build
 ```
 
 ### "Database connection refused"
+
 ```bash
 # Garantir que PostgreSQL está rodando
 docker-compose ps
@@ -629,6 +676,7 @@ make down && make all
 ```
 
 ### "Keycloak import failed"
+
 ```bash
 # Ver logs do Keycloak
 docker-compose logs keycloak
@@ -638,11 +686,12 @@ cat keycloak-config/domestic-backend-realm.json | jq . > /dev/null
 ```
 
 ### "Jest timeout"
+
 ```typescript
 // Aumentar timeout para e2e
 describe('Integration tests', () => {
   jest.setTimeout(30000); // 30s
-  
+
   it('should ...', async () => {
     // test
   });
@@ -654,16 +703,19 @@ describe('Integration tests', () => {
 ## 📚 Referências Importantes
 
 **Documentação Completa:**
+
 - [Módulos Roadmap](./MODULES_ROADMAP.md)
 - [Tasks por Módulo](./TASKS_BY_MODULE.md)
 - [Progress Tracker](./PROGRESS_TRACKER.md)
 
 **Configurações:**
+
 - Keycloak: `keycloak-config/domestic-backend-realm.json`
 - Docker: `docker-compose.yml`
 - Migrations: `src/modules/shared/infrastructure/providers/database/migrations/`
 
 **Links Úteis:**
+
 - NestJS Docs: https://docs.nestjs.com
 - TypeORM Docs: https://typeorm.io
 - Keycloak Docs: https://www.keycloak.org/documentation
@@ -673,6 +725,7 @@ describe('Integration tests', () => {
 ## 📝 Checklist Diário de Desenvolvimento
 
 Cada dia:
+
 1. ☐ `make all` rodando sem erros
 2. ☐ Features/testes desenvolvidas
 3. ☐ Testes passando (`npm run test`)
@@ -682,10 +735,10 @@ Cada dia:
 7. ☐ Sem arquivos uncommitted
 
 Fim do sprint:
+
 1. ☐ Todos testes > 70% coverage
 2. ☐ Documentação Swagger atualizada
 3. ☐ E2E tests passando
 4. ☐ Code review feito
 5. ☐ Performance validada
 6. ☐ Merge para main
-
