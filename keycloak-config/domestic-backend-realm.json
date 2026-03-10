@@ -19,12 +19,6 @@
   "failureFactor": 30,
   "passwordPolicy": "length(8) and forceExpiredPasswordChange(365) and notUsername",
   "defaultSignatureAlgorithm": "RS256",
-  "webOrigins": [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://localhost:8080",
-    "https://localhost"
-  ],
   "clients": [
     {
       "clientId": "domestic-backend-api",
@@ -54,10 +48,6 @@
         "display.on.consent.screen": "true",
         "access.token.lifespan": "3600",
         "refresh.token.lifespan": "86400"
-      },
-      "authenticationFlowBindingOverrides": {
-        "browser": "browser",
-        "direct_grant": "direct_grant"
       },
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
@@ -101,7 +91,6 @@
         "display.on.consent.screen": "false",
         "access.token.lifespan": "3600"
       },
-      "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "defaultClientScopes": [
@@ -140,7 +129,6 @@
         "display.on.consent.screen": "false",
         "access.token.lifespan": "3600"
       },
-      "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "defaultClientScopes": [
@@ -216,7 +204,6 @@
   "groups": [
     {
       "name": "administrators",
-      "description": "System administrators",
       "realmRoles": [
         "admin",
         "user-manager",
@@ -230,7 +217,6 @@
     },
     {
       "name": "contractors",
-      "description": "Service contractors/requesters",
       "realmRoles": [
         "contractor",
         "manage-requests",
@@ -239,7 +225,6 @@
     },
     {
       "name": "providers",
-      "description": "Service providers",
       "realmRoles": [
         "provider",
         "manage-services",
@@ -249,7 +234,6 @@
     },
     {
       "name": "support-team",
-      "description": "Support team members",
       "realmRoles": [
         "support",
         "user-manager",

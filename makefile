@@ -96,7 +96,9 @@ stop: setup-env
 	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) stop
 
 down: setup-env
-	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down api database_postgres database_mongo cache_redis queue_rabbitmq keycloak database_keycloak
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down api database_postgres database_mongo cache_redis queue_rabbitmq keycloak database_keycloak sonarqube sonar-db
+
+clean: clean-all
 
 force-remove: setup-env
 	docker rm -f $(shell docker ps -a -q --filter "name=$(SERVICE_NAME)")
