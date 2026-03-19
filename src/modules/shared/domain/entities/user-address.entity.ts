@@ -1,8 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { AddressTypeEnum } from '../enums/address-type.enum';
-
-import { Address } from './address.entity';
 import { User } from './user.entity';
 
 @Entity('user_addresses')
@@ -13,15 +10,35 @@ export class UserAddress {
   @Column({ name: 'user_id' })
   userId: string;
 
-  @Column({ name: 'address_id' })
-  addressId: string;
+  @Column()
+  street: string;
 
-  @Column({
-    type: 'enum',
-    enum: AddressTypeEnum,
-    default: AddressTypeEnum.RESIDENTIAL,
-  })
-  type: AddressTypeEnum;
+  @Column()
+  number: string;
+
+  @Column({ nullable: true })
+  complement: string | null;
+
+  @Column()
+  neighborhood: string;
+
+  @Column()
+  city: string;
+
+  @Column()
+  state: string;
+
+  @Column()
+  zipcode: string;
+
+  @Column({ type: 'decimal', nullable: true })
+  latitude: number | null;
+
+  @Column({ type: 'decimal', nullable: true })
+  longitude: number | null;
+
+  @Column({ nullable: true })
+  label: string | null;
 
   @Column({ name: 'is_primary', default: false })
   isPrimary: boolean;
@@ -29,10 +46,6 @@ export class UserAddress {
   @ManyToOne(() => User, (user) => user.addresses, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
-
-  @ManyToOne(() => Address, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'address_id' })
-  address: Address;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

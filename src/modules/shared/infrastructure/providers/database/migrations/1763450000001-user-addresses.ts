@@ -2,17 +2,6 @@ import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
 
 export default class UserAddresses1763450000001 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create ENUM type first
-    await queryRunner.query(`
-      CREATE TYPE address_type_enum AS ENUM (
-        'RESIDENTIAL',
-        'COMMERCIAL',
-        'DELIVERY',
-        'BILLING',
-        'OTHER'
-      )
-    `);
-
     await queryRunner.createTable(
       new Table({
         name: 'user_addresses',
@@ -29,14 +18,54 @@ export default class UserAddresses1763450000001 implements MigrationInterface {
             isNullable: false,
           }),
           new TableColumn({
-            name: 'address_id',
-            type: 'uuid',
+            name: 'street',
+            type: 'varchar',
             isNullable: false,
           }),
           new TableColumn({
-            name: 'type',
-            type: 'address_type_enum',
+            name: 'number',
+            type: 'varchar',
             isNullable: false,
+          }),
+          new TableColumn({
+            name: 'complement',
+            type: 'varchar',
+            isNullable: true,
+          }),
+          new TableColumn({
+            name: 'neighborhood',
+            type: 'varchar',
+            isNullable: false,
+          }),
+          new TableColumn({
+            name: 'city',
+            type: 'varchar',
+            isNullable: false,
+          }),
+          new TableColumn({
+            name: 'state',
+            type: 'varchar',
+            isNullable: false,
+          }),
+          new TableColumn({
+            name: 'zipcode',
+            type: 'varchar',
+            isNullable: false,
+          }),
+          new TableColumn({
+            name: 'latitude',
+            type: 'decimal',
+            isNullable: true,
+          }),
+          new TableColumn({
+            name: 'longitude',
+            type: 'decimal',
+            isNullable: true,
+          }),
+          new TableColumn({
+            name: 'label',
+            type: 'varchar',
+            isNullable: true,
           }),
           new TableColumn({
             name: 'is_primary',
@@ -67,12 +96,6 @@ export default class UserAddresses1763450000001 implements MigrationInterface {
             referencedColumnNames: ['id'],
             onDelete: 'CASCADE',
           },
-          {
-            columnNames: ['address_id'],
-            referencedTableName: 'addresses',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
-          },
         ],
         indices: [
           {
@@ -80,17 +103,8 @@ export default class UserAddresses1763450000001 implements MigrationInterface {
             name: 'IDX_user_address_user_id',
           },
           {
-            columnNames: ['address_id'],
-            name: 'IDX_user_address_address_id',
-          },
-          {
             columnNames: ['user_id', 'is_primary'],
             name: 'IDX_user_address_user_id_primary',
-          },
-          {
-            columnNames: ['user_id', 'address_id', 'type'],
-            isUnique: true,
-            name: 'UQ_user_address_user_address_type',
           },
         ],
       }),
@@ -99,6 +113,5 @@ export default class UserAddresses1763450000001 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropTable('user_addresses', true, true, true);
-    await queryRunner.query('DROP TYPE IF EXISTS address_type_enum');
   }
 }

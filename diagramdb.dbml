@@ -75,11 +75,20 @@ Table user_phones {
 }
 
 Table user_addresses {
+  id uuid [pk]
   user_id uuid [ref: > users.id]
-  address_id uuid [ref: > addresses.id]
+  street varchar
+  number varchar
+  complement varchar
+  neighborhood varchar
+  city varchar
+  state varchar
+  zipcode varchar
+  latitude decimal
+  longitude decimal
   label varchar [note: 'Ex: Casa, Trabalho']
   is_primary boolean [default: false]
-  pk uuid [pk]
+  created_at timestamp [default: `now()` ]
 }
 
 // Relacionamentos para Perfis de Prestador (Profissional/Comercial)
