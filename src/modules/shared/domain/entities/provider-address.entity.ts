@@ -1,15 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Address } from './address.entity';
-import { User } from './user.entity';
+import { ProviderProfile } from './provider-profile.entity';
 
-@Entity('user_addresses')
-export class UserAddress {
+@Entity('provider_addresses')
+export class ProviderAddress {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
-  userId: string;
+  @Column({ name: 'provider_id' })
+  providerId: string;
 
   @Column({ name: 'address_id' })
   addressId: string;
@@ -20,12 +20,9 @@ export class UserAddress {
   @Column({ name: 'is_primary', default: false })
   isPrimary: boolean;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
-
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @ManyToOne(() => ProviderProfile, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'provider_id' })
+  provider: ProviderProfile;
 
   @ManyToOne(() => Address, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'address_id' })

@@ -1,10 +1,10 @@
 import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
-export default class ProviderPhones1763600000006 implements MigrationInterface {
+export default class ProviderWorkLocations1763600000014 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'provider_phones',
+        name: 'provider_work_locations',
         columns: [
           {
             name: 'id',
@@ -14,15 +14,21 @@ export default class ProviderPhones1763600000006 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           { name: 'provider_id', type: 'uuid' },
-          { name: 'phone_id', type: 'uuid' },
-          { name: 'label', type: 'varchar', isNullable: true },
+          { name: 'address_id', type: 'uuid' },
+          { name: 'name', type: 'varchar', isNullable: true },
           { name: 'is_primary', type: 'boolean', default: false },
+          { name: 'is_active', type: 'boolean', default: true },
+          {
+            name: 'created_at',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
         ],
       }),
       true,
     );
 
-    await queryRunner.createForeignKeys('provider_phones', [
+    await queryRunner.createForeignKeys('provider_work_locations', [
       new TableForeignKey({
         columnNames: ['provider_id'],
         referencedTableName: 'provider_profiles',
@@ -30,8 +36,8 @@ export default class ProviderPhones1763600000006 implements MigrationInterface {
         onDelete: 'CASCADE',
       }),
       new TableForeignKey({
-        columnNames: ['phone_id'],
-        referencedTableName: 'phones',
+        columnNames: ['address_id'],
+        referencedTableName: 'addresses',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),
@@ -39,12 +45,12 @@ export default class ProviderPhones1763600000006 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const table = await queryRunner.getTable('provider_phones');
+    const table = await queryRunner.getTable('provider_work_locations');
     if (table) {
       for (const fk of table.foreignKeys) {
-        await queryRunner.dropForeignKey('provider_phones', fk);
+        await queryRunner.dropForeignKey('provider_work_locations', fk);
       }
     }
-    await queryRunner.dropTable('provider_phones');
+    await queryRunner.dropTable('provider_work_locations');
   }
 }

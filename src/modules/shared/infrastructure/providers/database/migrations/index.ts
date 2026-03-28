@@ -17,6 +17,12 @@ import ProviderServices1763600000010 from './1763600000010-provider-services';
 import ServiceRequests1763600000011 from './1763600000011-service-requests';
 import Reviews1763600000012 from './1763600000012-reviews';
 import Documents1763600000013 from './1763600000013-documents';
+import ProviderWorkLocations1763600000014 from './1763600000014-provider-work-locations';
+import ProviderVerifications1763600000015 from './1763600000015-provider-verifications';
+import ProviderVerificationLogs1763600000016 from './1763600000016-provider-verification-logs';
+import ProviderDocuments1763600000017 from './1763600000017-provider-documents';
+import UpdatePhones1763600000018 from './1763600000018-update-phones';
+import UpdateAddresses1763600000019 from './1763600000019-update-addresses';
 
 export const migrations = [
   User1763256695093,
@@ -38,4 +44,10 @@ export const migrations = [
   ServiceRequests1763600000011,
   Reviews1763600000012,
   Documents1763600000013,
+  ProviderWorkLocations1763600000014,
+  ProviderVerifications1763600000015,
+  ProviderVerificationLogs1763600000016,
+  ProviderDocuments1763600000017,
+  UpdatePhones1763600000018,
+  UpdateAddresses1763600000019,
 ];

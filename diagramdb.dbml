@@ -1,13 +1,13 @@
-// --- ENTIDADES PRINCIPAIS ---
+// ============================
+// ENTIDADES PRINCIPAIS
+// ============================
 
 Table users {
   id uuid [pk]
-  keycloak_id uuid [unique, note: 'ID vinculado ao Keycloak']
+  keycloak_id uuid [unique, note: "ID vinculado ao Keycloak"]
   full_name varchar
-  is_contractor boolean [default: true]
-  is_provider boolean [default: false]
   status varchar [default: 'PENDING']
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 
   indexes {
     keycloak_id [name: "users_keycloak_idx"]
@@ -23,21 +23,23 @@ Table provider_profiles {
   is_available boolean [default: true]
 }
 
-// --- TABELAS DE DADOS (INDEPENDENTES) ---
+// ============================
+// DADOS INDEPENDENTES
+// ============================
 
 Table emails {
   id uuid [pk]
   email varchar [unique]
   is_verified boolean [default: false]
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 }
 
 Table phones {
   id uuid [pk]
   number varchar [unique]
-  type varchar [note: 'MOBILE, LANDLINE, WHATSAPP']
+  type varchar [note: "MOBILE, LANDLINE, WHATSAPP"]
   is_verified boolean [default: false]
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 }
 
 Table addresses {
@@ -52,71 +54,83 @@ Table addresses {
   latitude decimal
   longitude decimal
   is_verified boolean [default: false]
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 }
 
-// --- TABELAS DE LIGAÇÃO (MANY-TO-MANY) ---
+// ============================
+// RELACIONAMENTOS USUÁRIO
+// ============================
 
-// Relacionamentos para Usuários (Pessoa Física/Contratante)
 Table user_emails {
+  id uuid [pk]
   user_id uuid [ref: > users.id]
   email_id uuid [ref: > emails.id]
-  label varchar [note: 'Ex: Pessoal, Recuperação']
+  label varchar
   is_primary boolean [default: false]
-  pk uuid [pk]
 }
 
 Table user_phones {
+  id uuid [pk]
   user_id uuid [ref: > users.id]
   phone_id uuid [ref: > phones.id]
-  label varchar [note: 'Ex: Celular, Recado']
+  label varchar
   is_primary boolean [default: false]
-  pk uuid [pk]
 }
 
 Table user_addresses {
   id uuid [pk]
   user_id uuid [ref: > users.id]
-  street varchar
-  number varchar
-  complement varchar
-  neighborhood varchar
-  city varchar
-  state varchar
-  zipcode varchar
-  latitude decimal
-  longitude decimal
-  label varchar [note: 'Ex: Casa, Trabalho']
+  address_id uuid [ref: > addresses.id]
+  label varchar
   is_primary boolean [default: false]
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 }
 
-// Relacionamentos para Perfis de Prestador (Profissional/Comercial)
+// ============================
+// RELACIONAMENTOS PRESTADOR
+// ============================
+
 Table provider_emails {
+  id uuid [pk]
   provider_id uuid [ref: > provider_profiles.id]
   email_id uuid [ref: > emails.id]
-  label varchar [note: 'Ex: Comercial, Agendamentos']
+  label varchar
   is_primary boolean [default: false]
-  pk uuid [pk]
 }
 
 Table provider_phones {
+  id uuid [pk]
   provider_id uuid [ref: > provider_profiles.id]
   phone_id uuid [ref: > phones.id]
-  label varchar [note: 'Ex: WhatsApp Comercial']
+  label varchar
   is_primary boolean [default: false]
-  pk uuid [pk]
 }
 
 Table provider_addresses {
+  id uuid [pk]
   provider_id uuid [ref: > provider_profiles.id]
   address_id uuid [ref: > addresses.id]
-  label varchar [note: 'Ex: Escritório, Local de Atendimento']
+  label varchar
   is_primary boolean [default: false]
-  pk uuid [pk]
 }
 
-// --- SERVIÇOS E AGENDAMENTOS ---
+// ============================
+// LOCAL DE TRABALHO DO PRESTADOR
+// ============================
+
+Table provider_work_locations {
+  id uuid [pk]
+  provider_id uuid [ref: > provider_profiles.id]
+  address_id uuid [ref: > addresses.id]
+  name varchar
+  is_primary boolean [default: false]
+  is_active boolean [default: true]
+  created_at timestamp [default: `now()`]
+}
+
+// ============================
+// SERVIÇOS
+// ============================
 
 Table categories {
   id uuid [pk]
@@ -140,22 +154,30 @@ Table provider_services {
   price_type varchar
 }
 
+// ============================
+// AGENDAMENTOS
+// ============================
+
 Table service_requests {
   id uuid [pk]
   contractor_id uuid [ref: > users.id]
   provider_id uuid [ref: > provider_profiles.id]
   service_id uuid [ref: > services.id]
   address_id uuid [ref: > addresses.id]
-  
+
   status varchar
   contractor_confirmed boolean [default: false]
   provider_confirmed boolean [default: false]
-  
+
   description text
   scheduled_at timestamp
   price_final decimal
-  created_at timestamp [default: `now()` ]
+  created_at timestamp [default: `now()`]
 }
+
+// ============================
+// AVALIAÇÕES
+// ============================
 
 Table reviews {
   id uuid [pk]
@@ -167,6 +189,10 @@ Table reviews {
   created_at timestamp
 }
 
+// ============================
+// DOCUMENTOS
+// ============================
+
 Table documents {
   id uuid [pk]
   user_id uuid [ref: > users.id]
@@ -174,4 +200,47 @@ Table documents {
   document_url varchar
   status varchar
   verified_at timestamp
+}
+
+// ============================
+// AUDITORIA DE PRESTADOR
+// ============================
+
+Table provider_verifications {
+  id uuid [pk]
+  provider_id uuid [ref: > provider_profiles.id]
+  status varchar [note: "PENDING, UNDER_REVIEW, APPROVED, REJECTED"]
+  submitted_at timestamp [default: `now()`]
+  reviewed_at timestamp
+  reviewed_by uuid [note: "ID do admin (Keycloak ou interno)"]
+  notes text
+}
+
+// Histórico de ações da auditoria
+
+Table provider_verification_logs {
+  id uuid [pk]
+  verification_id uuid [ref: > provider_verifications.id]
+  action varchar [note: "SUBMITTED, MOVED_TO_REVIEW, APPROVED, REJECTED"]
+  performed_by uuid [note: "ID do usuário/admin"]
+  previous_status varchar
+  new_status varchar
+  notes text
+  created_at timestamp [default: `now()`]
+}
+
+// ============================
+// DOCUMENTOS DO PRESTADOR (AUDITÁVEIS)
+// ============================
+
+Table provider_documents {
+  id uuid [pk]
+  provider_id uuid [ref: > provider_profiles.id]
+  document_type varchar [note: "CPF, CNPJ, RG, LICENSE, etc"]
+  document_url varchar
+  status varchar [note: "PENDING, APPROVED, REJECTED"]
+  uploaded_at timestamp [default: `now()`]
+  reviewed_at timestamp
+  reviewed_by uuid
+  rejection_reason text
 }

@@ -1,15 +1,12 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('phones')
-export class Phone {
+@Entity('emails')
+export class Email {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ unique: true })
-  number: string;
-
-  @Column({ nullable: true, comment: 'MOBILE, LANDLINE, WHATSAPP' })
-  type: string;
+  email: string;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;

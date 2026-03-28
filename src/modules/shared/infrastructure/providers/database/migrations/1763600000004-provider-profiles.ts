@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export default class ProviderProfiles1763600000004 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -6,74 +6,46 @@ export default class ProviderProfiles1763600000004 implements MigrationInterface
       new Table({
         name: 'provider_profiles',
         columns: [
-          new TableColumn({
+          {
             name: 'id',
             type: 'uuid',
             isPrimary: true,
-            default: 'uuidv7()',
-          }),
-          new TableColumn({
-            name: 'user_id',
-            type: 'uuid',
-            isNullable: false,
-            isUnique: true,
-          }),
-          new TableColumn({
-            name: 'business_name',
-            type: 'varchar',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'description',
-            type: 'text',
-            isNullable: true,
-          }),
-          new TableColumn({
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
+          },
+          { name: 'user_id', type: 'uuid', isUnique: true },
+          { name: 'business_name', type: 'varchar', isNullable: true },
+          { name: 'description', type: 'text', isNullable: true },
+          {
             name: 'average_rating',
-            type: 'numeric',
-            precision: 3,
-            scale: 2,
+            type: 'decimal',
             default: 0,
-          }),
-          new TableColumn({
-            name: 'is_available',
-            type: 'boolean',
-            default: true,
-          }),
-          new TableColumn({
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          }),
-          new TableColumn({
-            name: 'updated_at',
-            type: 'timestamp',
-            isNullable: true,
-          }),
-        ],
-        foreignKeys: [
-          {
-            columnNames: ['user_id'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
           },
+          { name: 'is_available', type: 'boolean', default: true },
         ],
-        indices: [
-          {
-            columnNames: ['user_id'],
-            name: 'IDX_provider_profile_user_id',
-          },
-          {
-            columnNames: ['is_available'],
-            name: 'IDX_provider_profile_is_available',
-          },
-        ],
+      }),
+      true,
+    );
+
+    await queryRunner.createForeignKey(
+      'provider_profiles',
+      new TableForeignKey({
+        columnNames: ['user_id'],
+        referencedTableName: 'users',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('provider_profiles', true, true, true);
+    const table = await queryRunner.getTable('provider_profiles');
+    const foreignKey = table?.foreignKeys.find(
+      (fk) => fk.columnNames.indexOf('user_id') !== -1,
+    );
+    if (foreignKey) {
+      await queryRunner.dropForeignKey('provider_profiles', foreignKey);
+    }
+    await queryRunner.dropTable('provider_profiles');
   }
 }

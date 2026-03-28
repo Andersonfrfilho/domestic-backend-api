@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export default class Services1763600000009 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -6,57 +6,40 @@ export default class Services1763600000009 implements MigrationInterface {
       new Table({
         name: 'services',
         columns: [
-          new TableColumn({
+          {
             name: 'id',
             type: 'uuid',
             isPrimary: true,
-            default: 'uuidv7()',
-          }),
-          new TableColumn({
-            name: 'category_id',
-            type: 'uuid',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'name',
-            type: 'varchar',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'description',
-            type: 'text',
-            isNullable: true,
-          }),
-          new TableColumn({
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          }),
-          new TableColumn({
-            name: 'updated_at',
-            type: 'timestamp',
-            isNullable: true,
-          }),
-        ],
-        foreignKeys: [
-          {
-            columnNames: ['category_id'],
-            referencedTableName: 'categories',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
           },
+          { name: 'category_id', type: 'uuid' },
+          { name: 'name', type: 'varchar' },
+          { name: 'description', type: 'text', isNullable: true },
         ],
-        indices: [
-          {
-            columnNames: ['category_id'],
-            name: 'IDX_service_category_id',
-          },
-        ],
+      }),
+      true,
+    );
+
+    await queryRunner.createForeignKey(
+      'services',
+      new TableForeignKey({
+        columnNames: ['category_id'],
+        referencedTableName: 'categories',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
       }),
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('services', true, true, true);
+    const table = await queryRunner.getTable('services');
+    const foreignKey = table?.foreignKeys.find(
+      (fk) => fk.columnNames.indexOf('category_id') !== -1,
+    );
+    if (foreignKey) {
+      await queryRunner.dropForeignKey('services', foreignKey);
+    }
+    await queryRunner.dropTable('services');
   }
 }

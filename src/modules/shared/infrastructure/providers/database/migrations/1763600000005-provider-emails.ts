@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export default class ProviderEmails1763600000005 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -6,76 +6,45 @@ export default class ProviderEmails1763600000005 implements MigrationInterface {
       new Table({
         name: 'provider_emails',
         columns: [
-          new TableColumn({
+          {
             name: 'id',
             type: 'uuid',
             isPrimary: true,
-            default: 'uuidv7()',
-          }),
-          new TableColumn({
-            name: 'provider_id',
-            type: 'uuid',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'email_id',
-            type: 'uuid',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'label',
-            type: 'varchar',
-            isNullable: true,
-          }),
-          new TableColumn({
-            name: 'is_primary',
-            type: 'boolean',
-            default: false,
-          }),
-          new TableColumn({
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          }),
-        ],
-        foreignKeys: [
-          {
-            columnNames: ['provider_id'],
-            referencedTableName: 'provider_profiles',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
           },
-          {
-            columnNames: ['email_id'],
-            referencedTableName: 'emails',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
-          },
-        ],
-        indices: [
-          {
-            columnNames: ['provider_id'],
-            name: 'IDX_provider_email_provider_id',
-          },
-          {
-            columnNames: ['email_id'],
-            name: 'IDX_provider_email_email_id',
-          },
-          {
-            columnNames: ['provider_id', 'is_primary'],
-            name: 'IDX_provider_email_provider_id_primary',
-          },
-          {
-            columnNames: ['provider_id', 'email_id'],
-            isUnique: true,
-            name: 'UQ_provider_email_provider_email',
-          },
+          { name: 'provider_id', type: 'uuid' },
+          { name: 'email_id', type: 'uuid' },
+          { name: 'label', type: 'varchar', isNullable: true },
+          { name: 'is_primary', type: 'boolean', default: false },
         ],
       }),
+      true,
     );
+
+    await queryRunner.createForeignKeys('provider_emails', [
+      new TableForeignKey({
+        columnNames: ['provider_id'],
+        referencedTableName: 'provider_profiles',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+      new TableForeignKey({
+        columnNames: ['email_id'],
+        referencedTableName: 'emails',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+    ]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('provider_emails', true, true, true);
+    const table = await queryRunner.getTable('provider_emails');
+    if (table) {
+      for (const fk of table.foreignKeys) {
+        await queryRunner.dropForeignKey('provider_emails', fk);
+      }
+    }
+    await queryRunner.dropTable('provider_emails');
   }
 }

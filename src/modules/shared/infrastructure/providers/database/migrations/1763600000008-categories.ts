@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
 export default class Categories1763600000008 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -6,50 +6,23 @@ export default class Categories1763600000008 implements MigrationInterface {
       new Table({
         name: 'categories',
         columns: [
-          new TableColumn({
+          {
             name: 'id',
             type: 'uuid',
             isPrimary: true,
-            default: 'uuidv7()',
-          }),
-          new TableColumn({
-            name: 'name',
-            type: 'varchar',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'slug',
-            type: 'varchar',
-            isUnique: true,
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'icon_url',
-            type: 'varchar',
-            isNullable: true,
-          }),
-          new TableColumn({
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          }),
-          new TableColumn({
-            name: 'updated_at',
-            type: 'timestamp',
-            isNullable: true,
-          }),
-        ],
-        indices: [
-          {
-            columnNames: ['slug'],
-            name: 'IDX_category_slug',
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
           },
+          { name: 'name', type: 'varchar' },
+          { name: 'slug', type: 'varchar', isUnique: true },
+          { name: 'icon_url', type: 'varchar', isNullable: true },
         ],
       }),
+      true,
     );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('categories', true, true, true);
+    await queryRunner.dropTable('categories');
   }
 }

@@ -1,74 +1,81 @@
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeorm';
 
 export default class UpdateUsers1763600000001 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create ENUM types
-    await queryRunner.query(`
-      CREATE TYPE user_status_enum AS ENUM (
-        'PENDING',
-        'ACTIVE',
-        'INACTIVE',
-        'BLOCKED'
-      )
-    `);
+    // Drop old columns
+    const columnsToDrop = [
+      'name',
+      'last_name',
+      'active',
+      'cpf',
+      'rg',
+      'email',
+      'password_hash',
+      'gender',
+      'details',
+      'birth_date',
+      'updated_at',
+      'deleted_at',
+    ];
 
-    // Add new columns to users table
-    await queryRunner.addColumn(
-      'users',
+    for (const col of columnsToDrop) {
+      const hasColumn = await queryRunner.hasColumn('users', col);
+      if (hasColumn) {
+        await queryRunner.dropColumn('users', col);
+      }
+    }
+
+    // Add new columns matching DBML
+    await queryRunner.addColumns('users', [
       new TableColumn({
         name: 'keycloak_id',
         type: 'uuid',
         isUnique: true,
         isNullable: true,
       }),
-    );
-
-    await queryRunner.addColumn(
-      'users',
       new TableColumn({
         name: 'full_name',
         type: 'varchar',
         isNullable: true,
       }),
-    );
-
-    await queryRunner.addColumn(
-      'users',
-      new TableColumn({
-        name: 'is_contractor',
-        type: 'boolean',
-        default: true,
-      }),
-    );
-
-    await queryRunner.addColumn(
-      'users',
-      new TableColumn({
-        name: 'is_provider',
-        type: 'boolean',
-        default: false,
-      }),
-    );
-
-    await queryRunner.addColumn(
-      'users',
       new TableColumn({
         name: 'status',
-        type: 'user_status_enum',
+        type: 'varchar',
         default: "'PENDING'",
       }),
-    );
+    ]);
 
-    // Create index for keycloak_id
-    await queryRunner.query('CREATE INDEX "IDX_users_keycloak_id" ON "users" ("keycloak_id")');
+    await queryRunner.createIndex(
+      'users',
+      new TableIndex({
+        name: 'users_keycloak_idx',
+        columnNames: ['keycloak_id'],
+      }),
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumn('users', 'status');
-    await queryRunner.dropColumn('users', 'is_provider');
-    await queryRunner.dropColumn('users', 'is_contractor');
-    await queryRunner.dropColumn('users', 'full_name');
-    await queryRunner.dropColumn('users', 'keycloak_id');
-    await queryRunner.query('DROP TYPE IF EXISTS user_status_enum');
+    await queryRunner.dropIndex('users', 'users_keycloak_idx');
+
+    const columnsToDrop = ['keycloak_id', 'full_name', 'status'];
+    for (const col of columnsToDrop) {
+      await queryRunner.dropColumn('users', col);
+    }
+
+    // Restore old columns
+    await queryRunner.addColumns('users', [
+      new TableColumn({ name: 'name', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'last_name', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'active', type: 'boolean', default: false }),
+      new TableColumn({ name: 'cpf', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'rg', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'email', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'password_hash', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'gender', type: 'varchar', isNullable: true }),
+      new TableColumn({ name: 'details', type: 'jsonb', isNullable: true }),
+      new TableColumn({ name: 'birth_date', type: 'timestamp', isNullable: true }),
+      new TableColumn({ name: 'updated_at', type: 'timestamp', isNullable: true }),
+      new TableColumn({ name: 'deleted_at', type: 'timestamp', isNullable: true }),
+    ]);
   }
 }

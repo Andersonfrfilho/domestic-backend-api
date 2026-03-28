@@ -11,8 +11,8 @@ export class Address {
   @Column()
   number: string;
 
-  @Column({ default: '' })
-  complement?: string;
+  @Column({ nullable: true })
+  complement: string;
 
   @Column()
   neighborhood: string;
@@ -23,27 +23,18 @@ export class Address {
   @Column()
   state: string;
 
-  @Column({ name: 'zip_code' })
-  zipCode: string;
+  @Column()
+  zipcode: string;
 
-  @Column({ default: 'BR' })
-  country: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @Column({ type: 'decimal', nullable: true })
   latitude: number;
 
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @Column({ type: 'decimal', nullable: true })
   longitude: number;
 
-  @Column({ default: true })
-  active: boolean;
+  @Column({ name: 'is_verified', default: false })
+  isVerified: boolean;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
-
-  @Column({ name: 'updated_at', type: 'timestamp', nullable: true })
-  updatedAt: Date | null;
-
-  @Column({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  deletedAt: Date | null;
 }

@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, Table, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from 'typeorm';
 
 export default class Reviews1763600000012 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -6,88 +6,53 @@ export default class Reviews1763600000012 implements MigrationInterface {
       new Table({
         name: 'reviews',
         columns: [
-          new TableColumn({
+          {
             name: 'id',
             type: 'uuid',
             isPrimary: true,
-            default: 'uuidv7()',
-          }),
-          new TableColumn({
-            name: 'service_request_id',
-            type: 'uuid',
-            isNullable: false,
-            isUnique: true,
-          }),
-          new TableColumn({
-            name: 'contractor_id',
-            type: 'uuid',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'provider_id',
-            type: 'uuid',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'rating',
-            type: 'int',
-            isNullable: false,
-          }),
-          new TableColumn({
-            name: 'comment',
-            type: 'text',
-            isNullable: true,
-          }),
-          new TableColumn({
-            name: 'created_at',
-            type: 'timestamp',
-            default: 'CURRENT_TIMESTAMP',
-          }),
-          new TableColumn({
-            name: 'updated_at',
-            type: 'timestamp',
-            isNullable: true,
-          }),
-        ],
-        foreignKeys: [
-          {
-            columnNames: ['service_request_id'],
-            referencedTableName: 'service_requests',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
+            generationStrategy: 'uuid',
+            default: 'uuid_generate_v4()',
           },
-          {
-            columnNames: ['contractor_id'],
-            referencedTableName: 'users',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
-          },
-          {
-            columnNames: ['provider_id'],
-            referencedTableName: 'provider_profiles',
-            referencedColumnNames: ['id'],
-            onDelete: 'CASCADE',
-          },
-        ],
-        indices: [
-          {
-            columnNames: ['service_request_id'],
-            name: 'IDX_review_service_request_id',
-          },
-          {
-            columnNames: ['contractor_id'],
-            name: 'IDX_review_contractor_id',
-          },
-          {
-            columnNames: ['provider_id'],
-            name: 'IDX_review_provider_id',
-          },
+          { name: 'service_request_id', type: 'uuid', isUnique: true },
+          { name: 'contractor_id', type: 'uuid' },
+          { name: 'provider_id', type: 'uuid' },
+          { name: 'rating', type: 'int' },
+          { name: 'comment', type: 'text', isNullable: true },
+          { name: 'created_at', type: 'timestamp', isNullable: true },
         ],
       }),
+      true,
     );
+
+    await queryRunner.createForeignKeys('reviews', [
+      new TableForeignKey({
+        columnNames: ['service_request_id'],
+        referencedTableName: 'service_requests',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+      new TableForeignKey({
+        columnNames: ['contractor_id'],
+        referencedTableName: 'users',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+      new TableForeignKey({
+        columnNames: ['provider_id'],
+        referencedTableName: 'provider_profiles',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+    ]);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('reviews', true, true, true);
+    const table = await queryRunner.getTable('reviews');
+    if (table) {
+      for (const fk of table.foreignKeys) {
+        await queryRunner.dropForeignKey('reviews', fk);
+      }
+    }
+    await queryRunner.dropTable('reviews');
   }
 }
