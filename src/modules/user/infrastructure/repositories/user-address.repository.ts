@@ -71,38 +71,21 @@ export class UserAddressRepository implements UserAddressRepositoryInterface {
     await this.typeormRepo.delete({ userId });
   }
 
-  /**
-   * Cria uma relação entre usuário e endereço com tipo e primary flag
-   * Otimizado para evitar queries grandes
-   */
   async linkUserToAddress(
     userId: string,
     addressId: string,
-    type: string,
+    label?: string,
     isPrimary: boolean = false,
   ): Promise<UserAddress> {
     return this.create({
       userId,
       addressId,
-      type: type as any,
+      label,
       isPrimary,
     });
   }
 
-  /**
-   * Remove a relação entre usuário e endereço específico
-   */
   async unlinkUserFromAddress(userId: string, addressId: string): Promise<void> {
     await this.typeormRepo.delete({ userId, addressId });
-  }
-
-  /**
-   * Encontra endereços de um usuário com filtro de tipo
-   */
-  async findByUserIdAndType(userId: string, type: string): Promise<UserAddress[]> {
-    return this.typeormRepo.find({
-      where: { userId, type: type as any },
-      relations: ['address'],
-    });
   }
 }

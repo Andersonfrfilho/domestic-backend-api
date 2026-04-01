@@ -19,10 +19,7 @@ export class AddressRepository implements AddressRepositoryInterface {
   ) {}
 
   async create(address: CreateAddressParams): Promise<Address> {
-    const newAddress = this.typeormRepo.create({
-      ...address,
-      active: true,
-    });
+    const newAddress = this.typeormRepo.create(address);
     return this.typeormRepo.save(newAddress);
   }
 

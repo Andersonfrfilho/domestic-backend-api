@@ -23,8 +23,8 @@ export class Address {
   @Column()
   state: string;
 
-  @Column()
-  zipcode: string;
+  @Column({ name: 'zip_code' })
+  zipCode: string;
 
   @Column({ type: 'decimal', nullable: true })
   latitude: number;
@@ -37,4 +37,7 @@ export class Address {
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
+
+  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  updatedAt: Date;
 }

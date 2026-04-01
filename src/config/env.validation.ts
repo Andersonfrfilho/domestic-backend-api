@@ -68,4 +68,11 @@ export default Joi.object({
   KEYCLOAK_CLIENT_ID: Joi.string().default('backend-api'),
   KEYCLOAK_CLIENT_SECRET: Joi.string().default('backend-api-secret'),
   KEYCLOAK_BASE_URL: Joi.string().default('http://localhost:8081'),
+
+  // ============================================
+  // Cache Configuration
+  // ============================================
+  CACHE_REDIS_HOST: Joi.string().default('localhost'),
+  CACHE_REDIS_PORT: Joi.number().default(6379),
+  CACHE_REDIS_PASSWORD: Joi.string().optional().allow(''),
 });

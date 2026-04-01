@@ -25,10 +25,8 @@ export class UserController {
 
   @Post()
   @ApiOperation({
-    summary: 'Rota para criar um usuário',
-    description: `
-      Esta rota realiza a criação de um novo usuário.
-    `,
+    summary: 'Criar um novo usuário',
+    description: 'Cria um novo registro de usuário com full_name, keycloak_id e status.',
   })
   @ApiOkResponse({
     description: 'Usuário criado com sucesso.',
@@ -39,12 +37,10 @@ export class UserController {
   async create(@Body() params: CreateUserRequestDto): Promise<CreateUserResponseDto> {
     const user = await this.userService.createUser(params);
 
-    // 🔥 INVALIDAR CACHE - Quando criar usuário, limpar cache da lista
     try {
       await this.cacheProvider.del('users:list');
-      console.log('✅ Cache invalidated: users:list');
     } catch (error) {
-      console.error('❌ Failed to invalidate cache:', error);
+      console.error('Failed to invalidate cache:', error);
     }
 
     return user;
@@ -53,9 +49,7 @@ export class UserController {
   @Get()
   @ApiOperation({
     summary: 'Listar todos os usuários',
-    description: `
-      Esta rota retorna uma lista de todos os usuários com cache.
-    `,
+    description: 'Retorna uma lista de todos os usuários com cache.',
   })
   @ApiOkResponse({
     description: 'Lista de usuários retornada com sucesso.',
@@ -65,10 +59,8 @@ export class UserController {
     const cacheKey = 'users:list';
 
     try {
-      // 🔥 TENTAR BUSCAR DO CACHE PRIMEIRO
       const cachedUsers = await this.cacheProvider.getDecrypted(cacheKey);
       if (cachedUsers) {
-        console.log('✅ Users loaded from cache');
         return {
           data: cachedUsers,
           source: 'cache',
@@ -76,24 +68,16 @@ export class UserController {
         };
       }
     } catch (error) {
-      console.error('❌ Cache read error:', error);
+      console.error('Cache read error:', error);
     }
 
-    // 🔥 BUSCAR DO BANCO SE NÃO ESTIVER NO CACHE
-    console.log('📊 Loading users from database');
-    // Note: Aqui você precisaria implementar um método no service/repository
-    // Por enquanto, simulamos dados para demonstração
-    const users = [
-      { id: '1', name: 'User 1', email: 'user1@example.com' },
-      { id: '2', name: 'User 2', email: 'user2@example.com' },
-    ];
+    // TODO: Implement findAll in UserService/Repository
+    const users: CreateUserResponseDto[] = [];
 
-    // 🔥 SALVAR NO CACHE PARA PRÓXIMAS REQUISIÇÕES
     try {
-      await this.cacheProvider.setEncrypted(cacheKey, users, 300); // 5 minutos
-      console.log('✅ Users cached for 5 minutes');
+      await this.cacheProvider.setEncrypted(cacheKey, users, 300);
     } catch (error) {
-      console.error('❌ Cache write error:', error);
+      console.error('Cache write error:', error);
     }
 
     return {

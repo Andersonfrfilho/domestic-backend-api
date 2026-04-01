@@ -14,20 +14,6 @@ export class UserRepository implements UserRepositoryInterface {
     @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
     private typeormRepo: Repository<User>,
   ) {}
-  async update(id: string, user: UpdateUserParams): Promise<User> {
-    await this.typeormRepo.update(id, user as any);
-    const updatedUser = await this.typeormRepo.findOne({
-      where: { id },
-    });
-    if (!updatedUser) {
-      throw UserErrorFactory.notFound(id);
-    }
-    return updatedUser;
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.typeormRepo.delete(id);
-  }
 
   async create(user: CreateUserParams): Promise<User> {
     const newUser = this.typeormRepo.create(user);
@@ -40,21 +26,24 @@ export class UserRepository implements UserRepositoryInterface {
     });
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByKeycloakId(keycloakId: string): Promise<User | null> {
     return this.typeormRepo.findOne({
-      where: { email },
+      where: { keycloakId },
     });
   }
 
-  async findByCpf(cpf: string): Promise<User | null> {
-    return this.typeormRepo.findOne({
-      where: { details: { cpf } },
+  async update(id: string, user: UpdateUserParams): Promise<User> {
+    await this.typeormRepo.update(id, user);
+    const updatedUser = await this.typeormRepo.findOne({
+      where: { id },
     });
+    if (!updatedUser) {
+      throw UserErrorFactory.notFound(id);
+    }
+    return updatedUser;
   }
 
-  async findByRg(rg: string): Promise<User | null> {
-    return this.typeormRepo.findOne({
-      where: { details: { rg } },
-    });
+  async delete(id: string): Promise<void> {
+    await this.typeormRepo.delete(id);
   }
 }

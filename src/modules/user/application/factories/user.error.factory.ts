@@ -14,6 +14,10 @@ export class UserErrorFactory extends BaseErrorFactory {
     return this.createConflict(USER_ERROR_CONFIGS.duplicateRg(rg));
   }
 
+  static duplicateKeycloakId(keycloakId: string) {
+    return this.createConflict(USER_ERROR_CONFIGS.duplicateKeycloakId(keycloakId));
+  }
+
   static notFound(userId?: string) {
     return this.createNotFound(USER_ERROR_CONFIGS.notFound(userId));
   }

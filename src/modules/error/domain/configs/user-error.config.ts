@@ -52,4 +52,10 @@ export const USER_ERROR_CONFIGS = {
     code: UserErrorCode.INVALID_USER_TYPE,
     details: { type },
   }),
+
+  duplicateKeycloakId: (keycloakId: string): ConflictErrorConfig => ({
+    message: 'User with this Keycloak ID already exists',
+    code: UserErrorCode.DUPLICATE_KEYCLOAK_ID,
+    details: { keycloakId },
+  }),
 } as const;

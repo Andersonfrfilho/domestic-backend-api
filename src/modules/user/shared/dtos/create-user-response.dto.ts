@@ -9,67 +9,27 @@ export class CreateUserResponseDto {
   id: string;
 
   @ApiProperty({
-    description: 'The name of the user',
-    example: faker.person.firstName(),
+    description: 'The Keycloak ID linked to this user',
+    example: faker.string.uuid(),
+    nullable: true,
   })
-  name: string;
+  keycloakId: string | null;
 
   @ApiProperty({
-    description: 'The last name of the user',
-    example: faker.person.lastName(),
+    description: 'The full name of the user',
+    example: faker.person.fullName(),
   })
-  lastName: string;
-  @ApiProperty({
-    description: 'The CPF of the user',
-    example: faker.string.numeric(11),
-  })
-  cpf: string;
+  fullName: string;
 
   @ApiProperty({
-    description: 'The RG of the user',
-    example: faker.string.numeric(9),
+    description: 'The status of the user account',
+    example: 'PENDING',
   })
-  rg: string;
-
-  @ApiProperty({
-    description: 'The email of the user',
-    example: faker.internet.email(),
-  })
-  email: string;
-
-  @ApiProperty({
-    description: 'The gender of the user',
-    example: faker.person.gender(),
-  })
-  gender: string;
-
-  @ApiProperty({
-    description: 'The details of the user',
-    example: { hobby: 'reading', favoriteColor: 'blue' },
-  })
-  details: Record<string, unknown>;
-
-  @ApiProperty({
-    description: 'The birth date of the user',
-    example: faker.date.past().toISOString(),
-  })
-  birthDate: Date;
+  status: string;
 
   @ApiProperty({
     description: 'The creation date of the user',
     example: faker.date.past().toISOString(),
   })
   createdAt: Date;
-
-  @ApiProperty({
-    description: 'The last update date of the user',
-    example: faker.date.recent().toISOString(),
-  })
-  updatedAt: Date | null;
-
-  @ApiProperty({
-    description: 'The deletion date of the user',
-    example: null,
-  })
-  deletedAt: Date | null;
 }
