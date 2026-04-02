@@ -11,6 +11,12 @@ services:
     container_name: ${PROJECT_NAME}_api
     environment:
       - NODE_ENV=development
+      - DATABASE_POSTGRES_HOST=database_postgres
+      - DATABASE_MONGO_HOST=database_mongo
+      - MONGO_URI=mongodb://database_mongo:27017/backend_database_mongo
+      - CACHE_REDIS_HOST=cache_redis
+      - QUEUE_RABBITMQ_HOST=queue_rabbitmq
+      - KEYCLOAK_BASE_URL=http://keycloak:8080
     env_file:
       - .env
     ports:
