@@ -8,9 +8,26 @@ describe('AuthLoginSessionUseCase - Unit Tests', () => {
   let useCase: AuthLoginSessionUseCase;
   let testPassword: string;
 
+  let mockKeycloakClient: any;
+  let mockRequestContext: any;
+
   beforeEach(() => {
     // Arrange: Setup use case instance
-    useCase = new AuthLoginSessionUseCase();
+    mockKeycloakClient = {
+      getTokenWithCredentials: jest.fn().mockResolvedValue({
+        access_token: 'mocked-access-token',
+        refresh_token: 'mocked-refresh-token',
+      }),
+    };
+    mockRequestContext = {
+      get: jest.fn(),
+    };
+    useCase = new AuthLoginSessionUseCase(mockKeycloakClient, mockRequestContext);
+    // Mock logger provider to prevent errors
+    (useCase as any).loggerProvider = {
+      info: jest.fn(),
+      error: jest.fn(),
+    };
     testPassword = faker.internet.password({ length: 12, memorable: false });
   });
 
@@ -65,7 +82,7 @@ describe('AuthLoginSessionUseCase - Unit Tests', () => {
       const result = await useCase.execute(input);
 
       // Assert
-      expect(result.accessToken).toContain(email);
+      expect(mockKeycloakClient.getTokenWithCredentials).toHaveBeenCalledWith(email, testPassword);
     });
 
     it('should return non-empty tokens', async () => {
@@ -96,7 +113,7 @@ describe('AuthLoginSessionUseCase - Unit Tests', () => {
 
         const result = await useCase.execute(input);
 
-        expect(result.accessToken).toContain(email);
+        expect(mockKeycloakClient.getTokenWithCredentials).toHaveBeenCalledWith(email, testPassword);
         expect(result.refreshToken).toBeDefined();
       }
     });

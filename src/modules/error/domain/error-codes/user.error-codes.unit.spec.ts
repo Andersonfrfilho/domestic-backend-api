@@ -30,19 +30,29 @@ describe('UserErrorCode - Unit Tests', () => {
     it('should have EMAIL_NOT_VERIFIED error code', () => {
       expect(UserErrorCode.EMAIL_NOT_VERIFIED).toBe('EMAIL_NOT_VERIFIED');
     });
+
+    it('should have DUPLICATE_KEYCLOAK_ID error code', () => {
+      expect(UserErrorCode.DUPLICATE_KEYCLOAK_ID).toBe('DUPLICATE_KEYCLOAK_ID');
+    });
+
+    it('should have INVALID_USER_TYPE error code', () => {
+      expect(UserErrorCode.INVALID_USER_TYPE).toBe('INVALID_USER_TYPE');
+    });
   });
 
   describe('enum structure', () => {
     it('should have all expected error codes', () => {
       const codes = Object.values(UserErrorCode);
-      expect(codes).toHaveLength(7);
+      expect(codes).toHaveLength(9);
       expect(codes).toContain('DUPLICATE_EMAIL');
       expect(codes).toContain('DUPLICATE_CPF');
       expect(codes).toContain('DUPLICATE_RG');
+      expect(codes).toContain('DUPLICATE_KEYCLOAK_ID');
       expect(codes).toContain('USER_NOT_FOUND');
       expect(codes).toContain('INVALID_PASSWORD');
       expect(codes).toContain('ACCOUNT_DISABLED');
       expect(codes).toContain('EMAIL_NOT_VERIFIED');
+      expect(codes).toContain('INVALID_USER_TYPE');
     });
   });
 });

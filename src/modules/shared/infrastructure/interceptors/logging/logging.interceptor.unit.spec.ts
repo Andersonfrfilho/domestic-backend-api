@@ -36,6 +36,8 @@ function createMockContext(request: Request): ExecutionContext {
     switchToHttp: () => ({
       getRequest: () => request,
     }),
+    getClass: () => ({ name: 'TestController' }),
+    getHandler: () => ({ name: 'testMethod' }),
   } as unknown as ExecutionContext;
 }
 

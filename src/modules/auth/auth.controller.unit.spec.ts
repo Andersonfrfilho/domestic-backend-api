@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { AuthLoginSessionServiceInterface } from '@modules/auth/domain/auth.login-session.interface';
 import { AuthLoginSessionRequestDto } from '@modules/auth/shared/dtos';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './infrastructure/auth.controller';
+import { AuthController } from './auth.controller';
 import { AUTH_LOGIN_SESSION_SERVICE_PROVIDE } from './infrastructure/auth.token';
+import { MockApiClientService } from './application/mock-api-client.service';
 
 // Helper function to generate fake JWT-like tokens for testing
 const generateFakeJWT = () => {
@@ -42,6 +43,14 @@ describe('AuthController - Unit Tests', () => {
         {
           provide: AUTH_LOGIN_SESSION_SERVICE_PROVIDE,
           useValue: mockService,
+        },
+        {
+          provide: MockApiClientService,
+          useValue: {
+            getPosts: jest.fn(),
+            getPost: jest.fn(),
+            createPost: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -182,6 +191,14 @@ describe('AuthController - Unit Tests', () => {
                   refreshToken: 'mocked-refresh-token',
                 }),
               ),
+            },
+          },
+          {
+            provide: MockApiClientService,
+            useValue: {
+              getPosts: jest.fn(),
+              getPost: jest.fn(),
+              createPost: jest.fn(),
             },
           },
         ],

@@ -4,12 +4,18 @@ import { UserController } from './user.controller';
 describe('UserController - Unit Tests', () => {
   let controller: UserController;
   let mockUserService: any;
+  let mockCacheProvider: any;
 
   beforeEach(() => {
     mockUserService = {
       createUser: jest.fn(),
     };
-    controller = new UserController(mockUserService);
+    mockCacheProvider = {
+      del: jest.fn(),
+      getDecrypted: jest.fn(),
+      setEncrypted: jest.fn(),
+    };
+    controller = new UserController(mockUserService, mockCacheProvider);
   });
 
   describe('create user endpoint', () => {

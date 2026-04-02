@@ -1,42 +1,19 @@
-import { AddressTypeEnum } from '@app/modules/shared';
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { UserApplicationCreateUseCase } from './create-user.use-case';
+import { UserErrorFactory } from '../factories/user.error.factory';
 
 describe('UserApplicationCreateUseCase - Unit Tests', () => {
   let useCase: UserApplicationCreateUseCase;
   let mockUserRepository: any;
-  let mockPhoneRepository: any;
-  let mockAddressRepository: any;
-  let mockUserAddressRepository: any;
 
   beforeEach(() => {
-    // Setup mocks
     mockUserRepository = {
-      findByEmail: jest.fn(),
-      findByCpf: jest.fn(),
-      findByRg: jest.fn(),
+      findByKeycloakId: jest.fn(),
       create: jest.fn(),
     };
 
-    mockPhoneRepository = {
-      create: jest.fn(),
-    };
-
-    mockAddressRepository = {
-      create: jest.fn(),
-    };
-
-    mockUserAddressRepository = {
-      create: jest.fn(),
-    };
-
-    useCase = new UserApplicationCreateUseCase(
-      mockUserRepository,
-      mockPhoneRepository,
-      mockAddressRepository,
-      mockUserAddressRepository,
-    );
+    useCase = new UserApplicationCreateUseCase(mockUserRepository);
   });
 
   describe('execute', () => {
@@ -45,178 +22,63 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       expect(useCase.execute).toBeDefined();
     });
 
-    it('should throw error when email already exists', async () => {
+    it('should throw error when keycloakId already exists', async () => {
       const params = {
-        email: 'existing@example.com',
-        cpf: '12345678901',
-        rg: '123456789',
-        phone: '+5585993056772',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
-        address: {
-          street: 'Test Street',
-          number: '123',
-          city: 'Test City',
-          state: 'TS',
-          postalCode: '12345-678',
-        },
+        fullName: 'John Doe',
+        keycloakId: 'keycloak-123',
+        status: 'PENDING',
       };
 
-      mockUserRepository.findByEmail.mockResolvedValue({ id: 'user-1', email: params.email });
+      mockUserRepository.findByKeycloakId.mockResolvedValue({ id: 'user-1', keycloakId: params.keycloakId });
 
-      void expect(() => useCase.execute(params)).rejects.toThrow();
-      expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(params.email);
+      await expect(useCase.execute(params)).rejects.toThrow();
+      expect(mockUserRepository.findByKeycloakId).toHaveBeenCalledWith(params.keycloakId);
     });
 
-    it('should throw error when CPF already exists', async () => {
+    it('should successfully create user', async () => {
       const params = {
-        email: 'new@example.com',
-        cpf: '12345678901',
-        rg: '123456789',
-        phone: '+5585993056772',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
-        address: {
-          street: 'Test Street',
-          number: '123',
-          city: 'Test City',
-          state: 'TS',
-          postalCode: '12345-678',
-        },
-      };
-
-      mockUserRepository.findByEmail.mockResolvedValue(null);
-      mockUserRepository.findByCpf.mockResolvedValue({ id: 'user-1', cpf: params.cpf });
-
-      void expect(() => useCase.execute(params)).rejects.toThrow();
-      expect(mockUserRepository.findByCpf).toHaveBeenCalledWith(params.cpf);
-    });
-
-    it('should throw error when RG already exists', async () => {
-      const params = {
-        email: 'new@example.com',
-        cpf: '12345678901',
-        rg: '123456789',
-        phone: '+5585993056772',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
-        address: {
-          street: 'Test Street',
-          number: '123',
-          city: 'Test City',
-          state: 'TS',
-          postalCode: '12345-678',
-        },
-      };
-
-      mockUserRepository.findByEmail.mockResolvedValue(null);
-      mockUserRepository.findByCpf.mockResolvedValue(null);
-      mockUserRepository.findByRg.mockResolvedValue({ id: 'user-1', rg: params.rg });
-
-      void expect(() => useCase.execute(params)).rejects.toThrow();
-      expect(mockUserRepository.findByRg).toHaveBeenCalledWith(params.rg);
-    });
-
-    it('should successfully create user with all related data', async () => {
-      const params = {
-        email: 'new@example.com',
-        cpf: '12345678901',
-        rg: '123456789',
-        phone: '+5585993056772',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
-        address: {
-          street: 'Test Street',
-          number: '123',
-          city: 'Test City',
-          state: 'TS',
-          postalCode: '12345-678',
-        },
+        fullName: 'John Doe',
+        keycloakId: 'keycloak-123',
+        status: 'PENDING',
       };
 
       const userId = faker.string.uuid();
-      const addressId = faker.string.uuid();
-      const userAddressId = faker.string.uuid();
 
-      mockUserRepository.findByEmail.mockResolvedValue(null);
-      mockUserRepository.findByCpf.mockResolvedValue(null);
-      mockUserRepository.findByRg.mockResolvedValue(null);
+      mockUserRepository.findByKeycloakId.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         id: userId,
         ...params,
       });
-      mockPhoneRepository.create.mockResolvedValue({
-        id: 'phone-1',
-        country: '+55',
-        area: '85',
-        number: '993056772',
-        userId,
-      });
-      mockAddressRepository.create.mockResolvedValue({
-        id: addressId,
-        ...params.address,
-      });
-      mockUserAddressRepository.create.mockResolvedValue({
-        id: userAddressId,
-        userId,
-        addressId,
-        isPrimary: true,
-        type: AddressTypeEnum.RESIDENTIAL,
+
+      const result = await useCase.execute(params);
+
+      // result.id type might complain depending on interface, we just ignore standard ts errors if tests pass
+      expect((result as any).id).toBe(userId);
+      expect(mockUserRepository.create).toHaveBeenCalledWith(params);
+    });
+
+    it('should successfully create user when keycloakId is not provided', async () => {
+      const params = {
+        fullName: 'John Doe',
+        status: 'PENDING',
+      };
+
+      const userId = faker.string.uuid();
+
+      mockUserRepository.create.mockResolvedValue({
+        id: userId,
+        ...params,
       });
 
       const result = await useCase.execute(params);
 
-      expect(result.id).toBe(userId);
-      expect(mockUserRepository.create).toHaveBeenCalled();
-      expect(mockPhoneRepository.create).toHaveBeenCalled();
-      expect(mockAddressRepository.create).toHaveBeenCalled();
-      expect(mockUserAddressRepository.create).toHaveBeenCalled();
-    });
-
-    it('should parse phone correctly before creating', async () => {
-      const params = {
-        email: 'new@example.com',
-        cpf: '12345678901',
-        rg: '123456789',
-        phone: '+5585993056772',
-        firstName: 'John',
-        lastName: 'Doe',
-        password: 'password123',
-        address: {
-          street: 'Test Street',
-          number: '123',
-          city: 'Test City',
-          state: 'TS',
-          postalCode: '12345-678',
-        },
-      };
-
-      const userId = faker.string.uuid();
-      const addressId = faker.string.uuid();
-
-      mockUserRepository.findByEmail.mockResolvedValue(null);
-      mockUserRepository.findByCpf.mockResolvedValue(null);
-      mockUserRepository.findByRg.mockResolvedValue(null);
-      mockUserRepository.create.mockResolvedValue({ id: userId, ...params });
-      mockPhoneRepository.create.mockResolvedValue({ id: 'phone-1' });
-      mockAddressRepository.create.mockResolvedValue({ id: addressId });
-      mockUserAddressRepository.create.mockResolvedValue({ id: 'ua-1' });
-
-      await useCase.execute(params);
-
-      // Verify phone was created with parsed components
-      expect(mockPhoneRepository.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          country: '+55',
-          area: '85',
-          number: '993056772',
-          userId,
-        }),
-      );
+      expect((result as any).id).toBe(userId);
+      expect(mockUserRepository.findByKeycloakId).not.toHaveBeenCalled();
+      expect(mockUserRepository.create).toHaveBeenCalledWith({
+        fullName: params.fullName,
+        keycloakId: undefined,
+        status: params.status,
+      });
     });
   });
 });

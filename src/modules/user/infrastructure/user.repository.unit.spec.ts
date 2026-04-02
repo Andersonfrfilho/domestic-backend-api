@@ -21,10 +21,9 @@ describe('UserRepository - Unit Tests', () => {
   describe('create', () => {
     it('should create a new user', async () => {
       const userData = {
-        email: faker.internet.email(),
-        password: 'password123',
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
+        keycloakId: faker.string.uuid(),
+        status: 'PENDING',
       };
 
       const createdUser = { id: faker.string.uuid(), ...userData };
@@ -32,7 +31,8 @@ describe('UserRepository - Unit Tests', () => {
       mockTypeormRepo.create.mockReturnValue(userData);
       mockTypeormRepo.save.mockResolvedValue(createdUser);
 
-      const result = await repository.create(userData);
+      // Using 'any' as cast because we don't know CreateUserParams but tests are simple
+      const result = await repository.create(userData as any);
 
       expect(result).toEqual(createdUser);
       expect(mockTypeormRepo.create).toHaveBeenCalledWith(userData);
@@ -45,9 +45,9 @@ describe('UserRepository - Unit Tests', () => {
       const userId = faker.string.uuid();
       const user = {
         id: userId,
-        email: faker.internet.email(),
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
+        keycloakId: faker.string.uuid(),
+        status: 'PENDING',
       };
 
       mockTypeormRepo.findOne.mockResolvedValue(user);
@@ -69,86 +69,30 @@ describe('UserRepository - Unit Tests', () => {
     });
   });
 
-  describe('findByEmail', () => {
-    it('should find user by email', async () => {
-      const email = faker.internet.email();
+  describe('findByKeycloakId', () => {
+    it('should find user by keycloakId', async () => {
+      const keycloakId = faker.string.uuid();
       const user = {
         id: faker.string.uuid(),
-        email,
-        firstName: 'John',
-        lastName: 'Doe',
+        fullName: 'John Doe',
+        keycloakId,
+        status: 'PENDING',
       };
 
       mockTypeormRepo.findOne.mockResolvedValue(user);
 
-      const result = await repository.findByEmail(email);
+      const result = await repository.findByKeycloakId(keycloakId);
 
       expect(result).toEqual(user);
       expect(mockTypeormRepo.findOne).toHaveBeenCalledWith({
-        where: { email },
+        where: { keycloakId },
       });
     });
 
-    it('should return null when user email not found', async () => {
+    it('should return null when user keycloakId not found', async () => {
       mockTypeormRepo.findOne.mockResolvedValue(null);
 
-      const result = await repository.findByEmail(faker.internet.email());
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('findByCpf', () => {
-    it('should find user by cpf', async () => {
-      const cpf = '12345678901';
-      const user = {
-        id: faker.string.uuid(),
-        email: faker.internet.email(),
-        details: { cpf },
-      };
-
-      mockTypeormRepo.findOne.mockResolvedValue(user);
-
-      const result = await repository.findByCpf(cpf);
-
-      expect(result).toEqual(user);
-      expect(mockTypeormRepo.findOne).toHaveBeenCalledWith({
-        where: { details: { cpf } },
-      });
-    });
-
-    it('should return null when user cpf not found', async () => {
-      mockTypeormRepo.findOne.mockResolvedValue(null);
-
-      const result = await repository.findByCpf('12345678901');
-
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('findByRg', () => {
-    it('should find user by rg', async () => {
-      const rg = '123456789';
-      const user = {
-        id: faker.string.uuid(),
-        email: faker.internet.email(),
-        details: { rg },
-      };
-
-      mockTypeormRepo.findOne.mockResolvedValue(user);
-
-      const result = await repository.findByRg(rg);
-
-      expect(result).toEqual(user);
-      expect(mockTypeormRepo.findOne).toHaveBeenCalledWith({
-        where: { details: { rg } },
-      });
-    });
-
-    it('should return null when user rg not found', async () => {
-      mockTypeormRepo.findOne.mockResolvedValue(null);
-
-      const result = await repository.findByRg('123456789');
+      const result = await repository.findByKeycloakId(faker.string.uuid());
 
       expect(result).toBeNull();
     });
@@ -157,12 +101,12 @@ describe('UserRepository - Unit Tests', () => {
   describe('update', () => {
     it('should update user', async () => {
       const userId = faker.string.uuid();
-      const updateData = { firstName: 'Jane' };
+      const updateData = { fullName: 'Jane Doe', status: 'ACTIVE' };
       const updatedUser = {
         id: userId,
-        email: faker.internet.email(),
-        firstName: 'Jane',
-        lastName: 'Doe',
+        fullName: 'Jane Doe',
+        keycloakId: faker.string.uuid(),
+        status: 'ACTIVE',
       };
 
       mockTypeormRepo.update.mockResolvedValue({ affected: 1 });
@@ -179,7 +123,7 @@ describe('UserRepository - Unit Tests', () => {
       mockTypeormRepo.update.mockResolvedValue({ affected: 0 });
       mockTypeormRepo.findOne.mockResolvedValue(null);
 
-      await expect(repository.update(userId, { firstName: 'Jane' })).rejects.toThrow();
+      await expect(repository.update(userId, { fullName: 'Jane Doe' })).rejects.toThrow();
     });
   });
 

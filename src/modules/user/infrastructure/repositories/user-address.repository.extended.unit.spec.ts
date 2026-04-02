@@ -28,7 +28,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         id: 'link-1',
         userId,
         addressId,
-        type,
+        label: type,
         isPrimary,
       };
 
@@ -50,7 +50,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         id: 'link-1',
         userId,
         addressId,
-        type,
+        label: type,
         isPrimary: false,
       };
 
@@ -72,7 +72,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
           id: `link-${type}`,
           userId,
           addressId,
-          type,
+          label: type,
           isPrimary: false,
         };
 
@@ -80,7 +80,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         mockTypeormRepo.save.mockResolvedValue(linkedAddress);
 
         const result = await repository.linkUserToAddress(userId, addressId, type);
-        expect(result.type).toBe(type);
+        expect(result.label).toBe(type);
       }
     });
   });
@@ -109,57 +109,6 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
     });
   });
 
-  describe('findByUserIdAndType', () => {
-    it('should find user addresses by type', async () => {
-      const userId = 'user-1';
-      const type = 'HOME';
-      const userAddresses = [
-        {
-          id: '1',
-          userId,
-          addressId: 'addr-1',
-          type,
-          isPrimary: true,
-          address: { id: 'addr-1', city: 'São Paulo' },
-        },
-      ];
-
-      mockTypeormRepo.find.mockResolvedValue(userAddresses);
-
-      const result = await repository.findByUserIdAndType(userId, type);
-
-      expect(result).toEqual(userAddresses);
-      expect(mockTypeormRepo.find).toHaveBeenCalledWith({
-        where: { userId, type },
-        relations: ['address'],
-      });
-    });
-
-    it('should return empty array when no addresses found for type', async () => {
-      mockTypeormRepo.find.mockResolvedValue([]);
-
-      const result = await repository.findByUserIdAndType('user-1', 'NONEXISTENT');
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle different address types', async () => {
-      const types = ['HOME', 'WORK', 'BILLING', 'SHIPPING'];
-      const userId = 'user-1';
-
-      mockTypeormRepo.find.mockResolvedValue([]);
-
-      for (const type of types) {
-        await repository.findByUserIdAndType(userId, type);
-        expect(mockTypeormRepo.find).toHaveBeenCalledWith({
-          where: { userId, type },
-          relations: ['address'],
-        });
-      }
-
-      expect(mockTypeormRepo.find).toHaveBeenCalledTimes(4);
-    });
-  });
 
   describe('deleteByUserId', () => {
     it('should delete all addresses for a user', async () => {
@@ -225,7 +174,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
       const createParams = {
         userId: 'user-1',
         addressId: 'addr-1',
-        type: 'HOME',
+        label: 'HOME',
         isPrimary: true,
       };
 
@@ -249,7 +198,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         id: 'link-1',
         userId,
         addressId,
-        type: 'HOME',
+        label: 'HOME',
         isPrimary: true,
       };
 
@@ -265,9 +214,9 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
 
       // Link multiple addresses
       const addresses = [
-        { addressId: 'addr-1', type: 'HOME', isPrimary: true },
-        { addressId: 'addr-2', type: 'WORK', isPrimary: false },
-        { addressId: 'addr-3', type: 'BILLING', isPrimary: false },
+        { addressId: 'addr-1', label: 'HOME', isPrimary: true },
+        { addressId: 'addr-2', label: 'WORK', isPrimary: false },
+        { addressId: 'addr-3', label: 'BILLING', isPrimary: false },
       ];
 
       for (const addr of addresses) {
@@ -280,7 +229,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         mockTypeormRepo.create.mockReturnValue(linked);
         mockTypeormRepo.save.mockResolvedValue(linked);
 
-        await repository.linkUserToAddress(userId, addr.addressId, addr.type, addr.isPrimary);
+        await repository.linkUserToAddress(userId, addr.addressId, addr.label, addr.isPrimary);
       }
 
       expect(mockTypeormRepo.save).toHaveBeenCalledTimes(3);
@@ -294,7 +243,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         id: 'link-1',
         userId,
         addressId: 'addr-1',
-        type: 'HOME',
+        label: 'HOME',
         isPrimary: true,
       };
 
@@ -303,7 +252,7 @@ describe('UserAddressRepository - Extended Coverage - Unit Tests', () => {
         id: 'link-2',
         userId,
         addressId: 'addr-2',
-        type: 'HOME',
+        label: 'HOME',
         isPrimary: true,
       };
 
