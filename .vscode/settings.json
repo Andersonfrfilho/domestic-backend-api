@@ -46,5 +46,6 @@
     "other": true
   },
   "editor.suggest.localityBonus": true,
-  "editor.suggest.shareSuggestSelections": true
+  "editor.suggest.shareSuggestSelections": true,
+  "makefile.configureOnOpen": false
 }

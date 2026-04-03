@@ -80,11 +80,7 @@ export default tseslint.config(
   },
   {
     files: ['**/*.spec.ts', '**/*.test.ts', '**/*.unit.spec.ts', '**/*.e2e.spec.ts'],
-    languageOptions: {
-      parserOptions: {
-        project: './tsconfig.test.json',
-      },
-    },
+    // Removed languageOptions.parserOptions.project as per typescript-eslint v8 recommendation when projectService is enabled
     settings: {
       'import/resolver': {
         typescript: {
