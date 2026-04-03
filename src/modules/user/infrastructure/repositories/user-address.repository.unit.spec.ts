@@ -1,4 +1,4 @@
-import { AddressTypeEnum } from '@app/modules/shared';
+import { AddressTypeEnum } from '@modules/shared/domain/enums';
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { UserAddressRepository } from './user-address.repository';
