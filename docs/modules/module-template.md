@@ -47,14 +47,14 @@ src/modules/<module-name>/
 
 ## 2. Camadas e Responsabilidades
 
-| Camada             | Responsabilidade                                        |
-| ------------------ | ------------------------------------------------------- |
-| `application/`     | Use Cases, interfaces, tipos, fábricas de erro, DTOs    |
-| `domain/`          | Interfaces de repositório (contratos)                   |
-| `infrastructure/`  | Implementações: repositório TypeORM, controller, service |
-| `shared/`          | DTOs de request/response (Swagger + validação)          |
+| Camada            | Responsabilidade                                         |
+| ----------------- | -------------------------------------------------------- |
+| `application/`    | Use Cases, interfaces, tipos, fábricas de erro, DTOs     |
+| `domain/`         | Interfaces de repositório (contratos)                    |
+| `infrastructure/` | Implementações: repositório TypeORM, controller, service |
+| `shared/`         | DTOs de request/response (Swagger + validação)           |
 
-> **Nota:** Entidades TypeORM ficam em `src/modules/shared/domain/entities/` (compartilhadas entre módulos).
+> **Nota:** Entidades TypeORM ficam em `src/modules/shared/entities/` (compartilhadas entre módulos).
 
 ---
 
@@ -70,15 +70,15 @@ src/modules/<module-name>/
 
 ## 4. Convenções de Nomenclatura
 
-| Item              | Padrão                                          | Exemplo                          |
-| ----------------- | ----------------------------------------------- | -------------------------------- |
-| Token de DI       | `<NAME>_REPOSITORY_PROVIDE`                     | `USER_REPOSITORY_PROVIDE`        |
-| Use Case          | `<Name>Application<Action>UseCase`              | `UserApplicationCreateUseCase`   |
-| Repository Impl   | `<Name>Repository`                              | `UserRepository`                 |
-| Repository Iface  | `<Name>RepositoryInterface`                     | `UserRepositoryInterface`        |
-| Error Factory     | `<Name>ErrorFactory`                            | `UserErrorFactory`               |
-| Request DTO       | `Create<Name>RequestDto`                        | `CreateUserRequestDto`           |
-| Response DTO      | `Create<Name>ResponseDto`                       | `CreateUserResponseDto`          |
+| Item             | Padrão                             | Exemplo                        |
+| ---------------- | ---------------------------------- | ------------------------------ |
+| Token de DI      | `<NAME>_REPOSITORY_PROVIDE`        | `USER_REPOSITORY_PROVIDE`      |
+| Use Case         | `<Name>Application<Action>UseCase` | `UserApplicationCreateUseCase` |
+| Repository Impl  | `<Name>Repository`                 | `UserRepository`               |
+| Repository Iface | `<Name>RepositoryInterface`        | `UserRepositoryInterface`      |
+| Error Factory    | `<Name>ErrorFactory`               | `UserErrorFactory`             |
+| Request DTO      | `Create<Name>RequestDto`           | `CreateUserRequestDto`         |
+| Response DTO     | `Create<Name>ResponseDto`          | `CreateUserResponseDto`        |
 
 ---
 
@@ -112,11 +112,11 @@ private readonly userRepo: UserRepositoryInterface;
 Entidades TypeORM ficam centralizadas em:
 
 ```
-src/modules/shared/domain/entities/<name>.entity.ts
+src/modules/shared/entities/<name>.entity.ts
 ```
 
 Elas são registradas no DataSource em:
 
 ```
-src/modules/shared/infrastructure/providers/database/implementations/postgres/postgres.database-connection.ts
+src/modules/shared/providers/database/implementations/postgres/postgres.database-connection.ts
 ```

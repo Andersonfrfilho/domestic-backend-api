@@ -18,7 +18,7 @@
 
 **Recomendação #:** N/A (pré-existente)  
 **Status:** ✅ IMPLEMENTADO  
-**Arquivo:** `/src/modules/shared/infrastructure/middleware/security-headers.middleware.ts`
+**Arquivo:** `/src/modules/shared/middleware/security-headers.middleware.ts`
 
 ```typescript
 // Headers implementados:
@@ -40,9 +40,9 @@
 **Status:** ✅ IMPLEMENTADO  
 **Arquivos:**
 
-- `/src/modules/auth/infrastructure/guards/jwt-auth.guard.ts`
-- `/src/modules/auth/infrastructure/guards/roles.guard.ts`
-- `/src/modules/auth/infrastructure/decorators/roles.decorator.ts`
+- `/src/modules/auth/guards/jwt-auth.guard.ts`
+- `/src/modules/auth/guards/roles.guard.ts`
+- `/src/modules/auth/decorators/roles.decorator.ts`
 
 ---
 
@@ -50,7 +50,7 @@
 
 **Recomendação #:** N/A (pré-existente)  
 **Status:** ✅ IMPLEMENTADO  
-**Arquivo:** `/src/modules/shared/infrastructure/interceptors/rate-limit.interceptor.ts`
+**Arquivo:** `/src/modules/shared/interceptors/rate-limit.interceptor.ts`
 
 ```
 - 5 tentativas por 15 minutos

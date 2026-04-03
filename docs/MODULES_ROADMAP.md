@@ -732,6 +732,6 @@ src/
 ## 🔗 Referências
 
 - **DBML Schema:** `/diagramdb.dbml`
-- **Migrations:** `src/modules/shared/infrastructure/providers/database/migrations/`
+- **Migrations:** `src/modules/shared/providers/database/migrations/`
 - **Arquivo de Escopo Original:** `.agents/skills/Escopo Sol. Domestica.pdf`
 - **Arquitetura:** `docs/ARCHITECTURE.md`

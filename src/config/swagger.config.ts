@@ -1,6 +1,6 @@
 import { DocumentBuilder } from '@nestjs/swagger';
 
-import { EnvironmentProviderInterface } from './domain/interfaces/environment.interface';
+import { EnvironmentProviderInterface } from './interfaces/environment.interface';
 
 // como utilizar a classe aqui dentro sem alterar performance ?
 interface SwaggerConfigParams extends Partial<EnvironmentProviderInterface> {}

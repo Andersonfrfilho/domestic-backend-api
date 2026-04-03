@@ -23,7 +23,7 @@ A aplicação **ESTÁ PROTEGIDA CONTRA ATAQUES DE FORÇA BRUTA** com:
 
 ### 1. Rate Limit Interceptor
 
-**Arquivo:** `/src/modules/shared/infrastructure/interceptors/rate-limit.interceptor.ts`
+**Arquivo:** `/src/modules/shared/interceptors/rate-limit.interceptor.ts`
 
 ```typescript
 export interface RateLimitConfig {

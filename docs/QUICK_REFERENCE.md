@@ -62,7 +62,7 @@ npm run lint:fix
 
 ```bash
 # Criar nova migração
-npm run typeorm -- migration:create src/modules/shared/infrastructure/providers/database/migrations/CreateTableName
+npm run typeorm -- migration:create src/modules/shared/providers/database/migrations/CreateTableName
 
 # Rodar migrações
 npm run migration:run
@@ -193,7 +193,7 @@ export class TableEntity {
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TableEntity } from '../../domain/entities/table.entity';
+import { TableEntity } from '../../entities/table.entity';
 
 @Injectable()
 export class TableRepository {
@@ -236,7 +236,7 @@ export class TableRepository {
 
 ```typescript
 import { Inject, Injectable } from '@nestjs/common';
-import { TableRepository } from '../../infrastructure/persistence/table.repository';
+import { TableRepository } from '../../persistence/table.repository';
 import { TableDto } from '../dto/table.dto';
 
 @Injectable()
@@ -313,7 +313,7 @@ export class TableController {
 ```typescript
 import { Test, TestingModule } from '@nestjs/testing';
 import { TableService } from './table.service';
-import { TableRepository } from '../infrastructure/persistence/table.repository';
+import { TableRepository } from '../persistence/table.repository';
 
 describe('TableService', () => {
   let service: TableService;
@@ -712,7 +712,7 @@ describe('Integration tests', () => {
 
 - Keycloak: `keycloak-config/domestic-backend-realm.json`
 - Docker: `docker-compose.yml`
-- Migrations: `src/modules/shared/infrastructure/providers/database/migrations/`
+- Migrations: `src/modules/shared/providers/database/migrations/`
 
 **Links Úteis:**
 

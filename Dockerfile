@@ -12,8 +12,8 @@ COPY . .
 RUN npm run build
 
 # Compila migrations separadamente
-RUN npx tsc src/modules/shared/infrastructure/providers/database/migrations/*.ts \
-  --outDir dist/modules/shared/infrastructure/providers/database/migrations \
+RUN npx tsc src/modules/shared/providers/database/migrations/*.ts \
+  --outDir dist/modules/shared/providers/database/migrations \
   --module commonjs \
   --target es2020 \
   --esModuleInterop \

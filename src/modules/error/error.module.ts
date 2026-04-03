@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { FilterErrorModule } from '@modules/error/infrastructure/filters/filter.error.module';
+import { FilterErrorModule } from '@modules/error/filters/filter.error.module';
 
 @Module({
   imports: [FilterErrorModule],

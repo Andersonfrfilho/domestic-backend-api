@@ -12,7 +12,7 @@ import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 import { swaggerCustomOptions } from '@config/swagger-custom.config';
 import { swaggerConfig } from '@config/swagger.config';
 import { AppErrorFactory } from '@modules/error';
-import { docsFactory } from '@modules/shared/infrastructure/interceptors/docs';
+import { docsFactory } from '@modules/shared/docs/docs.factory';
 
 import * as tsConfig from '../tsconfig.json';
 

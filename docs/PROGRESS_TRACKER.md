@@ -308,7 +308,7 @@ Cache: ⏳ Pendente
 - DBML: `diagramdb.dbml`
 - Keycloak Config: `keycloak-config/domestic-backend-realm.json`
 - Docker: `docker-compose.yml`
-- Migrations: `src/modules/shared/infrastructure/providers/database/migrations/`
+- Migrations: `src/modules/shared/providers/database/migrations/`
 
 **Comandos Úteis:**
 

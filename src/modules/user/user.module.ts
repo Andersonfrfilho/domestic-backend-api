@@ -1,26 +1,23 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { User } from '@modules/shared/domain/entities/user.entity';
+import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { SharedModule } from '@modules/shared/shared.module';
 
-import { CONNECTIONS_NAMES } from '../shared/infrastructure/providers/database/database.constant';
+import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 
-import { UserApplicationCreateUseCase } from './application/use-cases/create-user.use-case';
-import { UserController } from './infrastructure/user.controller';
-import { UserRepository } from './infrastructure/user.repository';
-import { UserService } from './infrastructure/user.service';
+import { UserApplicationCreateUseCase } from './use-cases/create-users/create-user.use-case';
+import { UserController } from './user.controller';
+import { UserRepository } from './user.repository';
+import { UserService } from './user.service';
 import {
   USER_CREATE_USE_CASE_PROVIDE,
   USER_REPOSITORY_PROVIDE,
   USER_SERVICE_PROVIDE,
-} from './infrastructure/user.token';
+} from './user.token';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User], CONNECTIONS_NAMES.POSTGRES),
-    SharedModule,
-  ],
+  imports: [TypeOrmModule.forFeature([User], CONNECTIONS_NAMES.POSTGRES), SharedModule],
   controllers: [UserController],
   providers: [
     {
@@ -36,10 +33,6 @@ import {
       useClass: UserService,
     },
   ],
-  exports: [
-    USER_REPOSITORY_PROVIDE,
-    USER_SERVICE_PROVIDE,
-    USER_CREATE_USE_CASE_PROVIDE,
-  ],
+  exports: [USER_REPOSITORY_PROVIDE, USER_SERVICE_PROVIDE, USER_CREATE_USE_CASE_PROVIDE],
 })
 export class UserModule {}

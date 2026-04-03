@@ -61,7 +61,7 @@
   - Nota: Valida token do Keycloak e reseta senha
 - [ ] Criar erros customizados (UnauthorizedError, ForbiddenError, InvalidCredentialsError)
 
-**Arquivo:** `src/modules/auth/infrastructure/auth.controller.ts`
+**Arquivo:** `src/modules/auth/auth.controller.ts`
 
 #### 🟠 1.3 - Services
 
@@ -85,7 +85,7 @@
 - [ ] Error handling para respostas do Keycloak
 - [ ] Testes unitários
 
-**Arquivo:** `src/modules/auth/infrastructure/services/auth.infrastructure.service.ts`
+**Arquivo:** `src/modules/auth/services/auth.infrastructure.service.ts`
 
 #### 🟢 1.4 - DTOs
 
@@ -100,7 +100,7 @@
 - [ ] `CurrentUserDto` - { id, email, fullName, keycloakId, roles, groups }
 - [ ] Validações com `class-validator` e `class-transformer`
 
-**Arquivo:** `src/modules/auth/infrastructure/dtos/`
+**Arquivo:** `src/modules/auth/dtos/`
 
 #### 🟢 1.5 - Tests
 
@@ -156,8 +156,8 @@
 
 **Arquivo:**
 
-- `src/modules/user/domain/entities/user.entity.ts`
-- `src/modules/user/infrastructure/repositories/user.repository.ts`
+- `src/modules/user/entities/user.entity.ts`
+- `src/modules/user/repositories/user.repository.ts`
 
 #### 🟠 2.2 - Use Cases
 
@@ -169,7 +169,7 @@
 - [ ] `GetUserStatusUseCase` - Obter status
 - [ ] `UpdateUserStatusUseCase` - Atualizar status
 
-**Arquivo:** `src/modules/user/application/use-cases/`
+**Arquivo:** `src/modules/user/use-cases/`
 
 #### 🟠 2.3 - Controllers
 
@@ -181,7 +181,7 @@
 - [ ] `GET /users/:id/status` - Ver status
 - [ ] `PUT /users/:id/status` - Atualizar status
 
-**Arquivo:** `src/modules/user/infrastructure/user.controller.ts`
+**Arquivo:** `src/modules/user/user.controller.ts`
 
 #### 🟡 2.4 - DTOs
 
@@ -191,7 +191,7 @@
 - [ ] `UserListResponseDto` (com pagination)
 - [ ] `UpdateUserStatusDto`
 
-**Arquivo:** `src/modules/user/infrastructure/dtos/`
+**Arquivo:** `src/modules/user/dtos/`
 
 #### 🟢 2.5 - Testes
 
@@ -228,8 +228,8 @@
 
 **Arquivo:**
 
-- `src/modules/email/domain/entities/`
-- `src/modules/email/infrastructure/repositories/`
+- `src/modules/email/entities/`
+- `src/modules/email/repositories/`
 
 #### 🟠 3.2 - Use Cases
 
@@ -240,7 +240,7 @@
 - [ ] `MarkEmailAsPrimaryUseCase` - Definir primário
 - [ ] `MarkEmailAsVerifiedUseCase` - Marcar como verificado
 
-**Arquivo:** `src/modules/email/application/use-cases/`
+**Arquivo:** `src/modules/email/use-cases/`
 
 #### 🟠 3.3 - Controllers
 
@@ -251,7 +251,7 @@
 - [ ] `PUT /users/:userId/emails/:emailId/primary` - Definir primário
 - [ ] `PUT /users/:userId/emails/:emailId/verify` - Marcar verificado
 
-**Arquivo:** `src/modules/email/infrastructure/email.controller.ts`
+**Arquivo:** `src/modules/email/email.controller.ts`
 
 #### 🟡 3.4 - DTOs & Validações
 
@@ -261,7 +261,7 @@
 - [ ] Validação de email único por usuário
 - [ ] Validação de email válido (regex)
 
-**Arquivo:** `src/modules/email/infrastructure/dtos/`
+**Arquivo:** `src/modules/email/dtos/`
 
 #### 🟢 3.5 - Testes
 
@@ -288,7 +288,7 @@
 - [ ] Criar `ProviderPhoneEntity` (não faz parte deste módulo, mas compartilha estrutura)
 - [ ] Testes de schema
 
-**Arquivo:** `src/modules/phone/domain/entities/`
+**Arquivo:** `src/modules/phone/entities/`
 
 #### 🟠 4.2 - Repositories
 
@@ -301,7 +301,7 @@
   - `markAsPrimary(id)`
   - `markAsVerified(id)`
 
-**Arquivo:** `src/modules/phone/infrastructure/repositories/user-phone.repository.ts`
+**Arquivo:** `src/modules/phone/repositories/user-phone.repository.ts`
 
 #### 🟠 4.3 - Use Cases
 
@@ -313,7 +313,7 @@
 - [ ] `SendOtpUseCase` - Enviar OTP para verificação via SMS
 - [ ] `VerifyOtpUseCase` - Verificar OTP
 
-**Arquivo:** `src/modules/phone/application/use-cases/`
+**Arquivo:** `src/modules/phone/use-cases/`
 
 #### 🟠 4.4 - Controllers
 
@@ -326,7 +326,7 @@
 - [ ] `POST /users/:userId/phones/:phoneId/send-otp` - Enviar OTP
 - [ ] `POST /users/:userId/phones/:phoneId/verify-otp` - Verificar OTP
 
-**Arquivo:** `src/modules/phone/infrastructure/phone.controller.ts`
+**Arquivo:** `src/modules/phone/phone.controller.ts`
 
 #### 🟡 4.5 - DTOs
 
@@ -335,7 +335,7 @@
 - [ ] `VerifyOtpDto` - { code }
 - [ ] Validação de formato de telefone
 
-**Arquivo:** `src/modules/phone/infrastructure/dtos/`
+**Arquivo:** `src/modules/phone/dtos/`
 
 #### 🟢 4.6 - Testes
 
@@ -360,7 +360,7 @@
 - [ ] Criar `UserAddressEntity` (M2M) com `type` (RESIDENTIAL, COMMERCIAL, etc)
 - [ ] Criar índices para busca por localização
 
-**Arquivo:** `src/modules/address/domain/entities/`
+**Arquivo:** `src/modules/address/entities/`
 
 #### 🟠 5.2 - Repositories
 
@@ -373,7 +373,7 @@
   - `delete(id)`
   - `markAsPrimary(id)`
 
-**Arquivo:** `src/modules/address/infrastructure/repositories/user-address.repository.ts`
+**Arquivo:** `src/modules/address/repositories/user-address.repository.ts`
 
 #### 🟠 5.3 - Use Cases
 
@@ -384,7 +384,7 @@
 - [ ] `MarkAddressAsPrimaryUseCase`
 - [ ] `FindNearbyAddressesUseCase` - Busca por localização
 
-**Arquivo:** `src/modules/address/application/use-cases/`
+**Arquivo:** `src/modules/address/use-cases/`
 
 #### 🟠 5.4 - Controllers
 
@@ -397,7 +397,7 @@
 - [ ] `GET /users/:userId/addresses/:addressId/verify` - Solicitar verificação
 - [ ] `PUT /users/:userId/addresses/:addressId/verify` - Marcar verificado
 
-**Arquivo:** `src/modules/address/infrastructure/address.controller.ts`
+**Arquivo:** `src/modules/address/address.controller.ts`
 
 #### 🟡 5.5 - DTOs
 
@@ -407,7 +407,7 @@
 - [ ] Validação de coordenadas
 - [ ] Geocoding integration (opcional)
 
-**Arquivo:** `src/modules/address/infrastructure/dtos/`
+**Arquivo:** `src/modules/address/dtos/`
 
 #### 🟢 5.6 - Testes
 
@@ -435,7 +435,7 @@
   - `isAvailable` (boolean)
 - [ ] Criar índices
 
-**Arquivo:** `src/modules/provider/domain/entities/provider-profile.entity.ts`
+**Arquivo:** `src/modules/provider/entities/provider-profile.entity.ts`
 
 #### 🟠 6.2 - Repositories
 
@@ -449,7 +449,7 @@
   - `findAvailable()` - Prestadores disponíveis
   - `updateRating(providerId, newRating)`
 
-**Arquivo:** `src/modules/provider/infrastructure/repositories/provider-profile.repository.ts`
+**Arquivo:** `src/modules/provider/repositories/provider-profile.repository.ts`
 
 #### 🟠 6.3 - Use Cases
 
@@ -462,7 +462,7 @@
 - [ ] `UpdateProviderAvailabilityUseCase`
 - [ ] `SearchProvidersByServiceUseCase`
 
-**Arquivo:** `src/modules/provider/application/use-cases/`
+**Arquivo:** `src/modules/provider/use-cases/`
 
 #### 🟠 6.4 - Controllers
 
@@ -477,7 +477,7 @@
 - [ ] `GET /providers/:id/reviews` - Listar reviews
 - [ ] `GET /providers/:id/review-stats` - Estatísticas
 
-**Arquivo:** `src/modules/provider/infrastructure/provider.controller.ts`
+**Arquivo:** `src/modules/provider/provider.controller.ts`
 
 #### 🟡 6.5 - DTOs
 
@@ -487,7 +487,7 @@
 - [ ] `ProviderListResponseDto`
 - [ ] `ProviderSearchQueryDto`
 
-**Arquivo:** `src/modules/provider/infrastructure/dtos/`
+**Arquivo:** `src/modules/provider/dtos/`
 
 #### 🟢 6.6 - Testes
 
@@ -520,8 +520,8 @@
 
 **Arquivo:**
 
-- `src/modules/category/domain/entities/category.entity.ts`
-- `src/modules/category/infrastructure/repositories/category.repository.ts`
+- `src/modules/category/entities/category.entity.ts`
+- `src/modules/category/repositories/category.repository.ts`
 
 #### 🟠 7.2 - Use Cases (simples)
 
@@ -531,7 +531,7 @@
 - [ ] `UpdateCategoryUseCase` - Admin only
 - [ ] `DeleteCategoryUseCase` - Admin only
 
-**Arquivo:** `src/modules/category/application/use-cases/`
+**Arquivo:** `src/modules/category/use-cases/`
 
 #### 🟠 7.3 - Controllers
 
@@ -542,7 +542,7 @@
 - [ ] `DELETE /categories/:id` - Deletar (admin)
 - [ ] `GET /categories/:id/services` - Serviços da categoria
 
-**Arquivo:** `src/modules/category/infrastructure/category.controller.ts`
+**Arquivo:** `src/modules/category/category.controller.ts`
 
 #### 🟡 7.4 - DTOs
 
@@ -550,7 +550,7 @@
 - [ ] `UpdateCategoryDto`
 - [ ] `CategoryResponseDto`
 
-**Arquivo:** `src/modules/category/infrastructure/dtos/`
+**Arquivo:** `src/modules/category/dtos/`
 
 #### 🟢 7.5 - Testes
 
@@ -582,8 +582,8 @@
 
 **Arquivo:**
 
-- `src/modules/service/domain/entities/service.entity.ts`
-- `src/modules/service/infrastructure/repositories/service.repository.ts`
+- `src/modules/service/entities/service.entity.ts`
+- `src/modules/service/repositories/service.repository.ts`
 
 #### 🟠 8.2 - Use Cases
 
@@ -595,7 +595,7 @@
 - [ ] `DeleteServiceUseCase` - Admin only
 - [ ] `SearchServicesUseCase` - By name
 
-**Arquivo:** `src/modules/service/application/use-cases/`
+**Arquivo:** `src/modules/service/use-cases/`
 
 #### 🟠 8.3 - Controllers
 
@@ -608,7 +608,7 @@
 - [ ] `GET /services/search?query=` - Buscar
 - [ ] `GET /services/:id/providers` - Prestadores que oferecem
 
-**Arquivo:** `src/modules/service/infrastructure/service.controller.ts`
+**Arquivo:** `src/modules/service/service.controller.ts`
 
 #### 🟡 8.4 - DTOs
 
@@ -617,7 +617,7 @@
 - [ ] `ServiceResponseDto`
 - [ ] `ServiceSearchQueryDto`
 
-**Arquivo:** `src/modules/service/infrastructure/dtos/`
+**Arquivo:** `src/modules/service/dtos/`
 
 #### 🟢 8.5 - Testes
 
@@ -649,8 +649,8 @@
 
 **Arquivo:**
 
-- `src/modules/provider-service/domain/entities/provider-service.entity.ts`
-- `src/modules/provider-service/infrastructure/repositories/provider-service.repository.ts`
+- `src/modules/provider-service/entities/provider-service.entity.ts`
+- `src/modules/provider-service/repositories/provider-service.repository.ts`
 
 #### 🟠 9.2 - Use Cases
 
@@ -660,7 +660,7 @@
 - [ ] `UpdateProviderServicePriceUseCase`
 - [ ] `GetServiceProvidersUseCase` - Prestadores que oferecem X serviço
 
-**Arquivo:** `src/modules/provider-service/application/use-cases/`
+**Arquivo:** `src/modules/provider-service/use-cases/`
 
 #### 🟠 9.3 - Controllers
 
@@ -671,7 +671,7 @@
 - [ ] `GET /providers/:providerId/services/:serviceId` - Detalhe
 - [ ] `GET /services/:serviceId/providers` - Prestadores que oferecem
 
-**Arquivo:** `src/modules/provider-service/infrastructure/provider-service.controller.ts`
+**Arquivo:** `src/modules/provider-service/provider-service.controller.ts`
 
 #### 🟡 9.4 - DTOs
 
@@ -680,7 +680,7 @@
 - [ ] `ProviderServiceResponseDto`
 - [ ] Validação de preço > 0
 
-**Arquivo:** `src/modules/provider-service/infrastructure/dtos/`
+**Arquivo:** `src/modules/provider-service/dtos/`
 
 #### 🟢 9.5 - Testes
 
@@ -714,8 +714,8 @@
 
 **Arquivo:**
 
-- `src/modules/service-request/domain/entities/service-request.entity.ts`
-- `src/modules/service-request/infrastructure/repositories/service-request.repository.ts`
+- `src/modules/service-request/entities/service-request.entity.ts`
+- `src/modules/service-request/repositories/service-request.repository.ts`
 
 #### 🟠 10.2 - Use Cases
 
@@ -729,7 +729,7 @@
 - [ ] `GetServiceRequestDetailsUseCase`
 - [ ] `UpdateServiceRequestStatusUseCase`
 
-**Arquivo:** `src/modules/service-request/application/use-cases/`
+**Arquivo:** `src/modules/service-request/use-cases/`
 
 #### 🟠 10.3 - Controllers
 
@@ -745,7 +745,7 @@
 - [ ] `POST /service-requests/:id/messages` - Adicionar mensagem
 - [ ] `GET /service-requests/:id/messages` - Listar mensagens
 
-**Arquivo:** `src/modules/service-request/infrastructure/service-request.controller.ts`
+**Arquivo:** `src/modules/service-request/service-request.controller.ts`
 
 #### 🟡 10.4 - DTOs
 
@@ -755,7 +755,7 @@
 - [ ] `ServiceRequestResponseDto`
 - [ ] Validação de datas (scheduledAt > now)
 
-**Arquivo:** `src/modules/service-request/infrastructure/dtos/`
+**Arquivo:** `src/modules/service-request/dtos/`
 
 #### 🟢 10.5 - Testes
 
@@ -789,8 +789,8 @@
 
 **Arquivo:**
 
-- `src/modules/review/domain/entities/review.entity.ts`
-- `src/modules/review/infrastructure/repositories/review.repository.ts`
+- `src/modules/review/entities/review.entity.ts`
+- `src/modules/review/repositories/review.repository.ts`
 
 #### 🟠 11.2 - Use Cases
 
@@ -801,7 +801,7 @@
 - [ ] `ListProviderReviewsUseCase` - Reviews do prestador
 - [ ] `GetProviderReviewStatsUseCase` - Stats (média, count, distribuição)
 
-**Arquivo:** `src/modules/review/application/use-cases/`
+**Arquivo:** `src/modules/review/use-cases/`
 
 #### 🟠 11.3 - Controllers
 
@@ -812,7 +812,7 @@
 - [ ] `GET /providers/:providerId/reviews` - Listar reviews do prestador
 - [ ] `GET /providers/:providerId/review-stats` - Estatísticas
 
-**Arquivo:** `src/modules/review/infrastructure/review.controller.ts`
+**Arquivo:** `src/modules/review/review.controller.ts`
 
 #### 🟡 11.4 - DTOs
 
@@ -822,7 +822,7 @@
 - [ ] `ReviewStatsDto` - { averageRating, totalReviews, distribution }
 - [ ] Validação de rating (1-5)
 
-**Arquivo:** `src/modules/review/infrastructure/dtos/`
+**Arquivo:** `src/modules/review/dtos/`
 
 #### 🟢 11.5 - Testes
 
@@ -855,8 +855,8 @@
 
 **Arquivo:**
 
-- `src/modules/document/domain/entities/document.entity.ts`
-- `src/modules/document/infrastructure/repositories/document.repository.ts`
+- `src/modules/document/entities/document.entity.ts`
+- `src/modules/document/repositories/document.repository.ts`
 
 #### 🟡 12.2 - Use Cases
 
@@ -870,7 +870,7 @@
 - [ ] `VerifyDocumentUseCase` - Admin verifica documento
 - [ ] `ListPendingDocumentsUseCase` - Admin vê pendentes
 
-**Arquivo:** `src/modules/document/application/use-cases/`
+**Arquivo:** `src/modules/document/use-cases/`
 
 #### 🟡 12.3 - Controllers
 
@@ -882,7 +882,7 @@
 - [ ] `PUT /users/:userId/documents/:id/verify` - Admin verifica
 - [ ] `GET /documents/pending` - Admin vê pendentes
 
-**Arquivo:** `src/modules/document/infrastructure/document.controller.ts`
+**Arquivo:** `src/modules/document/document.controller.ts`
 
 #### 🟡 12.4 - DTOs
 
@@ -891,7 +891,7 @@
 - [ ] `DocumentResponseDto`
 - [ ] `PendingDocumentDto`
 
-**Arquivo:** `src/modules/document/infrastructure/dtos/`
+**Arquivo:** `src/modules/document/dtos/`
 
 #### 🟢 12.5 - Services
 
@@ -901,7 +901,7 @@
   - Validar tipo MIME
   - Validar tamanho
 
-**Arquivo:** `src/modules/document/infrastructure/services/file-storage.service.ts`
+**Arquivo:** `src/modules/document/services/file-storage.service.ts`
 
 #### 🟢 12.6 - Testes
 
@@ -933,7 +933,7 @@
 - [ ] Criar templates de email (HTML)
 - [ ] Não armazenar nem gerenciar verificação de email (Keycloak faz isso)
 
-**Arquivo:** `src/modules/notification/infrastructure/services/email.service.ts`
+**Arquivo:** `src/modules/notification/services/email.service.ts`
 
 #### 🟡 N1.2 - Serviço de SMS (Twilio)
 
@@ -943,7 +943,7 @@
   - `sendStatusUpdate(phone, request)` - Atualização de status
 - [ ] Integrar com Twilio
 
-**Arquivo:** `src/modules/notification/infrastructure/services/sms.service.ts`
+**Arquivo:** `src/modules/notification/services/sms.service.ts`
 
 #### 🟡 N1.3 - Serviço de Push Notifications
 
@@ -951,7 +951,7 @@
 - [ ] Criar topics por tipo de notificação
 - [ ] Enviar notificações para app mobile
 
-**Arquivo:** `src/modules/notification/infrastructure/services/push.service.ts`
+**Arquivo:** `src/modules/notification/services/push.service.ts`
 
 #### 🟡 N1.4 - Queue de Notificações (RabbitMQ)
 
@@ -962,7 +962,7 @@
 - [ ] Retry logic para falhas
 - [ ] Dead letter queue para mensagens não processadas
 
-**Arquivo:** `src/modules/notification/infrastructure/queues/notification.consumer.ts`
+**Arquivo:** `src/modules/notification/queues/notification.consumer.ts`
 
 #### 🟡 N1.5 - Event Listeners
 
@@ -973,7 +973,7 @@
   - On `ReviewCreated` → Notificar prestador
 - [ ] Use EventEmitter do NestJS
 
-**Arquivo:** `src/modules/notification/infrastructure/listeners/`
+**Arquivo:** `src/modules/notification/listeners/`
 
 #### 🟢 N1.6 - DTOs e Testes
 
