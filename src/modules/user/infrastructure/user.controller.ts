@@ -1,17 +1,29 @@
-import { Body, Controller, Get, Inject, Injectable, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Injectable,
+  Post,
+  Put,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
 } from '@nestjs/swagger';
 
 import type { CacheProviderInterface } from '@modules/shared/infrastructure/providers/cache/cache.interface';
 import { CACHE_PROVIDER } from '@modules/shared/infrastructure/providers/cache/cache.token';
-import type { UserServiceInterface } from '@modules/user/application/interfaces/create-user.interface';
+import type { UserServiceInterface } from '@modules/user/application/interfaces/user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/infrastructure/user.token';
 import { CreateUserRequestDto } from '@modules/user/shared/dtos/create-user-request.dto';
 import { CreateUserResponseDto } from '@modules/user/shared/dtos/create-user-response.dto';
+import { UpdateUserRequestDto } from '@modules/user/shared/dtos/update-user-request.dto';
 
 @Injectable()
 @Controller('/user')
@@ -85,5 +97,63 @@ export class UserController {
       source: 'database',
       timestamp: new Date().toISOString(),
     };
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar um usuário pelo ID',
+    description: 'Retorna os detalhes de um único usuário.',
+  })
+  @ApiParam({ name: 'id', description: 'ID do usuário', type: 'string' })
+  @ApiOkResponse({ description: 'Usuário encontrado com sucesso.' })
+  @ApiBadRequestResponse()
+  async findById(@Param('id') id: string) {
+    return this.userService.findById(id);
+  }
+
+  @Get('keycloak/:keycloakId')
+  @ApiOperation({
+    summary: 'Buscar um usuário pelo Keycloak ID',
+    description: 'Retorna os detalhes de um único usuário via keycloakId.',
+  })
+  @ApiParam({ name: 'keycloakId', description: 'Keycloak ID', type: 'string' })
+  @ApiOkResponse({ description: 'Usuário encontrado com sucesso.' })
+  @ApiBadRequestResponse()
+  async findByKeycloakId(@Param('keycloakId') keycloakId: string) {
+    return this.userService.findByKeycloakId(keycloakId);
+  }
+
+  @Put(':id')
+  @ApiOperation({
+    summary: 'Atualizar um usuário',
+    description: 'Atualiza os dados de um usuário existente.',
+  })
+  @ApiParam({ name: 'id', description: 'ID do usuário', type: 'string' })
+  @ApiOkResponse({ description: 'Usuário atualizado com sucesso.' })
+  @ApiBadRequestResponse()
+  async update(@Param('id') id: string, @Body() params: UpdateUserRequestDto) {
+    try {
+      await this.cacheProvider.del('users:list');
+    } catch (error) {
+      console.error('Failed to invalidate cache:', error);
+    }
+    return this.userService.update(id, params);
+  }
+
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Deletar um usuário',
+    description: 'Deleta o usuário especificado.',
+  })
+  @ApiParam({ name: 'id', description: 'ID do usuário', type: 'string' })
+  @ApiOkResponse({ description: 'Usuário deletado com sucesso.' })
+  @ApiBadRequestResponse()
+  async delete(@Param('id') id: string) {
+    try {
+      await this.cacheProvider.del('users:list');
+    } catch (error) {
+      console.error('Failed to invalidate cache:', error);
+    }
+    return this.userService.delete(id);
   }
 }

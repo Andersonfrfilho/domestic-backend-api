@@ -1,14 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 
 import { UserErrorFactory } from '@modules/user/application/factories';
-import type { UserRepositoryInterface } from '@modules/user/domain/repositories/user.repository.interface';
-import { USER_REPOSITORY_PROVIDE } from '@modules/user/infrastructure/user.token';
-
 import type {
   UserCreateUseCaseInterface,
-  UserCreateUseCaseParams,
   UserCreateUseCaseResponse,
-} from '../interfaces/create-user.interface';
+} from '@modules/user/application/interfaces/user.interface';
+import type { UserRepositoryInterface } from '@modules/user/domain/repositories/user.repository.interface';
+import { USER_REPOSITORY_PROVIDE } from '@modules/user/infrastructure/user.token';
+import { CreateUserRequestDto } from '@modules/user/shared/dtos/create-user-request.dto';
 
 @Injectable()
 export class UserApplicationCreateUseCase implements UserCreateUseCaseInterface {
@@ -17,20 +16,16 @@ export class UserApplicationCreateUseCase implements UserCreateUseCaseInterface 
     private readonly userRepository: UserRepositoryInterface,
   ) {}
 
-  async execute(params: UserCreateUseCaseParams): Promise<UserCreateUseCaseResponse> {
+  async execute(dto: CreateUserRequestDto): Promise<UserCreateUseCaseResponse> {
     // Validate keycloak_id uniqueness if provided
-    if (params.keycloakId) {
-      const existingUser = await this.userRepository.findByKeycloakId(params.keycloakId);
+    if (dto.keycloakId) {
+      const existingUser = await this.userRepository.findByKeycloakId(dto.keycloakId);
       if (existingUser) {
-        throw UserErrorFactory.duplicateKeycloakId(params.keycloakId);
+        throw UserErrorFactory.duplicateKeycloakId(dto.keycloakId);
       }
     }
 
-    const user = await this.userRepository.create({
-      fullName: params.fullName,
-      keycloakId: params.keycloakId,
-      status: params.status,
-    });
+    const user = await this.userRepository.create(dto);
 
     return user;
   }

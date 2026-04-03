@@ -5,17 +5,18 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/infrastructure/providers/database/database.constant';
 import { User } from '@modules/shared/domain/entities/user.entity';
 import { UserErrorFactory } from '@modules/user/application/factories';
-import { CreateUserParams, UpdateUserParams } from '@modules/user/application/types';
 import { UserRepositoryInterface } from '@modules/user/domain/repositories/user.repository.interface';
+import { CreateUserRequestDto } from '@modules/user/shared/dtos/create-user-request.dto';
+import { UpdateUserRequestDto } from '@modules/user/shared/dtos/update-user-request.dto';
 
 @Injectable()
 export class UserRepository implements UserRepositoryInterface {
   constructor(
     @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
-    private typeormRepo: Repository<User>,
+    private readonly typeormRepo: Repository<User>,
   ) {}
 
-  async create(user: CreateUserParams): Promise<User> {
+  async create(user: CreateUserRequestDto): Promise<User> {
     const newUser = this.typeormRepo.create(user);
     return this.typeormRepo.save(newUser);
   }
@@ -32,7 +33,7 @@ export class UserRepository implements UserRepositoryInterface {
     });
   }
 
-  async update(id: string, user: UpdateUserParams): Promise<User> {
+  async update(id: string, user: UpdateUserRequestDto): Promise<User> {
     await this.typeormRepo.update(id, user);
     const updatedUser = await this.typeormRepo.findOne({
       where: { id },

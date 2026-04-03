@@ -29,7 +29,10 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
         status: 'PENDING',
       };
 
-      mockUserRepository.findByKeycloakId.mockResolvedValue({ id: 'user-1', keycloakId: params.keycloakId });
+      mockUserRepository.findByKeycloakId.mockResolvedValue({
+        id: 'user-1',
+        keycloakId: params.keycloakId,
+      });
 
       await expect(useCase.execute(params)).rejects.toThrow();
       expect(mockUserRepository.findByKeycloakId).toHaveBeenCalledWith(params.keycloakId);

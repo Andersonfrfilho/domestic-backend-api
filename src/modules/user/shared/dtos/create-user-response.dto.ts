@@ -9,21 +9,22 @@ export class CreateUserResponseDto {
   id: string;
 
   @ApiProperty({
-    description: 'The Keycloak ID linked to this user',
+    description: 'The full name of the user',
+    example: 'João da Silva',
+    nullable: true,
+  })
+  fullName: string | null;
+
+  @ApiProperty({
+    description: 'The keycloak ID of the user',
     example: faker.string.uuid(),
     nullable: true,
   })
   keycloakId: string | null;
 
   @ApiProperty({
-    description: 'The full name of the user',
-    example: faker.person.fullName(),
-  })
-  fullName: string;
-
-  @ApiProperty({
-    description: 'The status of the user account',
-    example: 'PENDING',
+    description: 'Inidicates the status of the user',
+    example: 'ACTIVE',
   })
   status: string;
 
