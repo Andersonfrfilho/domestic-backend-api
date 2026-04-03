@@ -72,7 +72,7 @@ goto help
 
 :help
 echo =======================================================
-echo                 Comandos Disponiveis                  
+echo                 Comandos Disponiveis
 echo =======================================================
 echo  make.bat setup-env          - Cria o .env baseado no .env.example
 echo  make.bat app                - Sobe a api principal
@@ -219,10 +219,10 @@ goto end
 call :setup_env
 docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% down
 goto end
-
+:: Aniquilar contêineres e volumes órfãos antigos que estavam ocupando portas da sua máquina local
 :force_remove
 call :setup_env
-for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=%SERVICE_NAME%"') do docker rm -f %%i
+for /f "tokens=*" %%i in ('docker ps -a -q --filter "name=%PROJECT_NAME%_"') do docker rm -f %%i
 goto end
 
 :clean_images
