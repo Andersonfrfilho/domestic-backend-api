@@ -48,12 +48,20 @@ const config: Config.InitialOptions = {
     '!**/type/**',
     // Exclude database migrations from coverage
     '!**/migrations/**',
+    // Exclude TypeORM entity files (data structures, no logic)
+    '!**/*.entity.(ts|js)',
+    // Exclude infrastructure implementations (DB connections, queues, docs)
+    '!**/providers/database/implementations/**',
+    '!**/providers/queue/**',
+    '!**/providers/log/implementations/**',
+    '!**/docs/**',
+    // Exclude token files (just Symbol declarations)
+    '!**/*.token.(ts|js)',
     // Exclude files not covered by unit tests
     '!src/main.ts',
     '!src/config/**',
     '!src/modules/shared/context/middleware/**',
     '!src/modules/shared/interceptors/docs/**',
-    '!src/modules/shared/providers/log/implementations/**',
     '!src/modules/error/app.error.factory.ts',
     '!src/modules/error/AppError.ts',
     '!src/modules/auth/exceptions.ts',

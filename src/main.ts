@@ -6,7 +6,6 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { SwaggerModule } from '@nestjs/swagger';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 
 import { swaggerCustomOptions } from '@config/swagger-custom.config';
@@ -62,7 +61,7 @@ async function bootstrap() {
       exceptionFactory: (errors) => AppErrorFactory.fromValidationErrors(errors),
     }),
   );
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+
   const environment = app.get<EnvironmentProviderInterface>(ENVIRONMENT_SERVICE_PROVIDER);
   const document = SwaggerModule.createDocument(app, swaggerConfig(environment));
   SwaggerModule.setup('docs', app, document, swaggerCustomOptions(environment));

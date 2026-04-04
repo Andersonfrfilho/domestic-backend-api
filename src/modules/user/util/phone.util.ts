@@ -12,8 +12,8 @@ export const parsePhone = (phone: string): ParsedPhone => {
   const clean = phone.replace(/\D/g, '');
 
   if (clean.length !== PHONE_TOTAL_LENGTH) {
-    //TODO:: create error factory for phone
-    //throw PhoneErrorFactory.invalidFormat(phone);
+    // TODO: replace with PhoneErrorFactory.invalidFormat once factory is created
+    throw new Error(`Invalid phone format: "${phone}"`);
   }
 
   return {

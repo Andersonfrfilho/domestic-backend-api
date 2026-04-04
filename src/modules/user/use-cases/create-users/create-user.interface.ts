@@ -22,4 +22,8 @@ export interface UserServiceResponse extends User {}
 
 export interface UserServiceInterface {
   createUser(dto: UserServiceParams): Promise<UserServiceResponse>;
+  getUserById(id: string): Promise<UserServiceResponse>;
+  getUserByKeycloakId(keycloakId: string): Promise<UserServiceResponse>;
+  updateUser(id: string, params: { fullName?: string; status?: string }): Promise<UserServiceResponse>;
+  deleteUser(id: string): Promise<void>;
 }

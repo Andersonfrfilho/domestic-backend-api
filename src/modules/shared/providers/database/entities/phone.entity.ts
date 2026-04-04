@@ -8,9 +8,6 @@ export class Phone {
   @Column({ unique: true })
   number: string;
 
-  @Column({ name: 'user_id' })
-  userId: string;
-
   @Column({ nullable: true, comment: 'MOBILE, LANDLINE, WHATSAPP' })
   type: string;
 

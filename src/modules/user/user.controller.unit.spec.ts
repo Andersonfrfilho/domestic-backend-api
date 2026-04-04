@@ -1,212 +1,118 @@
-import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UserController } from './user.controller';
 
-describe('UserController - Unit Tests', () => {
+const mockUser = {
+  id: 'user-1',
+  keycloakId: 'kc-1',
+  fullName: 'Anderson Silva',
+  status: 'ACTIVE',
+  createdAt: new Date('2024-01-01'),
+};
+
+const mockUserService = {
+  createUser: jest.fn(),
+  getUserById: jest.fn(),
+  getUserByKeycloakId: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+};
+
+const mockCacheProvider = {
+  del: jest.fn().mockResolvedValue(undefined),
+};
+
+describe('UserController', () => {
   let controller: UserController;
-  let mockUserService: any;
-  let mockCacheProvider: any;
 
   beforeEach(() => {
-    mockUserService = {
-      createUser: jest.fn(),
-    };
-    mockCacheProvider = {
-      del: jest.fn(),
-      getDecrypted: jest.fn(),
-      setEncrypted: jest.fn(),
-    };
-    controller = new UserController(mockUserService, mockCacheProvider);
+    controller = new UserController(mockUserService as any, mockCacheProvider as any);
+    jest.clearAllMocks();
+    mockCacheProvider.del.mockResolvedValue(undefined);
   });
 
-  describe('create user endpoint', () => {
-    it('should create user with valid params', async () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+  describe('POST /users — create', () => {
+    it('creates user and invalidates cache', async () => {
+      mockUserService.createUser.mockResolvedValue(mockUser);
 
-      const expectedResponse = {
-        id: 'user-1',
-        email: params.email,
-        firstName: params.firstName,
-        lastName: params.lastName,
-      };
+      const result = await controller.create({ fullName: 'Anderson Silva' } as any);
 
-      mockUserService.createUser.mockResolvedValue(expectedResponse);
-
-      const result = await controller.create(params);
-
-      expect(mockUserService.createUser).toHaveBeenCalledWith(params);
-      expect(result).toEqual(expectedResponse);
+      expect(mockUserService.createUser).toHaveBeenCalledWith({ fullName: 'Anderson Silva' });
+      expect(mockCacheProvider.del).toHaveBeenCalledWith('users:list');
+      expect(result).toEqual(mockUser);
     });
 
-    it('should call user service create method', async () => {
-      const params = {
-        email: 'user@example.com',
-        password: 'secure123',
-        firstName: 'John',
-        lastName: 'Doe',
-      };
+    it('still returns user even if cache invalidation fails', async () => {
+      mockUserService.createUser.mockResolvedValue(mockUser);
+      mockCacheProvider.del.mockRejectedValue(new Error('redis down'));
 
-      mockUserService.createUser.mockResolvedValue({ id: 'user-123' });
+      const result = await controller.create({ fullName: 'Test' } as any);
 
-      await controller.create(params);
-
-      expect(mockUserService.createUser).toHaveBeenCalledTimes(1);
-      expect(mockUserService.createUser).toHaveBeenCalledWith(params);
+      expect(result).toEqual(mockUser);
     });
 
-    it('should return created user response', async () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+    it('propagates service errors', async () => {
+      mockUserService.createUser.mockRejectedValue(new Error('conflict'));
 
-      const response = {
-        id: 'user-456',
-        email: params.email,
-        firstName: params.firstName,
-        lastName: params.lastName,
-        createdAt: '2025-12-10T10:00:00Z',
-      };
+      await expect(controller.create({ fullName: 'Test' } as any)).rejects.toThrow('conflict');
+    });
+  });
 
-      mockUserService.createUser.mockResolvedValue(response);
+  describe('GET /users/me — getMe', () => {
+    it('returns user by keycloakId from header', async () => {
+      mockUserService.getUserByKeycloakId.mockResolvedValue(mockUser);
 
-      const result = await controller.create(params);
+      const result = await controller.getMe('kc-1');
 
-      expect(result.id).toBe('user-456');
-      expect(result.email).toBe(params.email);
-      expect(result.createdAt).toBeDefined();
+      expect(mockUserService.getUserByKeycloakId).toHaveBeenCalledWith('kc-1');
+      expect(result).toEqual(mockUser);
     });
 
-    it('should propagate service errors', async () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+    it('propagates notFound from service', async () => {
+      mockUserService.getUserByKeycloakId.mockRejectedValue(new Error('not found'));
 
-      const error = new Error('Email already exists');
-      mockUserService.createUser.mockRejectedValue(error);
-
-      await expect(controller.create(params)).rejects.toThrow('Email already exists');
+      await expect(controller.getMe('unknown')).rejects.toThrow('not found');
     });
+  });
 
-    it('should handle validation errors from service', async () => {
-      const params = {
-        email: 'invalid-email',
-        password: 'password',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+  describe('GET /users/:id — findById', () => {
+    it('returns user by internal id', async () => {
+      mockUserService.getUserById.mockResolvedValue(mockUser);
 
-      const validationError = new Error('Invalid email format');
-      mockUserService.createUser.mockRejectedValue(validationError);
+      const result = await controller.findById('user-1');
 
-      await expect(controller.create(params)).rejects.toThrow('Invalid email format');
+      expect(mockUserService.getUserById).toHaveBeenCalledWith('user-1');
+      expect(result).toEqual(mockUser);
     });
+  });
 
-    it('should handle service timeouts', async () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+  describe('PUT /users/:id — update', () => {
+    it('updates and returns updated user', async () => {
+      const updated = { ...mockUser, fullName: 'Updated Name' };
+      mockUserService.updateUser.mockResolvedValue(updated);
 
-      const timeoutError = new Error('Request timeout');
-      mockUserService.createUser.mockRejectedValue(timeoutError);
+      const result = await controller.update('user-1', { fullName: 'Updated Name' } as any);
 
-      await expect(controller.create(params)).rejects.toThrow('Request timeout');
+      expect(mockUserService.updateUser).toHaveBeenCalledWith('user-1', { fullName: 'Updated Name' });
+      expect(result).toEqual(updated);
     });
+  });
 
-    it('should return promise', () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password',
-        firstName: 'Test',
-        lastName: 'User',
-      };
+  describe('DELETE /users/:id — delete', () => {
+    it('calls deleteUser and returns void', async () => {
+      mockUserService.deleteUser.mockResolvedValue(undefined);
 
-      mockUserService.createUser.mockResolvedValue({ id: 'user-1' });
+      await controller.delete('user-1');
 
-      const result = controller.create(params);
-
-      expect(result).toBeInstanceOf(Promise);
-    });
-
-    it('should handle multiple concurrent requests', async () => {
-      const param1 = {
-        email: 'user1@example.com',
-        password: 'pass1',
-        firstName: 'User1',
-        lastName: 'One',
-      };
-
-      const param2 = {
-        email: 'user2@example.com',
-        password: 'pass2',
-        firstName: 'User2',
-        lastName: 'Two',
-      };
-
-      const response1 = { id: 'user-1', email: param1.email };
-      const response2 = { id: 'user-2', email: param2.email };
-
-      mockUserService.createUser.mockResolvedValueOnce(response1).mockResolvedValueOnce(response2);
-
-      const [result1, result2] = await Promise.all([
-        controller.create(param1),
-        controller.create(param2),
-      ]);
-
-      expect(result1.id).toBe('user-1');
-      expect(result2.id).toBe('user-2');
-      expect(mockUserService.createUser).toHaveBeenCalledTimes(2);
-    });
-
-    it('should preserve all parameters from request body', async () => {
-      const params = {
-        email: 'test@example.com',
-        password: 'password123',
-        firstName: 'Test',
-        lastName: 'User',
-        phone: '123456789',
-        cpf: '12345678900',
-        rg: '123456789',
-      };
-
-      mockUserService.createUser.mockResolvedValue({ id: 'user-1' });
-
-      await controller.create(params);
-
-      expect(mockUserService.createUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: params.email,
-          password: params.password,
-          firstName: params.firstName,
-          lastName: params.lastName,
-        }),
-      );
+      expect(mockUserService.deleteUser).toHaveBeenCalledWith('user-1');
     });
   });
 
   describe('controller initialization', () => {
-    it('should inject user service', () => {
-      expect(controller['userService']).toBeDefined();
-    });
-
-    it('should have create method', () => {
+    it('should have all required methods', () => {
       expect(typeof controller.create).toBe('function');
-    });
-
-    it('should be decorated as controller', () => {
-      expect(controller).toBeDefined();
+      expect(typeof controller.getMe).toBe('function');
+      expect(typeof controller.findById).toBe('function');
+      expect(typeof controller.update).toBe('function');
+      expect(typeof controller.delete).toBe('function');
     });
   });
 });

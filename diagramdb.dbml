@@ -230,6 +230,23 @@ Table provider_verification_logs {
 }
 
 // ============================
+// NOTIFICAÇÕES (MongoDB - armazenadas no BFF)
+// ============================
+
+// Nota: esta tabela representa a coleção MongoDB gerenciada pelo BFF
+// O Backend API persiste apenas o evento via RabbitMQ
+
+Table notifications {
+  _id objectid [pk, note: "MongoDB ObjectId"]
+  user_id varchar [note: "Keycloak ID ou interno do usuário"]
+  type varchar [note: "EMAIL, PUSH, IN_APP"]
+  message text
+  read boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+}
+
+// ============================
 // DOCUMENTOS DO PRESTADOR (AUDITÁVEIS)
 // ============================
 

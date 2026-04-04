@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
+import { UserAddress } from './user-address.entity';
 
 @Entity('addresses')
 export class Address {
@@ -11,8 +13,8 @@ export class Address {
   @Column()
   number: string;
 
-  @Column({ nullable: true })
-  complement: string;
+  @Column({ type: 'varchar', nullable: true })
+  complement: string | null;
 
   @Column()
   neighborhood: string;
@@ -23,14 +25,14 @@ export class Address {
   @Column()
   state: string;
 
-  @Column({ name: 'zip_code' })
+  @Column({ name: 'zipcode' })
   zipCode: string;
 
-  @Column({ type: 'decimal', nullable: true })
-  latitude: number;
+  @Column({ type: 'decimal', nullable: true, precision: 10, scale: 8 })
+  latitude: number | null;
 
-  @Column({ type: 'decimal', nullable: true })
-  longitude: number;
+  @Column({ type: 'decimal', nullable: true, precision: 11, scale: 8 })
+  longitude: number | null;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
@@ -38,6 +40,17 @@ export class Address {
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({
+    name: 'updated_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
+
+  @Column({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt?: Date | null;
+
+  @OneToMany(() => UserAddress, (userAddress) => userAddress.address)
+  userAddresses?: UserAddress[];
 }

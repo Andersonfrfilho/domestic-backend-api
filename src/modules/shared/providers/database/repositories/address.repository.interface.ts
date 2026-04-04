@@ -2,7 +2,7 @@ import { Address } from '../entities/address.entity';
 
 export interface AddressRepositoryInterface {
   createAddress(
-    address: Omit<Address, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>,
+    address: Omit<Address, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'userAddresses'>,
   ): Promise<Address>;
   findById(id: string): Promise<Address | null>;
   findByUserId(userId: string): Promise<Address[]>;
