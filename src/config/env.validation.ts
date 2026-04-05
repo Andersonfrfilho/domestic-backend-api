@@ -75,4 +75,14 @@ export default Joi.object({
   CACHE_REDIS_HOST: Joi.string().default('localhost'),
   CACHE_REDIS_PORT: Joi.number().default(6379),
   CACHE_REDIS_PASSWORD: Joi.string().optional().allow(''),
+
+  // ============================================
+  // Storage (MinIO) Configuration
+  // ============================================
+  STORAGE_MINIO_ENDPOINT: Joi.string().default('localhost'),
+  STORAGE_MINIO_PORT: Joi.number().default(9000),
+  STORAGE_MINIO_USE_SSL: Joi.boolean().default(false),
+  STORAGE_MINIO_ACCESS_KEY: Joi.string().default('minioadmin'),
+  STORAGE_MINIO_SECRET_KEY: Joi.string().default('minioadmin'),
+  STORAGE_MINIO_BUCKET: Joi.string().default('documents'),
 });

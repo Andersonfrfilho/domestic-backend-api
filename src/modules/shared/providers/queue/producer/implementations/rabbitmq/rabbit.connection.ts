@@ -60,6 +60,15 @@ export const rabbitConnection = RabbitMQModule.forRootAsync({
           autoDelete: false,
         },
       },
+      // Exchange de domínio Zolve — eventos de negócio (provider, service-request, review)
+      {
+        name: 'zolve.events',
+        type: 'topic',
+        options: {
+          durable: true,
+          autoDelete: false,
+        },
+      },
       // 🔥 DEAD LETTER EXCHANGES - Para mensagens que falharam
       {
         name: 'notifications.dlx',
@@ -133,6 +142,20 @@ export const rabbitConnection = RabbitMQModule.forRootAsync({
       // Queue para mensagens padrão
       {
         name: 'default.queue',
+        options: {
+          durable: true,
+        },
+      },
+      // Queue para eventos de prestadores
+      {
+        name: 'provider.events',
+        options: {
+          durable: true,
+        },
+      },
+      // Queue para eventos de solicitações de serviço
+      {
+        name: 'service-request.events',
         options: {
           durable: true,
         },

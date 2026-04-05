@@ -7,7 +7,7 @@ import { User } from '@modules/shared/providers/database/entities/user.entity';
 
 import { UserErrorFactory } from './factories';
 import { CreateUserParams, UpdateUserParams } from './types';
-import { UserRepositoryInterface } from './user.repository.interface';
+import { UserRepositoryInterface, UserStats } from './user.repository.interface';
 
 @Injectable()
 export class UserRepository implements UserRepositoryInterface {
@@ -46,5 +46,22 @@ export class UserRepository implements UserRepositoryInterface {
 
   async delete(id: string): Promise<void> {
     await this.typeormRepo.delete(id);
+  }
+
+  async getStats(): Promise<UserStats> {
+    const totalUsers = await this.typeormRepo.count();
+
+    const providers = await this.typeormRepo
+      .createQueryBuilder('user')
+      .innerJoin('provider_profiles', 'pp', 'pp.user_id = user.id')
+      .getCount();
+
+    const customers = totalUsers - providers;
+
+    return {
+      totalUsers,
+      customers,
+      providers,
+    };
   }
 }

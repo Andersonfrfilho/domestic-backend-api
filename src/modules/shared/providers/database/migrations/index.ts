@@ -23,6 +23,7 @@ import ProviderVerificationLogs1763600000016 from './1763600000016-provider-veri
 import ProviderDocuments1763600000017 from './1763600000017-provider-documents';
 import UpdatePhones1763600000018 from './1763600000018-update-phones';
 import UpdateAddresses1763600000019 from './1763600000019-update-addresses';
+import AddIsActiveToCategories1763600000020 from './1763600000020-add-is-active-to-categories';
 
 export const migrations = [
   User1763256695093,
@@ -50,4 +51,7 @@ export const migrations = [
   ProviderDocuments1763600000017,
   UpdatePhones1763600000018,
   UpdateAddresses1763600000019,
+  AddIsActiveToCategories1763600000020,
 ];
+
+

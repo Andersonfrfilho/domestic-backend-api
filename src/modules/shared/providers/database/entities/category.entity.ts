@@ -13,4 +13,7 @@ export class Category {
 
   @Column({ name: 'icon_url', nullable: true })
   iconUrl: string;
+
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
 }

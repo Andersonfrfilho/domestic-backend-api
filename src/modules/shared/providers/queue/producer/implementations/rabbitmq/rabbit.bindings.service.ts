@@ -62,6 +62,12 @@ export class RabbitBindingsService implements OnModuleInit {
     // Default exchange → default queue
     await channel.bindQueue('default.queue', 'default', '#');
 
+    // Zolve events exchange → provider events queue
+    await channel.bindQueue('provider.events', 'zolve.events', 'provider.*');
+
+    // Zolve events exchange → service-request events queue
+    await channel.bindQueue('service-request.events', 'zolve.events', 'service_request.*');
+
     // Dead letter bindings
     await channel.bindQueue('email.notifications.dlq', 'notifications.dlx', '#');
     await channel.bindQueue('crm.sync.dlq', 'integration.dlx', '#');
