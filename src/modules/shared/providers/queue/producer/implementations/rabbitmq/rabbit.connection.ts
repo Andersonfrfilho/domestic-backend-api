@@ -96,98 +96,77 @@ export const rabbitConnection = RabbitMQModule.forRootAsync({
       },
     ],
 
-    // ✅ QUEUES - Declaramos todas as queues que os consumers vão usar
+    // ✅ QUEUES — declaração + bindings no mesmo passo (sem race condition)
     queues: [
-      // Queue para processamento de emails de notificação
       {
         name: 'email.notifications',
-        options: {
-          durable: true,
-          deadLetterExchange: 'notifications.dlx', // Dead letter exchange
-          messageTtl: 86400000, // 24 horas TTL
-        },
+        options: { durable: true, deadLetterExchange: 'notifications.dlx', messageTtl: 86400000 },
+        bindings: [
+          { exchange: 'notifications', routingKey: 'email.welcome' },
+          { exchange: 'notifications', routingKey: 'email.*' },
+        ],
       },
-      // Queue para eventos de auditoria
       {
         name: 'audit.events',
-        options: {
-          durable: true,
-          messageTtl: 604800000, // 7 dias TTL
-        },
+        options: { durable: true, messageTtl: 604800000 },
+        bindings: [
+          { exchange: 'audit', routingKey: 'audit.user.created' },
+          { exchange: 'audit', routingKey: 'audit.*' },
+        ],
       },
-      // Queue para sincronização com CRM
       {
         name: 'crm.sync',
-        options: {
-          durable: true,
-          deadLetterExchange: 'integration.dlx',
-        },
+        options: { durable: true, deadLetterExchange: 'integration.dlx' },
+        bindings: [
+          { exchange: 'integration', routingKey: 'integration.crm.sync' },
+          { exchange: 'integration', routingKey: 'integration.*' },
+        ],
       },
-      // Queue para análise de risco/fraude
       {
         name: 'risk.analysis',
-        options: {
-          durable: true,
-          deadLetterExchange: 'analytics.dlx',
-        },
+        options: { durable: true, deadLetterExchange: 'analytics.dlx' },
+        bindings: [
+          { exchange: 'analytics', routingKey: 'analytics.risk.analysis' },
+          { exchange: 'analytics', routingKey: 'analytics.*' },
+        ],
       },
-      // Queue para testes de saúde
       {
         name: 'health.test.queue',
-        options: {
-          durable: false,
-          autoDelete: true,
-        },
+        options: { durable: false, autoDelete: true },
+        bindings: [{ exchange: 'health', routingKey: 'health.test' }],
       },
-      // Queue para mensagens padrão
       {
         name: 'default.queue',
-        options: {
-          durable: true,
-        },
+        options: { durable: true },
+        bindings: [{ exchange: 'default', routingKey: '#' }],
       },
-      // Queue para eventos de prestadores
       {
         name: 'provider.events',
-        options: {
-          durable: true,
-        },
+        options: { durable: true },
+        bindings: [{ exchange: 'zolve.events', routingKey: 'provider.*' }],
       },
-      // Queue para eventos de solicitações de serviço
       {
         name: 'service-request.events',
-        options: {
-          durable: true,
-        },
+        options: { durable: true },
+        bindings: [{ exchange: 'zolve.events', routingKey: 'service_request.*' }],
       },
-      // 🔥 DEAD LETTER QUEUES - Para mensagens que falharam
+      // Dead letter queues
       {
         name: 'email.notifications.dlq',
-
-        options: {
-          durable: true,
-          messageTtl: 2592000000, // 30 dias para análise
-        },
+        options: { durable: true, messageTtl: 2592000000 },
+        bindings: [{ exchange: 'notifications.dlx', routingKey: '#' }],
       },
       {
         name: 'crm.sync.dlq',
-        options: {
-          durable: true,
-          messageTtl: 2592000000, // 30 dias
-        },
+        options: { durable: true, messageTtl: 2592000000 },
+        bindings: [{ exchange: 'integration.dlx', routingKey: '#' }],
       },
       {
         name: 'risk.analysis.dlq',
-        options: {
-          durable: true,
-          messageTtl: 2592000000, // 30 dias
-        },
+        options: { durable: true, messageTtl: 2592000000 },
+        bindings: [{ exchange: 'analytics.dlx', routingKey: '#' }],
       },
     ],
-
-    // ✅ NOTA: Bindings são criados via RabbitBindingsService no startup
-    // Isso é necessário porque o @golevelup/nestjs-rabbitmq não cria bindings
-    // automaticamente pela configuração - apenas via decorators @RabbitSubscribe
 
     uri: `amqp://${configService.get('QUEUE_RABBITMQ_USER')}:${configService.get('QUEUE_RABBITMQ_PASS')}@${configService.get('QUEUE_RABBITMQ_HOST')}:${configService.get('QUEUE_RABBITMQ_PORT')}`,
     connectionInitOptions: { wait: false },

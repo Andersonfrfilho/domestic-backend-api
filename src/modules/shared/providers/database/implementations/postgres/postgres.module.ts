@@ -8,6 +8,16 @@ import { DATABASE_POSTGRES_SOURCE } from '../../database.token';
 
 import PostgresDataSource from './postgres.database-connection';
 
+let initPromise: Promise<void> | null = null;
+
+function ensureInitialized(): Promise<void> {
+  if (PostgresDataSource.isInitialized) return Promise.resolve();
+  if (!initPromise) {
+    initPromise = PostgresDataSource.initialize().then(() => undefined);
+  }
+  return initPromise;
+}
+
 @Module({
   imports: [
     ConfigModule,
@@ -15,9 +25,7 @@ import PostgresDataSource from './postgres.database-connection';
       name: CONNECTIONS_NAMES.POSTGRES,
       imports: [ConfigModule],
       useFactory: async () => {
-        if (!PostgresDataSource.isInitialized) {
-          await PostgresDataSource.initialize();
-        }
+        await ensureInitialized();
         return PostgresDataSource.options;
       },
     }),
@@ -26,7 +34,8 @@ import PostgresDataSource from './postgres.database-connection';
     {
       provide: DATABASE_POSTGRES_SOURCE,
       useFactory: async () => {
-        return PostgresDataSource.initialize();
+        await ensureInitialized();
+        return PostgresDataSource;
       },
     },
   ],

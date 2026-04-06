@@ -1,0 +1,88 @@
+###############################################################################
+# docker-compose.test.yml
+# Infraestrutura isolada para testes E2E
+# Portas diferentes do dev para não conflitar
+###############################################################################
+
+services:
+
+  # ── PostgreSQL (porta 5433 para não conflitar com 5432 do dev) ──────────────
+  test_postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres1234
+      POSTGRES_DB: backend_database_test_e2e
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data   # em memória para velocidade
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── MongoDB (porta 27018) ────────────────────────────────────────────────────
+  test_mongo:
+    image: mongo:7
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo1234
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis (porta 6380) ───────────────────────────────────────────────────────
+  test_redis:
+    image: redis:7
+    ports:
+      - "6380:6379"
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── RabbitMQ (porta 5673) ────────────────────────────────────────────────────
+  test_rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: backend-api
+      RABBITMQ_DEFAULT_PASS: backendapi123
+    tmpfs:
+      - /var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # ── MinIO (porta 9010) ───────────────────────────────────────────────────────
+  test_minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9011"
+    ports:
+      - "9010:9000"
+      - "9011:9011"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10

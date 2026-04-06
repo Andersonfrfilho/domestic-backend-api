@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
 import { Readable } from 'stream';
@@ -7,6 +7,7 @@ import { StorageProviderInterface, UploadFileParams } from './storage.interface'
 
 @Injectable()
 export class MinioStorageProvider implements StorageProviderInterface, OnModuleInit {
+  private readonly logger = new Logger(MinioStorageProvider.name);
   private client: Client;
 
   constructor(private readonly configService: ConfigService) {
@@ -21,7 +22,14 @@ export class MinioStorageProvider implements StorageProviderInterface, OnModuleI
 
   async onModuleInit() {
     const bucket = this.configService.get('STORAGE_MINIO_BUCKET', 'documents');
-    await this.ensureBucket(bucket);
+    try {
+      await this.ensureBucket(bucket);
+      this.logger.log(`MinIO conectado — bucket "${bucket}" pronto`);
+    } catch (err) {
+      // MinIO indisponível não impede o boot da aplicação.
+      // Uploads falharão individualmente até o MinIO estar no ar.
+      this.logger.warn(`MinIO indisponível no startup — uploads desabilitados até reconexão: ${(err as Error).message}`);
+    }
   }
 
   async upload(params: UploadFileParams): Promise<string> {

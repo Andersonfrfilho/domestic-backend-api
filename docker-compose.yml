@@ -1,10 +1,45 @@
 services:
-  api:
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["npm", "run", "migration:run"]
+    environment:
+      - DATABASE_POSTGRES_HOST=database_postgres
+    env_file:
+      - .env
     depends_on:
       database_postgres:
         condition: service_healthy
+    restart: "no"
+
+  storage-minio:
+    image: minio/minio:latest
+    container_name: ${PROJECT_NAME}_storage-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - '${STORAGE_MINIO_HOST_PORT:-9020}:9000'
+      - '9021:9001'
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${STORAGE_MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - storage-minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
       database_mongo:
         condition: service_started
+      storage-minio:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -17,6 +52,8 @@ services:
       - CACHE_REDIS_HOST=cache_redis
       - QUEUE_RABBITMQ_HOST=queue_rabbitmq
       - KEYCLOAK_BASE_URL=http://keycloak:8080
+      - STORAGE_MINIO_ENDPOINT=storage-minio
+      - STORAGE_MINIO_PORT=9000
     env_file:
       - .env
     ports:
@@ -160,3 +197,4 @@ volumes:
   queue_rabbitmq_data:
   keycloak_data:
   database_keycloak_data:
+  storage-minio_data:

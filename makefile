@@ -95,8 +95,17 @@ sonar-scan: setup-env
 stop: setup-env
 	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) stop
 
+storage-minio: setup-env
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d storage-minio
+
+storage-minio-down: setup-env
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down storage-minio
+
+storage-minio-stop: setup-env
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) stop storage-minio
+
 down: setup-env
-	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down api database_postgres database_mongo cache_redis queue_rabbitmq keycloak database_keycloak sonarqube sonar-db
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) down --remove-orphans
 
 clean: clean-all
 
@@ -132,10 +141,8 @@ rebuild-app: setup-env
 	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d --force-recreate api
 
 all: setup-env
-	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d --remove-orphans  # Inicia todos os serviços, incluindo api e sonar
-	@echo "📦 Rodando migrations..."
-	docker exec -it $(PROJECT_NAME)_api npm run migration:run
-	@echo "✅ Projeto iniciado com sucesso!"
+	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d --remove-orphans
+	@echo "✅ Projeto iniciado com sucesso! (migrations executadas pelo serviço migrator)"
 
 setup-e2e-databases: setup-env
 	@echo "🔧 Criando bancos de dados E2E..."
@@ -159,8 +166,6 @@ test-e2e-docker: setup-env
 setup: setup-env
 	@echo "🚀 Iniciando setup completo do projeto..."
 	docker-compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE) up -d --remove-orphans
-	@echo "📦 Rodando migrations..."
-	docker exec -it $(PROJECT_NAME)_api npm run migration:run
 	@echo "✅ Setup completo! Projeto pronto para usar."
 
-.PHONY: all rebuild-app setup-env clean-all clean-images force-remove down stop app sonar-up sonar-down sonar-scan clean-safe database_postgres database_mongo queue_rabbitmq keycloak keycloak-down keycloak-stop keycloak-logs keycloak-admin setup setup-e2e-databases test-e2e-ready test-e2e-docker 
+.PHONY: all rebuild-app setup-env clean-all clean-images force-remove down stop app sonar-up sonar-down sonar-scan clean-safe database_postgres database_mongo queue_rabbitmq keycloak keycloak-down keycloak-stop keycloak-logs keycloak-admin setup setup-e2e-databases test-e2e-ready test-e2e-docker storage-minio storage-minio-down storage-minio-stop 

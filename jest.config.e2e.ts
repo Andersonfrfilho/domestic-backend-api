@@ -26,6 +26,13 @@ export default {
   rootDir: '.',
   testEnvironment: 'node',
   testRegex: String.raw`.*\.e2e\.spec\.ts$`,
+  // Quando USE_TEST_CONTAINERS=true sobe/derruba docker-compose.test.yml automaticamente
+  ...(process.env.USE_TEST_CONTAINERS === 'true'
+    ? {
+        globalSetup: '<rootDir>/test/e2e/global-setup.ts',
+        globalTeardown: '<rootDir>/test/e2e/global-teardown.ts',
+      }
+    : {}),
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },

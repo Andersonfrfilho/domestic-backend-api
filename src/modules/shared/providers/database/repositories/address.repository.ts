@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 
+import { DATABASE_POSTGRES_SOURCE } from '../database.token';
 import { Address } from '../entities/address.entity';
 
 import { AddressRepositoryInterface } from './address.repository.interface';
@@ -9,12 +10,12 @@ import { AddressRepositoryInterface } from './address.repository.interface';
 export class AddressRepository implements AddressRepositoryInterface {
   private typeormRepo: Repository<Address>;
 
-  constructor(private dataSource: DataSource) {
+  constructor(@Inject(DATABASE_POSTGRES_SOURCE) private dataSource: DataSource) {
     this.typeormRepo = this.dataSource.getRepository(Address);
   }
 
   async createAddress(
-    address: Omit<Address, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'userAddresses'>,
+    address: Omit<Address, 'id' | 'createdAt' | 'userAddresses'>,
   ): Promise<Address> {
     const newAddress = this.typeormRepo.create(address);
     return this.typeormRepo.save(newAddress);
@@ -40,12 +41,12 @@ export class AddressRepository implements AddressRepositoryInterface {
   }
 
   async updateAddress(id: string, address: Partial<Address>): Promise<Address | null> {
-    await this.typeormRepo.update(id, { ...address, updatedAt: new Date() });
+    await this.typeormRepo.update(id, address);
     return this.typeormRepo.findOne({ where: { id } });
   }
 
   async deleteAddress(id: string): Promise<void> {
-    await this.typeormRepo.softDelete(id);
+    await this.typeormRepo.delete(id);
   }
 
   async findAll(skip = 0, take = 10): Promise<[Address[], number]> {

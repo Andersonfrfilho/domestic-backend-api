@@ -1,6 +1,6 @@
 import { SwaggerCustomOptions } from '@nestjs/swagger/dist/interfaces/swagger-custom-options.interface';
 
-import { SWAGGER_CUSTOM_CSS } from '@config/constants';
+import { SWAGGER_CUSTOM_CSS_FINAL, SWAGGER_THEME_TOGGLE_JS } from '@config/constants';
 import { EnvironmentProviderInterface } from '@config/interfaces/environment.interface';
 
 interface SwaggerCustomConfigParams extends Partial<EnvironmentProviderInterface> {}
@@ -17,6 +17,8 @@ export const swaggerCustomOptions = (
     showRequestHeaders: true,
     supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
   },
-  customCss: SWAGGER_CUSTOM_CSS,
+  customCss: SWAGGER_CUSTOM_CSS_FINAL,
+  customJsStr: SWAGGER_THEME_TOGGLE_JS,
   customSiteTitle: `${environment.projectName} API Documentation`,
 });
+

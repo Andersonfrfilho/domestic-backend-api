@@ -1,15 +1,10 @@
 import { config } from 'dotenv';
 import { MongoClient } from 'mongodb';
 
-// Carregar variáveis de ambiente específicas para E2E
-config({ path: '.env.e2e' });
+// Carrega .env.e2e com override=true para garantir que sobrescreve qualquer .env já carregado
+config({ path: '.env.e2e', override: true });
 
-// Fallback para .env se .env.e2e não existir
-if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
-  config({ path: '.env' });
-}
-
-// Configurar NODE_ENV para test
+// Garantir NODE_ENV=test
 process.env.NODE_ENV = 'test';
 
 // Log de verificação
@@ -38,7 +33,7 @@ beforeAll(async () => {
 
 // Clear MongoDB collections after each test
 afterEach(async () => {
-  if (mongoClient && mongoClient.topology?.isConnected()) {
+  if (mongoClient && (mongoClient as any).topology?.isConnected()) {
     try {
       const db = mongoClient.db();
       const collections = await db.collections();

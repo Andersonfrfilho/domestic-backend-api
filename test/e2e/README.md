@@ -2,31 +2,101 @@
 
 Este diretório contém os testes end-to-end (E2E) da aplicação, organizados por módulo/controller.
 
-## � Configuração e Execução
+## Como Rodar os Testes E2E
 
-### Arquivos de Ambiente
+Existem dois modos de execução: **local** (usa os containers do dev já em execução) e **CI** (sobe infraestrutura isolada automaticamente).
 
-- **`.env.e2e`** - Configurações específicas para testes E2E
-- Banco de dados isolado: `backend_database_test_e2e`
-- Porta separada: `3334`
-- DataDog desabilitado para performance
+---
 
-### Execução
+### Modo 1 — Local (desenvolvimento)
+
+Pré-requisitos: containers do dev em execução (`make up` ou `make up-infra`).
+
+**1. Prepare o banco de testes e o bucket MinIO (apenas na primeira vez):**
 
 ```bash
-# Docker (recomendado - ambiente isolado)
-make test-e2e
+# Criar banco PostgreSQL de teste
+docker exec -it domestic-database_postgres-1 \
+  psql -U postgres -c "CREATE DATABASE backend_database_test_e2e;"
 
-# Local (desenvolvimento)
+# Rodar migrations no banco de teste
+DATABASE_POSTGRES_NAME=backend_database_test_e2e npm run migration:run
+
+# Criar bucket MinIO para documentos de teste
+docker exec -it domestic-storage_minio-1 \
+  mc mb local/documents-test
+```
+
+**2. Execute os testes:**
+
+```bash
 npm run test:e2e
 ```
 
-### Setup Automático
+O arquivo `.env.e2e` será carregado automaticamente (aponta para os serviços dev nas portas padrão).
+
+---
+
+### Modo 2 — CI (infraestrutura isolada via Docker)
+
+Não requer nenhum container em execução. O Jest sobe o `docker-compose.test.yml` antes dos testes e derruba tudo ao final.
+
+```bash
+npm run test:e2e:ci
+```
+
+Isso executa:
+1. `docker compose -f docker-compose.test.yml up -d --wait` (globalSetup)
+2. Todos os suites E2E em sequência (`--runInBand`)
+3. `docker compose -f docker-compose.test.yml down -v` (globalTeardown)
+
+Usa `.env.e2e.ci` com portas isoladas: Postgres 5433, MongoDB 27018, Redis 6380, RabbitMQ 5673, MinIO 9010.
+
+---
+
+### Executar uma suite específica
+
+```bash
+# Por módulo
+npm run test:e2e -- --testPathPattern="e2e/categories"
+npm run test:e2e -- --testPathPattern="e2e/users"
+npm run test:e2e -- --testPathPattern="e2e/documents"
+
+# Por nome de teste
+npm run test:e2e -- --testNamePattern="should return 201"
+```
+
+---
+
+### Arquivos de ambiente
+
+| Arquivo | Usado em | Aponta para |
+|---|---|---|
+| `.env.e2e` | `npm run test:e2e` | Containers dev (portas padrão) |
+| `.env.e2e.ci` | `npm run test:e2e:ci` | `docker-compose.test.yml` (portas isoladas) |
+
+---
+
+### Infraestrutura de teste (`docker-compose.test.yml`)
+
+| Serviço | Porta externa | Armazenamento |
+|---|---|---|
+| PostgreSQL | 5433 | tmpfs (memória) |
+| MongoDB | 27018 | tmpfs (memória) |
+| Redis | 6380 | tmpfs (memória) |
+| RabbitMQ | 5673 | tmpfs (memória) |
+| MinIO | 9010 | tmpfs (memória) |
+
+Todos os dados são descartados ao final — não há persistência entre execuções.
+
+---
+
+### Setup automático
 
 O arquivo `setup-e2e.ts` configura:
 
-- Carregamento do `.env.e2e`
-- Inicialização do banco de dados de teste
+- Carregamento do `.env.e2e` (ou `.env.e2e.ci` quando `USE_TEST_CONTAINERS=true`)
+- Conexão com PostgreSQL e MongoDB para health-check inicial
 - Timeouts de 30 segundos por teste
 
 ## �📚 Padrão de Qualidade: ISO/IEC 25002:2024

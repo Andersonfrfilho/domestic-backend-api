@@ -3,7 +3,11 @@ import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
 
 @Entity('notifications')
 export class Notification {
-  @ApiProperty({ example: '661f1a2b3c4d5e6f7a8b9c0d', description: 'MongoDB ObjectId' })
+  @ApiProperty({
+    type: String,
+    example: '661f1a2b3c4d5e6f7a8b9c0d',
+    description: 'MongoDB ObjectId',
+  })
   @ObjectIdColumn()
   _id: ObjectId;
 
@@ -11,7 +15,10 @@ export class Notification {
   @Column()
   message: string;
 
-  @ApiProperty({ example: 'SERVICE_REQUEST_ACCEPTED', description: 'Tipo do evento que gerou a notificação' })
+  @ApiProperty({
+    example: 'SERVICE_REQUEST_ACCEPTED',
+    description: 'Tipo do evento que gerou a notificação',
+  })
   @Column()
   type: string;
 

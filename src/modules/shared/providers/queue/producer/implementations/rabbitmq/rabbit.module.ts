@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 
 import { QUEUE_PRODUCER_PROVIDER } from '../../producer.token';
 
-import { RabbitBindingsService } from './rabbit.bindings.service';
 import { rabbitConnection } from './rabbit.connection';
 import { RabbitMQMessageProducer } from './rabbit.provider';
 
@@ -14,7 +13,6 @@ import { RabbitMQMessageProducer } from './rabbit.provider';
       provide: QUEUE_PRODUCER_PROVIDER,
       useClass: RabbitMQMessageProducer,
     },
-    RabbitBindingsService,
   ],
   exports: [QUEUE_PRODUCER_PROVIDER],
 })
