@@ -2,7 +2,8 @@
 
 > **Base URL:** `http://localhost:3333`  
 > **Versão:** todas as rotas respondem em `/v1/...` (NestJS URI versioning, `defaultVersion: '1'`)  
-> **Auth:** Kong injeta `X-User-Id` (keycloak_id do usuário autenticado). Nos curls abaixo, substitua os valores entre `< >`.
+> **Auth (B2B):** obtenha um `access_token` via Keycloak (`client_credentials`) e envie `Authorization: Bearer <token>` nas rotas protegidas.  
+> **Contexto de usuário:** rotas `.../me...` continuam exigindo `X-User-Id` (UUID do usuário no Keycloak).
 
 ---
 
@@ -10,6 +11,13 @@
 
 ```bash
 BASE="http://localhost:3333/v1"
+
+# Keycloak (B2B)
+KEYCLOAK_BASE_URL="http://localhost:8081"
+KEYCLOAK_REALM="domestic-backend"
+B2B_CLIENT_ID="domestic-backend-bff"
+B2B_CLIENT_SECRET="backend-bff-client-secret"
+ACCESS_TOKEN=""
 
 # IDs de exemplo — substitua pelos reais após criar os recursos
 USER_ID="550e8400-e29b-41d4-a716-446655440001"
@@ -39,6 +47,21 @@ Exemplo de valor válido:
 ```bash
 KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
 ```
+
+### Novo passo obrigatório: autenticação B2B para obter token
+
+```bash
+ACCESS_TOKEN=$(curl -s -X POST "$KEYCLOAK_BASE_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=$B2B_CLIENT_ID" \
+  -d "client_secret=$B2B_CLIENT_SECRET" | jq -r '.access_token')
+
+echo "$ACCESS_TOKEN" | head -c 30 && echo "..."
+```
+
+> Se retornar `null`, valide `KEYCLOAK_BASE_URL`, `KEYCLOAK_REALM`, `B2B_CLIENT_ID` e `B2B_CLIENT_SECRET`.
+> Em todas as rotas protegidas, adicione: `-H "Authorization: Bearer $ACCESS_TOKEN"`.
 
 ---
 
@@ -110,6 +133,7 @@ curl -s -X POST "http://localhost:3333/v1/users" \
 
 ```bash
 curl -s "http://localhost:3333/v1/users/me" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c92" | jq
 ```
 
@@ -193,6 +217,7 @@ curl -s -X DELETE "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211
 
 ```bash
 curl -s "http://localhost:3333/v1/users/admin/stats" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: 11111111-1111-4111-8111-111111111111" | jq
 ```
 
@@ -212,6 +237,7 @@ curl -s "http://localhost:3333/v1/users/admin/stats" \
 
 ```bash
 curl -s "http://localhost:3333/v1/users/me/addresses" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -243,6 +269,7 @@ curl -s "http://localhost:3333/v1/users/me/addresses" \
 ```bash
 curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "street": "Rua das Flores",
@@ -284,6 +311,7 @@ curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
 
 ```bash
 curl -s -X DELETE "http://localhost:3333/v1/users/me/addresses/$ADDRESS_ID" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
@@ -358,6 +386,7 @@ curl -s "http://localhost:3333/v1/categories/$CATEGORY_ID" | jq
 ```bash
 curl -s -X POST "http://localhost:3333/v1/categories" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "name": "Jardinagem",
@@ -395,6 +424,7 @@ curl -s -X POST "http://localhost:3333/v1/categories" \
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/categories/$CATEGORY_ID" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "name": "Limpeza Residencial",
@@ -420,6 +450,7 @@ curl -s -X PUT "http://localhost:3333/v1/categories/$CATEGORY_ID" \
 
 ```bash
 curl -s -X DELETE "http://localhost:3333/v1/categories/$CATEGORY_ID" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
@@ -489,6 +520,7 @@ curl -s "http://localhost:3333/v1/services/$SERVICE_ID" | jq
 ```bash
 curl -s -X POST "http://localhost:3333/v1/services" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "categoryId": "550e8400-e29b-41d4-a716-446655440003",
@@ -525,6 +557,7 @@ curl -s -X POST "http://localhost:3333/v1/services" \
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/services/$SERVICE_ID" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "name": "Limpeza Completa Premium",
@@ -613,6 +646,7 @@ curl -s "http://localhost:3333/v1/providers" | jq
 
 ```bash
 curl -s "http://localhost:3333/v1/providers/admin/pending" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -833,6 +867,7 @@ curl -s -X DELETE "http://localhost:3333/v1/providers/$PROVIDER_ID/work-location
 
 ```bash
 curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -888,6 +923,7 @@ curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" | jq
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -912,6 +948,7 @@ curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/app
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/reject" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{ "reason": "Documentos insuficientes. Envie CPF e comprovante de residência." }' | jq
 ```
@@ -939,6 +976,7 @@ curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/rej
 ```bash
 curl -s -X POST "http://localhost:3333/v1/service-requests" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "providerId": "550e8400-e29b-41d4-a716-446655440002",
@@ -984,11 +1022,13 @@ curl -s -X POST "http://localhost:3333/v1/service-requests" \
 ```bash
 # Como contratante (customer)
 curl -s "http://localhost:3333/v1/service-requests" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -H "X-User-Type: CUSTOMER" | jq
 
 # Como prestador
 curl -s "http://localhost:3333/v1/service-requests" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -H "X-User-Type: PROVIDER" | jq
 ```
@@ -1037,6 +1077,7 @@ curl -s "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID" | jq
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/accept" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1056,6 +1097,7 @@ curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/ac
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/reject" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1075,6 +1117,7 @@ curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/re
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/complete" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1104,6 +1147,7 @@ curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/co
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/cancel" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1128,6 +1172,7 @@ curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/ca
 ```bash
 curl -s -X POST "http://localhost:3333/v1/reviews" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
     "serviceRequestId": "550e8400-e29b-41d4-a716-446655440006",
@@ -1209,6 +1254,7 @@ curl -s "http://localhost:3333/v1/reviews/provider/$PROVIDER_ID" | jq
 
 ```bash
 curl -s -X POST "http://localhost:3333/v1/documents" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -F "file=@/caminho/para/documento.pdf" \
   -F "documentType=CPF" | jq
@@ -1234,6 +1280,7 @@ curl -s -X POST "http://localhost:3333/v1/documents" \
 
 ```bash
 curl -s "http://localhost:3333/v1/documents/$DOCUMENT_ID/url" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1252,6 +1299,7 @@ curl -s "http://localhost:3333/v1/documents/$DOCUMENT_ID/url" \
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/approve" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1271,6 +1319,7 @@ curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/approve" \
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/reject" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1302,6 +1351,7 @@ curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/reject" \
 
 ```bash
 curl -s "http://localhost:3333/v1/notifications" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
@@ -1327,6 +1377,7 @@ curl -s "http://localhost:3333/v1/notifications" \
 
 ```bash
 curl -s -X PUT "http://localhost:3333/v1/notifications/$NOTIFICATION_ID/read" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
@@ -1343,9 +1394,19 @@ Script que exercita o fluxo end-to-end da plataforma do cadastro até a avaliaç
 #!/bin/bash
 set -e
 BASE="http://localhost:3333/v1"
+KEYCLOAK_BASE_URL="http://localhost:8081"
+KEYCLOAK_REALM="domestic-backend"
+B2B_CLIENT_ID="domestic-backend-bff"
+B2B_CLIENT_SECRET="backend-bff-client-secret"
 ADMIN_KEYCLOAK_ID="22222222-2222-4222-8222-222222222222"
 CUSTOMER_KEYCLOAK_ID="33333333-3333-4333-8333-333333333333"
 PROVIDER_KEYCLOAK_ID="44444444-4444-4444-8444-444444444444"
+
+ACCESS_TOKEN=$(curl -s -X POST "$KEYCLOAK_BASE_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=$B2B_CLIENT_ID" \
+  -d "client_secret=$B2B_CLIENT_SECRET" | jq -r '.access_token')
 
 echo "=== 1. Criar usuário contratante ==="
 CUSTOMER=$(curl -s -X POST "http://localhost:3333/v1/users" \
@@ -1370,6 +1431,7 @@ PROVIDER_ID=$(echo $PROVIDER | jq -r '.id')
 echo "=== 4. Criar categoria ==="
 CATEGORY=$(curl -s -X POST "http://localhost:3333/v1/categories" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
   -d '{"name":"Limpeza","slug":"limpeza"}')
 CATEGORY_ID=$(echo $CATEGORY | jq -r '.id')
@@ -1377,6 +1439,7 @@ CATEGORY_ID=$(echo $CATEGORY | jq -r '.id')
 echo "=== 5. Criar serviço ==="
 SERVICE=$(curl -s -X POST "http://localhost:3333/v1/services" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
   -d "{\"categoryId\":\"$CATEGORY_ID\",\"name\":\"Limpeza Completa\"}")
 SERVICE_ID=$(echo $SERVICE | jq -r '.id')
@@ -1388,13 +1451,16 @@ curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/services" \
 
 echo "=== 7. Aprovar prestador (admin) ==="
 curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
 curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $ADMIN_KEYCLOAK_ID" | jq .
 
 echo "=== 8. Adicionar endereço ao contratante ==="
 ADDRESS=$(curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d '{"street":"Av. Paulista","number":"1000","neighborhood":"Bela Vista","city":"São Paulo","state":"SP","zipCode":"01310-100","isPrimary":true}')
 ADDRESS_ID=$(echo $ADDRESS | jq -r '.id')
@@ -1402,6 +1468,7 @@ ADDRESS_ID=$(echo $ADDRESS | jq -r '.id')
 echo "=== 9. Criar solicitação de serviço ==="
 SR=$(curl -s -X POST "http://localhost:3333/v1/service-requests" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d "{\"providerId\":\"$PROVIDER_ID\",\"serviceId\":\"$SERVICE_ID\",\"addressId\":\"$ADDRESS_ID\",\"scheduledAt\":\"2026-04-10T09:00:00.000Z\",\"priceFinal\":120.00}")
 echo $SR | jq .
@@ -1409,15 +1476,18 @@ SR_ID=$(echo $SR | jq -r '.id')
 
 echo "=== 10. Prestador aceita ==="
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/accept" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
 
 echo "=== 11. Contratante confirma conclusão ==="
 curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/complete" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" | jq .
 
 echo "=== 12. Contratante avalia prestador ==="
 curl -s -X POST "http://localhost:3333/v1/reviews" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
   -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d "{\"serviceRequestId\":\"$SR_ID\",\"rating\":5,\"comment\":\"Perfeito! Recomendo.\"}" | jq .
 
