@@ -22,6 +22,9 @@ export default class ProviderProfiles1763600000004 implements MigrationInterface
             default: 0,
           },
           { name: 'is_available', type: 'boolean', default: true },
+          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -40,9 +43,7 @@ export default class ProviderProfiles1763600000004 implements MigrationInterface
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('provider_profiles');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('user_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('user_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('provider_profiles', foreignKey);
     }

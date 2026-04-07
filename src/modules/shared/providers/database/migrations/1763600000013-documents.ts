@@ -18,6 +18,9 @@ export default class Documents1763600000013 implements MigrationInterface {
           { name: 'document_url', type: 'varchar' },
           { name: 'status', type: 'varchar' },
           { name: 'verified_at', type: 'timestamp', isNullable: true },
+          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -36,9 +39,7 @@ export default class Documents1763600000013 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('documents');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('user_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('user_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('documents', foreignKey);
     }

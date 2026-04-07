@@ -16,6 +16,9 @@ export default class Services1763600000009 implements MigrationInterface {
           { name: 'category_id', type: 'uuid' },
           { name: 'name', type: 'varchar' },
           { name: 'description', type: 'text', isNullable: true },
+          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -34,9 +37,7 @@ export default class Services1763600000009 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('services');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('category_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('category_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('services', foreignKey);
     }

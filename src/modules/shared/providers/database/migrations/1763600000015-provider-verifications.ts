@@ -32,6 +32,9 @@ export default class ProviderVerifications1763600000015 implements MigrationInte
             comment: 'ID do admin (Keycloak ou interno)',
           },
           { name: 'notes', type: 'text', isNullable: true },
+          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -50,9 +53,7 @@ export default class ProviderVerifications1763600000015 implements MigrationInte
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('provider_verifications');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('provider_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('provider_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('provider_verifications', foreignKey);
     }

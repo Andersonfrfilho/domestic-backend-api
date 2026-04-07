@@ -23,6 +23,8 @@ export default class ProviderWorkLocations1763600000014 implements MigrationInte
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
           },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,

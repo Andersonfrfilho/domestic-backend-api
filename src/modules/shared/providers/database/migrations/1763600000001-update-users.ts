@@ -14,8 +14,6 @@ export default class UpdateUsers1763600000001 implements MigrationInterface {
       'gender',
       'details',
       'birth_date',
-      'updated_at',
-      'deleted_at',
     ];
 
     for (const col of columnsToDrop) {

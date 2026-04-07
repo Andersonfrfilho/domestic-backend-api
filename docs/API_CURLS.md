@@ -110,7 +110,7 @@ curl -s -X POST "http://localhost:3333/v1/users" \
 
 ```bash
 curl -s "http://localhost:3333/v1/users/me" \
-  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91" | jq
+  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c92" | jq
 ```
 
 **Resposta esperada — 200**
@@ -140,7 +140,7 @@ curl -s "http://localhost:3333/v1/users/me" \
 ### GET /v1/users/:id — Buscar usuário por ID
 
 ```bash
-curl -s "http://localhost:3333/v1/users/$USER_ID" | jq
+curl -s "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" | jq
 ```
 
 **Resposta esperada — 200**
@@ -160,7 +160,7 @@ curl -s "http://localhost:3333/v1/users/$USER_ID" | jq
 ### PUT /v1/users/:id — Atualizar usuário
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/users/$USER_ID" \
+curl -s -X PUT "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" \
   -H "Content-Type: application/json" \
   -d '{ "fullName": "João Atualizado" }' | jq
 ```
@@ -182,7 +182,7 @@ curl -s -X PUT "http://localhost:3333/v1/users/$USER_ID" \
 ### DELETE /v1/users/:id — Deletar usuário
 
 ```bash
-curl -s -X DELETE "http://localhost:3333/v1/users/$USER_ID" -o /dev/null -w "%{http_code}\n"
+curl -s -X DELETE "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" -o /dev/null -w "%{http_code}\n"
 ```
 
 **Resposta esperada — 204** _(sem body)_

@@ -28,6 +28,8 @@ export default class ServiceRequests1763600000011 implements MigrationInterface 
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
           },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,

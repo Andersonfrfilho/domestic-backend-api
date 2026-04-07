@@ -1,24 +1,57 @@
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
+import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
 import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserRepositoryInterface } from '../../user.repository.interface';
+
+import { DELETE_USER_LOG_CONTEXT, DELETE_USER_LOG_MESSAGES } from './delete-user.constants';
 import { DeleteUserUseCaseInterface, DeleteUserUseCaseParams } from './delete-user.interface';
 
 @Injectable()
 export class DeleteUserUseCase implements DeleteUserUseCaseInterface {
+  private readonly logContext = DELETE_USER_LOG_CONTEXT;
+
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)
     private readonly userRepository: UserRepositoryInterface,
+    @Inject(LOGGER_PROVIDER)
+    private readonly logProvider: LogProviderInterface,
   ) {}
 
   async execute(params: DeleteUserUseCaseParams): Promise<void> {
+    this.logProvider.info({
+      message: DELETE_USER_LOG_MESSAGES.START_FLOW,
+      context: this.logContext,
+      meta: {
+        userId: params.id,
+      },
+    });
+
     const user = await this.userRepository.findById(params.id);
     if (!user) {
+      this.logProvider.warn({
+        message: DELETE_USER_LOG_MESSAGES.USER_NOT_FOUND,
+        context: this.logContext,
+        meta: {
+          userId: params.id,
+        },
+      });
       throw UserErrorFactory.notFound(params.id);
     }
 
     await this.userRepository.update(params.id, { status: 'DELETED' });
+
+    this.logProvider.info({
+      message: DELETE_USER_LOG_MESSAGES.USER_SOFT_DELETED,
+      context: this.logContext,
+      meta: {
+        userId: params.id,
+        previousStatus: user.status,
+        currentStatus: 'DELETED',
+      },
+    });
   }
 }

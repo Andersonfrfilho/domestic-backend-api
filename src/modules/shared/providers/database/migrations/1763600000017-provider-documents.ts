@@ -33,6 +33,9 @@ export default class ProviderDocuments1763600000017 implements MigrationInterfac
           { name: 'reviewed_at', type: 'timestamp', isNullable: true },
           { name: 'reviewed_by', type: 'uuid', isNullable: true },
           { name: 'rejection_reason', type: 'text', isNullable: true },
+          { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -51,9 +54,7 @@ export default class ProviderDocuments1763600000017 implements MigrationInterfac
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('provider_documents');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('provider_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('provider_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('provider_documents', foreignKey);
     }

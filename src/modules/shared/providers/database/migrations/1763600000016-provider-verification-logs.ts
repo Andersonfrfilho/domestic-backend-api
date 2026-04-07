@@ -33,6 +33,8 @@ export default class ProviderVerificationLogs1763600000016 implements MigrationI
             type: 'timestamp',
             default: 'CURRENT_TIMESTAMP',
           },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,
@@ -51,9 +53,7 @@ export default class ProviderVerificationLogs1763600000016 implements MigrationI
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable('provider_verification_logs');
-    const foreignKey = table?.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('verification_id') !== -1,
-    );
+    const foreignKey = table?.foreignKeys.find((fk) => fk.columnNames.includes('verification_id'));
     if (foreignKey) {
       await queryRunner.dropForeignKey('provider_verification_logs', foreignKey);
     }
