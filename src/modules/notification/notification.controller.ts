@@ -1,4 +1,4 @@
-import { Controller, Get, Headers, HttpCode, HttpStatus, Inject, Param, Put } from '@nestjs/common';
+import { Controller, Get, Headers, HttpCode, HttpStatus, Inject, Param, Put, UseGuards } from '@nestjs/common';
 import {
   ApiHeader,
   ApiNoContentResponse,
@@ -6,6 +6,9 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ROLES } from '@modules/shared/constants';
 
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
@@ -25,6 +28,8 @@ export class NotificationController {
   ) {}
 
   @Get()
+  @Roles(ROLES.NOTIFICATION.SENDER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar notificações do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: [Notification] })

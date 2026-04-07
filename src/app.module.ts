@@ -1,4 +1,3 @@
-import { KeycloakModule } from '@adatechnology/auth-keycloak';
 import { CacheModule } from '@adatechnology/cache';
 import { HttpModule } from '@adatechnology/http-client';
 import { LoggerModule, RequestContextMiddleware } from '@adatechnology/logger';
@@ -11,7 +10,6 @@ import { HealthModule } from '@modules/health/health.module';
 
 import * as tsConfig from '../tsconfig.json';
 
-import { buildKeycloakConfigFromEnv } from './config/keycloak.config';
 import { SharedModule } from './modules/shared/shared.module';
 import { UserModule } from './modules/user/user.module';
 import { CategoryModule } from './modules/category/category.module';
@@ -35,7 +33,6 @@ tsConfigPathsRegister({
     LoggerModule.forRoot({ level: process.env.LOG_LEVEL || 'info' }),
     CacheModule.forRoot({ isGlobal: true }),
     HttpModule.forRoot({}, { provide: 'HTTP_PROVIDER' }),
-    KeycloakModule.forRoot(buildKeycloakConfigFromEnv()),
     SharedModule,
     ErrorModule,
     HealthModule,

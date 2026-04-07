@@ -34,10 +34,10 @@
     "test:e2e:ci": "USE_TEST_CONTAINERS=true DOTENV_CONFIG_PATH=.env.e2e.ci jest --config jest.config.e2e.ts --runInBand"
   },
   "dependencies": {
-    "@adatechnology/auth-keycloak": "^0.0.8",
-    "@adatechnology/cache": "^0.0.7",
-    "@adatechnology/http-client": "^0.0.8",
-    "@adatechnology/logger": "^0.0.6",
+    "@adatechnology/auth-keycloak": "^0.1.0",
+    "@adatechnology/cache": "^0.0.8",
+    "@adatechnology/http-client": "^0.0.9",
+    "@adatechnology/logger": "^0.0.7",
     "@faker-js/faker": "^10.1.0",
     "@fastify/cookie": "^11.0.2",
     "@fastify/csrf-protection": "^7.1.0",

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
@@ -7,6 +7,9 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ROLES } from '@modules/shared/constants';
 
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
@@ -27,6 +30,8 @@ export class ReviewController {
   ) {}
 
   @Post()
+  @Roles(ROLES.REVIEW.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Criar avaliação de prestador (CUSTOMER)' })
   @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do contratante' })
   @ApiOkResponse({ type: Review })

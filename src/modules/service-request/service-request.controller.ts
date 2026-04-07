@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -18,6 +19,9 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ROLES } from '@modules/shared/constants';
 
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
@@ -42,6 +46,8 @@ export class ServiceRequestController {
   ) {}
 
   @Post()
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Criar solicitação de serviço (CUSTOMER)' })
   @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do contratante' })
   @ApiOkResponse({ type: ServiceRequest })
@@ -55,6 +61,8 @@ export class ServiceRequestController {
   }
 
   @Get()
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar solicitações do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiHeader({ name: 'X-User-Type', required: false, description: 'CUSTOMER | PROVIDER' })
@@ -83,6 +91,8 @@ export class ServiceRequestController {
   }
 
   @Put(':id/accept')
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Prestador aceita solicitação (PENDING → ACCEPTED)' })
   @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do prestador' })
   @ApiOkResponse({ type: ServiceRequest })
@@ -98,6 +108,8 @@ export class ServiceRequestController {
   }
 
   @Put(':id/reject')
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Prestador rejeita solicitação (PENDING → REJECTED)' })
   @ApiHeader({ name: 'X-User-Id', required: true })
@@ -114,6 +126,8 @@ export class ServiceRequestController {
   }
 
   @Put(':id/complete')
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Contratante confirma conclusão (ACCEPTED → COMPLETED)' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: ServiceRequest })
@@ -128,6 +142,8 @@ export class ServiceRequestController {
   }
 
   @Put(':id/cancel')
+  @Roles(ROLES.REQUEST.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Contratante cancela solicitação (PENDING|ACCEPTED → CANCELLED)' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: ServiceRequest })

@@ -1,3 +1,4 @@
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import {
@@ -13,6 +14,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -28,6 +30,8 @@ import {
 } from '@nestjs/swagger';
 
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
+import { ROLES } from '@modules/shared/constants';
+
 
 import { AddUserAddressRequestDto } from './use-cases/add-user-address/dtos/add-user-address-request.dto';
 import { type UserServiceInterface } from './use-cases/create-users/create-user.interface';
@@ -49,7 +53,10 @@ export class UserController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Criar usuário', description: 'Cria usuário após registro no Keycloak. Público — não requer autenticação.' })
+  @ApiOperation({
+    summary: 'Criar usuário',
+    description: 'Cria usuário após registro no Keycloak. Público — não requer autenticação.',
+  })
   @ApiCreatedResponse({ type: CreateUserResponseDto })
   @ApiBadRequestResponse({ description: 'Dados inválidos' })
   @ApiInternalServerErrorResponse()
@@ -60,7 +67,12 @@ export class UserController {
   }
 
   @Get('me')
-  @ApiOperation({ summary: 'Perfil do usuário autenticado', description: 'Retorna o usuário com base no X-User-Id injetado pelo Kong.' })
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
+  @ApiOperation({
+    summary: 'Perfil do usuário autenticado',
+    description: 'Retorna o usuário com base no X-User-Id injetado pelo Kong.',
+  })
   @ApiHeader({ name: 'X-User-Id', description: 'keycloak_id injetado pelo Kong', required: true })
   @ApiOkResponse({ type: CreateUserResponseDto })
   @ApiNotFoundResponse()
@@ -118,6 +130,8 @@ export class UserController {
   }
 
   @Get('me/addresses')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar endereços do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: [UserAddress] })
@@ -127,6 +141,8 @@ export class UserController {
   }
 
   @Post('me/addresses')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Adicionar endereço ao usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: UserAddress })
@@ -139,6 +155,8 @@ export class UserController {
   }
 
   @Delete('me/addresses/:addressId')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover endereço do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })

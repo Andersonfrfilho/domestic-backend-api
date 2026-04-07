@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -26,6 +27,9 @@ import { ProviderProfile } from '@modules/shared/providers/database/entities/pro
 import { ProviderService as ProviderServiceEntity } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
+
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ROLES } from '@modules/shared/constants';
 
 import { CreateProviderRequestDto } from './use-cases/create-provider/dtos/create-provider-request.dto';
 import { UpdateProviderRequestDto } from './use-cases/update-provider/dtos/update-provider-request.dto';
@@ -165,6 +169,8 @@ export class ProviderController {
   }
 
   @Put(':id/verification/approve')
+  @Roles(ROLES.SERVICE.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Aprovar prestador (Admin)' })
   @ApiHeader({ name: 'X-User-Id', required: true, description: 'ID do admin revisor' })
   @ApiOkResponse({ type: ProviderVerification })
@@ -178,6 +184,8 @@ export class ProviderController {
   }
 
   @Put(':id/verification/reject')
+  @Roles(ROLES.SERVICE.MANAGER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Rejeitar prestador (Admin)' })
   @ApiHeader({ name: 'X-User-Id', required: true, description: 'ID do admin revisor' })
   @ApiOkResponse({ type: ProviderVerification })

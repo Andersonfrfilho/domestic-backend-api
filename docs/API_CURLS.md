@@ -193,7 +193,7 @@ curl -s -X DELETE "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211
 
 ```bash
 curl -s "http://localhost:3333/v1/users/admin/stats" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
+  -H "X-User-Id: 11111111-1111-4111-8111-111111111111" | jq
 ```
 
 **Resposta esperada — 200**

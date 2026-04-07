@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -17,6 +18,9 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ROLES } from '@modules/shared/constants';
 
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
@@ -36,6 +40,8 @@ export class DocumentController {
   ) {}
 
   @Post()
+  @Roles(ROLES.DOCUMENT.VERIFIER)
+  @UseGuards(BearerTokenGuard, RolesGuard)
   @ApiOperation({ summary: 'Upload de documento (PROVIDER)' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiConsumes('multipart/form-data')

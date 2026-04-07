@@ -21,8 +21,8 @@
   "defaultSignatureAlgorithm": "RS256",
   "clients": [
     {
-      "clientId": "domestic-backend-api",
-      "name": "Domestic Backend API",
+      "clientId": "domestic-api",
+      "name": "Domestic API",
       "description": "Main Backend API client for the Domestic application",
       "baseUrl": "http://localhost:3000",
       "enabled": true,
@@ -75,13 +75,13 @@
       }
     },
     {
-      "clientId": "domestic-worker",
-      "name": "Domestic Worker",
+      "clientId": "domestic-backend-worker",
+      "name": "Domestic Backend Worker",
       "description": "Worker service client for background jobs",
       "enabled": true,
       "directAccessGrantsEnabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${WORKER_CLIENT_SECRET:worker-client-secret}",
+      "secret": "${BACKEND_WORKER_CLIENT_SECRET:backend-worker-client-secret}",
       "serviceAccountsEnabled": true,
       "publicClient": false,
       "protocol": "openid-connect",
@@ -113,13 +113,13 @@
       }
     },
     {
-      "clientId": "domestic-cron",
-      "name": "Domestic Cron",
+      "clientId": "domestic-backend-cron",
+      "name": "Domestic Backend Cron",
       "description": "Cron job service client",
       "enabled": true,
       "directAccessGrantsEnabled": true,
       "clientAuthenticatorType": "client-secret",
-      "secret": "${CRON_CLIENT_SECRET:cron-client-secret}",
+      "secret": "${BACKEND_CRON_CLIENT_SECRET:backend-cron-client-secret}",
       "serviceAccountsEnabled": true,
       "publicClient": false,
       "protocol": "openid-connect",
@@ -144,6 +144,59 @@
       "optionalClientScopes": [
         "offline_access",
         "microprofile-jwt"
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
+    },
+    {
+      "clientId": "domestic-backend-bff",
+      "name": "Domestic Backend BFF",
+      "description": "Backend For Frontend — valida tokens de usuário e encaminha chamadas B2B ao backend-api",
+      "enabled": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BACKEND_BFF_CLIENT_SECRET:backend-bff-client-secret}",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "redirectUris": [
+        "http://localhost:3001/*",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3001",
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "tls.client.certificate.bound.access.tokens": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "display.on.consent.screen": "false",
+        "access.token.lifespan": "3600",
+        "refresh.token.lifespan": "86400"
+      },
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "web-origins",
+        "role_list",
+        "roles",
+        "profile",
+        "email",
+        "user-profile",
+        "manage-services",
+        "manage-requests",
+        "manage-reviews",
+        "send-notifications"
+      ],
+      "optionalClientScopes": [
+        "offline_access",
+        "microprofile-jwt",
+        "address",
+        "phone"
       ],
       "access": {
         "view": true,
@@ -345,6 +398,38 @@
       ],
       "groups": [
         "support-team"
+      ]
+    },
+    {
+      "username": "service-account-domestic-backend-bff",
+      "enabled": true,
+      "serviceAccountClientId": "domestic-backend-bff",
+      "realmRoles": [
+        "user-manager",
+        "manage-requests",
+        "manage-reviews",
+        "send-notifications",
+        "document-verifier",
+        "manage-services"
+      ]
+    },
+    {
+      "username": "service-account-domestic-backend-worker",
+      "enabled": true,
+      "serviceAccountClientId": "domestic-backend-worker",
+      "realmRoles": [
+        "manage-requests",
+        "send-notifications"
+      ]
+    },
+    {
+      "username": "service-account-domestic-backend-cron",
+      "enabled": true,
+      "serviceAccountClientId": "domestic-backend-cron",
+      "realmRoles": [
+        "manage-requests",
+        "manage-reviews",
+        "send-notifications"
       ]
     }
   ],
