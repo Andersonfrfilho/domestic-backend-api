@@ -44,8 +44,8 @@ export const SWAGGER_CUSTOM_CSS_FINAL = `
   --sw-border:        #e2e8f0;
   --sw-border-focus:  #6366f1;
   --sw-text:          #0f172a;
-  --sw-text-muted:    #64748b;
-  --sw-text-subtle:   #94a3b8;
+  --sw-text-muted:    #374151;
+  --sw-text-subtle:   #6b7280;
   --sw-accent:        #6366f1;
   --sw-accent-hover:  #4f46e5;
   --sw-accent-soft:   rgba(99,102,241,0.08);
@@ -135,6 +135,41 @@ body {
   background: var(--sw-bg) !important;
 }
 
+/* ── Override global: força cor de texto em todos os elementos de texto ── */
+/* Necessário porque o swagger-ui.css injeta color:#fff e color:#aaa       */
+/* em vários seletores que não herdam do pai quando há um !important lá.  */
+.swagger-ui p,
+.swagger-ui span:not(.opblock-summary-method),
+.swagger-ui h1, .swagger-ui h2, .swagger-ui h3,
+.swagger-ui h4, .swagger-ui h5, .swagger-ui h6,
+.swagger-ui li, .swagger-ui dt, .swagger-ui dd,
+.swagger-ui label,
+.swagger-ui .info__contact,
+.swagger-ui .info__license,
+.swagger-ui .info__tos,
+.swagger-ui .info .base-url,
+.swagger-ui table.model tr td,
+.swagger-ui .model-title span,
+.swagger-ui .prop-name,
+.swagger-ui .prop-format,
+.swagger-ui .model .property,
+.swagger-ui .parameter__extension,
+.swagger-ui .errors-wrapper hgroup h4,
+.swagger-ui .errors-wrapper .errors h4,
+.swagger-ui .errors-wrapper .errors p {
+  color: var(--sw-text) !important;
+  opacity: 1 !important;
+}
+
+/* Texto secundário — levemente mais suave mas ainda legível */
+.swagger-ui .opblock-summary-description,
+.swagger-ui .parameter__deprecated,
+.swagger-ui .prop-type,
+.swagger-ui .response-col_links,
+.swagger-ui .response-col_description .response-undocumented {
+  color: var(--sw-text-muted) !important;
+}
+
 /* ── Topbar ─────────────────────────────────────────────────────────────── */
 .swagger-ui .topbar {
   background: var(--sw-topbar-bg) !important;
@@ -185,6 +220,13 @@ body {
 }
 
 .swagger-ui .topbar .download-url-wrapper { display: none !important; }
+
+/* ── Esconde o botão nativo de dark-mode do Swagger UI v5 ────────────────── */
+/* O botão nativo adiciona a classe "dark-mode" no <html>, conflitando com   */
+/* o nosso toggle customizado que usa data-theme. Removemos via JS também.   */
+.swagger-ui .topbar-wrapper button:not(#sw-theme-toggle) {
+  display: none !important;
+}
 
 /* ── Info section ───────────────────────────────────────────────────────── */
 .swagger-ui .information-container {
@@ -318,10 +360,12 @@ body {
   border-radius: var(--sw-radius-sm) !important;
 }
 
-.swagger-ui .opblock-tag small {
-  color: var(--sw-text-muted) !important;
+.swagger-ui .opblock-tag small,
+.swagger-ui .opblock-tag small span {
+  color: var(--sw-text) !important;
   font-size: 0.8rem !important;
   font-weight: 400 !important;
+  opacity: 1 !important;
 }
 
 .swagger-ui .opblock-tag svg { fill: var(--sw-text-muted) !important; }
@@ -405,13 +449,33 @@ body {
   padding: 10px 16px !important;
 }
 
-.swagger-ui .opblock-section-header h4 {
+.swagger-ui .opblock-section-header h4,
+.swagger-ui .opblock-section-header label,
+.swagger-ui .opblock-section-header span {
   color: var(--sw-text) !important;
   font-size: 0.8rem !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.06em !important;
   margin: 0 !important;
+}
+
+/* Tab strip — "Example Value | Schema" e "Request body content-type" */
+.swagger-ui .tab li,
+.swagger-ui .tab li button,
+.swagger-ui .tab li.tabitem,
+.swagger-ui .tab li.tabitem button,
+.swagger-ui .tab li span,
+.swagger-ui .model-example .tab li {
+  color: var(--sw-text) !important;
+  opacity: 1 !important;
+}
+.swagger-ui .tab li.active,
+.swagger-ui .tab li.active button,
+.swagger-ui .tab li.tabitem.active,
+.swagger-ui .tab li.tabitem.active button {
+  color: var(--sw-accent) !important;
+  border-bottom: 2px solid var(--sw-accent) !important;
 }
 
 /* ── Parameters table ───────────────────────────────────────────────────── */
@@ -460,8 +524,40 @@ body {
 }
 
 .swagger-ui .parameter__in {
-  color: var(--sw-text-subtle) !important;
+  color: var(--sw-text-muted) !important;
   font-size: 0.75rem !important;
+}
+
+/* "The full name of the user" — descrição de campo no schema/body */
+.swagger-ui .parameter__description,
+.swagger-ui .parameter__description p,
+.swagger-ui td.col.col_description p,
+.swagger-ui td.col.col_description div,
+.swagger-ui .body-param-description p,
+.swagger-ui .body-param-description div {
+  color: var(--sw-text) !important;
+  font-size: 0.85rem !important;
+  opacity: 1 !important;
+}
+
+/* "No parameters" */
+.swagger-ui .opblock-body .opblock-section .opblock-section-header .opblock-title.no-body,
+.swagger-ui .opblock-title.no-body,
+.swagger-ui .no-body {
+  color: var(--sw-text-muted) !important;
+  opacity: 1 !important;
+}
+
+/* Descrição da operação — "Cria usuario após registro no Keycloak..." */
+.swagger-ui .opblock-description-wrapper,
+.swagger-ui .opblock-description-wrapper p,
+.swagger-ui .opblock-description,
+.swagger-ui .opblock-title_normal,
+.swagger-ui .opblock-title_normal p,
+.swagger-ui .opblock-external-docs-wrapper,
+.swagger-ui .opblock-external-docs-wrapper p {
+  color: var(--sw-text) !important;
+  opacity: 1 !important;
 }
 
 /* ── Response codes ─────────────────────────────────────────────────────── */
@@ -469,9 +565,15 @@ body {
   font-family: var(--sw-font-mono) !important;
   font-weight: 700 !important;
   font-size: 0.9rem !important;
+  color: var(--sw-text) !important;
 }
 
-.swagger-ui .response-col_description { color: var(--sw-text-muted) !important; font-size: 0.875rem !important; }
+.swagger-ui .response-col_description,
+.swagger-ui .response-col_description__inner p,
+.swagger-ui .response-col_description__inner div {
+  color: var(--sw-text-muted) !important;
+  font-size: 0.875rem !important;
+}
 
 .swagger-ui table.responses-table tbody tr td { border-bottom: 1px solid var(--sw-border) !important; }
 
@@ -567,8 +669,36 @@ body {
   background: var(--sw-code-bg) !important;
   border: 1px solid var(--sw-border) !important;
   border-radius: var(--sw-radius-sm) !important;
-  padding: 16px !important;
+  padding: 0 !important;
   overflow-x: auto !important;
+}
+
+/* .microlight aplica background:black via inline style (JS) — !important no CSS
+   sobrepõe inline styles, então isso funciona corretamente */
+.swagger-ui .microlight {
+  background: var(--sw-code-bg) !important;
+  color: var(--sw-code-text) !important;
+  font-family: var(--sw-font-mono) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.6 !important;
+  padding: 16px !important;
+  display: block !important;
+  overflow-x: auto !important;
+  white-space: pre !important;
+  border-radius: var(--sw-radius-sm) !important;
+}
+
+/* Spans de syntax highlighting dentro do microlight.
+   Microlight injeta style="background:black;color:..." em cada <span>.
+   Em light mode: reset background + herda cor do container. */
+:root:not([data-theme="dark"]) .swagger-ui .microlight span {
+  color: inherit !important;
+  background: transparent !important;
+}
+/* Garante que a media query não sobrescreva quando data-theme="light" está explícito */
+:root[data-theme="light"] .swagger-ui .microlight span {
+  color: inherit !important;
+  background: transparent !important;
 }
 
 .swagger-ui pre code,
@@ -578,8 +708,9 @@ body {
   color: var(--sw-code-text) !important;
   background: transparent !important;
   border: none !important;
-  padding: 0 !important;
+  padding: 16px !important;
   border-radius: 0 !important;
+  display: block !important;
 }
 
 /* Inline code */
@@ -638,7 +769,7 @@ body {
 }
 
 .swagger-ui .model {
-  color: var(--sw-text-muted) !important;
+  color: var(--sw-text) !important;
   font-family: var(--sw-font-mono) !important;
   font-size: 0.82rem !important;
 }
@@ -646,7 +777,9 @@ body {
 .swagger-ui .model .property.primitive { color: var(--sw-accent) !important; }
 .swagger-ui .model span.prop-name { color: var(--sw-text) !important; }
 .swagger-ui .model span.prop-type { color: var(--c-get) !important; }
-.swagger-ui .model span.prop-format { color: var(--sw-text-subtle) !important; }
+.swagger-ui .model span.prop-format { color: var(--sw-text-muted) !important; }
+.swagger-ui .model-toggle { color: var(--sw-text) !important; }
+.swagger-ui section.models .model-container .model-title__text { color: var(--sw-text) !important; }
 
 .swagger-ui .model-box {
   background: var(--sw-code-bg) !important;
@@ -691,8 +824,11 @@ body {
 .swagger-ui .loading-container .loading::after { border-color: var(--sw-accent) transparent !important; }
 
 /* ── Markdown / description ─────────────────────────────────────────────── */
-.swagger-ui .markdown p { color: var(--sw-text-muted) !important; line-height: 1.7 !important; }
+.swagger-ui .markdown p,
+.swagger-ui .markdown li { color: var(--sw-text) !important; line-height: 1.7 !important; }
 .swagger-ui .markdown h1,.swagger-ui .markdown h2,.swagger-ui .markdown h3 { color: var(--sw-text) !important; }
+.swagger-ui .renderedMarkdown p,
+.swagger-ui .renderedMarkdown li { color: var(--sw-text) !important; }
 
 /* ── Filter search box ──────────────────────────────────────────────────── */
 .swagger-ui .filter-container .operation-filter-input {
@@ -741,6 +877,179 @@ body {
   flex-shrink: 0;
 }
 
+/* ── Try-it-out: response area ──────────────────────────────────────────── */
+.swagger-ui .responses-inner {
+  background: var(--sw-surface) !important;
+  padding: 12px !important;
+}
+
+.swagger-ui .live-responses-table,
+.swagger-ui .live-responses-table td,
+.swagger-ui .live-responses-table th {
+  background: var(--sw-surface) !important;
+  color: var(--sw-text) !important;
+  border-color: var(--sw-border) !important;
+}
+
+.swagger-ui .response-col_status .response-undocumented {
+  color: var(--sw-text-muted) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Status code coloring */
+.swagger-ui .response-col_status .response-undocumented { color: var(--sw-text-muted) !important; }
+
+/* ── Request body / body-param ──────────────────────────────────────────── */
+.swagger-ui .body-param__text,
+.swagger-ui textarea.body-param__text {
+  background: var(--sw-code-bg) !important;
+  color: var(--sw-text) !important;
+  border: 1px solid var(--sw-border) !important;
+  border-radius: var(--sw-radius-sm) !important;
+  font-family: var(--sw-font-mono) !important;
+  font-size: 0.82rem !important;
+  padding: 12px !important;
+  min-height: 160px !important;
+}
+
+.swagger-ui .body-param-options {
+  background: var(--sw-surface-2) !important;
+  border-bottom: 1px solid var(--sw-border) !important;
+  padding: 8px 16px !important;
+}
+
+.swagger-ui .body-param-options .body-param-edit {
+  color: var(--sw-text-muted) !important;
+}
+
+/* ── Curl command (after execute) ───────────────────────────────────────── */
+.swagger-ui .curl-command {
+  background: var(--sw-code-bg) !important;
+  border: 1px solid var(--sw-border) !important;
+  border-radius: var(--sw-radius-sm) !important;
+  padding: 12px !important;
+}
+
+.swagger-ui .curl-command .curl {
+  color: var(--sw-code-text) !important;
+  font-family: var(--sw-font-mono) !important;
+  font-size: 0.82rem !important;
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+}
+
+/* ── Copy-to-clipboard button ───────────────────────────────────────────── */
+.swagger-ui .copy-to-clipboard {
+  background: transparent !important;
+}
+
+.swagger-ui .copy-to-clipboard button {
+  background: var(--sw-surface-2) !important;
+  color: var(--sw-text-muted) !important;
+  border: 1px solid var(--sw-border) !important;
+  border-radius: var(--sw-radius-sm) !important;
+  font-size: 0.75rem !important;
+  padding: 4px 10px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+}
+
+.swagger-ui .copy-to-clipboard button:hover {
+  background: var(--sw-accent-soft) !important;
+  border-color: var(--sw-accent) !important;
+  color: var(--sw-accent) !important;
+}
+
+/* ── Download response button ───────────────────────────────────────────── */
+.swagger-ui .download-contents {
+  color: var(--sw-accent) !important;
+  font-size: 0.8rem !important;
+}
+
+/* ── All SVG arrows and chevrons ────────────────────────────────────────── */
+.swagger-ui svg.arrow,
+.swagger-ui .arrow,
+.swagger-ui .model-toggle:after,
+.swagger-ui .expand-methods svg,
+.swagger-ui .expand-operation svg,
+.swagger-ui section.models h4 svg,
+.swagger-ui .opblock-tag svg {
+  fill: var(--sw-text-muted) !important;
+}
+
+/* ── Request snippet (content-type selector area) ───────────────────────── */
+.swagger-ui .request-snippet-container {
+  background: var(--sw-surface-2) !important;
+  border-top: 1px solid var(--sw-border) !important;
+  padding: 8px 16px !important;
+}
+
+.swagger-ui .request-snippet select {
+  background: var(--sw-surface) !important;
+  color: var(--sw-text) !important;
+  border: 1px solid var(--sw-border) !important;
+  border-radius: var(--sw-radius-sm) !important;
+  padding: 4px 8px !important;
+  font-size: 0.82rem !important;
+}
+
+/* ── Content-type label (Request body / Response) ───────────────────────── */
+.swagger-ui .content-type,
+.swagger-ui .response-content-type {
+  color: var(--sw-text-muted) !important;
+  font-size: 0.75rem !important;
+}
+
+/* ── Table container (inside expanded opblock) ──────────────────────────── */
+.swagger-ui .table-container {
+  background: var(--sw-surface) !important;
+  padding: 0 !important;
+}
+
+/* ── Auth lock icon on endpoint ─────────────────────────────────────────── */
+.swagger-ui .authorization__btn {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+}
+
+.swagger-ui .authorization__btn svg,
+.swagger-ui .authorization__btn svg * {
+  fill: var(--sw-text-subtle) !important;
+}
+
+.swagger-ui .authorization__btn.locked svg,
+.swagger-ui .authorization__btn.locked svg * {
+  fill: var(--sw-accent) !important;
+}
+
+/* ── External docs link ─────────────────────────────────────────────────── */
+.swagger-ui .info a,
+.swagger-ui a.nostyle {
+  color: var(--sw-accent) !important;
+}
+
+/* ── Version stamp ──────────────────────────────────────────────────────── */
+.swagger-ui .version-stamp {
+  background: var(--sw-accent-soft) !important;
+  color: var(--sw-accent) !important;
+  border-radius: 4px !important;
+  padding: 2px 8px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+}
+
+/* ── Deprecation notice ─────────────────────────────────────────────────── */
+.swagger-ui .deprecated {
+  opacity: 0.7 !important;
+}
+
+.swagger-ui .opblock.opblock-deprecated {
+  border-left-color: var(--sw-text-subtle) !important;
+  background: var(--sw-surface-2) !important;
+}
+
 /* ── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -779,6 +1088,17 @@ export const SWAGGER_THEME_TOGGLE_JS = `
     }
   }
 
+  // Remove o botão nativo de dark-mode do Swagger UI v5 (adiciona classe "dark-mode" no <html>)
+  function removeNativeThemeBtn() {
+    const wrapper = document.querySelector('.topbar-wrapper');
+    if (!wrapper) return;
+    wrapper.querySelectorAll('button:not(#sw-theme-toggle)').forEach(function (btn) {
+      btn.remove();
+    });
+    // Garante que a classe dark-mode do Swagger nativo não interfira
+    document.documentElement.classList.remove('dark-mode');
+  }
+
   function mountToggle() {
     if (document.getElementById('sw-theme-toggle')) return;
     const wrapper = document.querySelector('.topbar-wrapper');
@@ -793,6 +1113,13 @@ export const SWAGGER_THEME_TOGGLE_JS = `
 
     wrapper.appendChild(btn);
     applyTheme(resolveTheme());
+    removeNativeThemeBtn();
+
+    // MutationObserver: caso o Swagger UI re-renderize e reinsira o botão nativo
+    var observer = new MutationObserver(function () {
+      removeNativeThemeBtn();
+    });
+    observer.observe(wrapper, { childList: true, subtree: false });
   }
 
   // Inicializar tema imediatamente (antes do paint) para evitar flash
