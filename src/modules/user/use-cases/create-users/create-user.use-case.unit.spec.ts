@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { CREATE_USER_LOG_CONTEXT, CREATE_USER_LOG_MESSAGES } from './create-user.constants';
 import { UserApplicationCreateUseCase } from './create-user.use-case';
-import { UserErrorFactory } from '../factories/user.error.factory';
 
 describe('UserApplicationCreateUseCase - Unit Tests', () => {
   let useCase: UserApplicationCreateUseCase;
   let mockUserRepository: any;
+  let mockLogProvider: any;
 
   beforeEach(() => {
     mockUserRepository = {
@@ -13,7 +14,14 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       create: jest.fn(),
     };
 
-    useCase = new UserApplicationCreateUseCase(mockUserRepository);
+    mockLogProvider = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+    };
+
+    useCase = new UserApplicationCreateUseCase(mockUserRepository, mockLogProvider);
   });
 
   describe('execute', () => {
@@ -29,10 +37,19 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
         status: 'PENDING',
       };
 
-      mockUserRepository.findByKeycloakId.mockResolvedValue({ id: 'user-1', keycloakId: params.keycloakId });
+      mockUserRepository.findByKeycloakId.mockResolvedValue({
+        id: 'user-1',
+        keycloakId: params.keycloakId,
+      });
 
       await expect(useCase.execute(params)).rejects.toThrow();
       expect(mockUserRepository.findByKeycloakId).toHaveBeenCalledWith(params.keycloakId);
+      expect(mockLogProvider.warn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: CREATE_USER_LOG_MESSAGES.DUPLICATE_KEYCLOAK_ID,
+          context: CREATE_USER_LOG_CONTEXT,
+        }),
+      );
     });
 
     it('should successfully create user', async () => {
@@ -55,6 +72,12 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       // result.id type might complain depending on interface, we just ignore standard ts errors if tests pass
       expect((result as any).id).toBe(userId);
       expect(mockUserRepository.create).toHaveBeenCalledWith(params);
+      expect(mockLogProvider.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: CREATE_USER_LOG_MESSAGES.CREATED_SUCCESS,
+          context: CREATE_USER_LOG_CONTEXT,
+        }),
+      );
     });
 
     it('should successfully create user when keycloakId is not provided', async () => {
@@ -79,6 +102,12 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
         keycloakId: undefined,
         status: params.status,
       });
+      expect(mockLogProvider.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: CREATE_USER_LOG_MESSAGES.START_FLOW,
+          context: CREATE_USER_LOG_CONTEXT,
+        }),
+      );
     });
   });
 });

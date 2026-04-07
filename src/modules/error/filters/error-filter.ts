@@ -12,37 +12,60 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 
 import { AppError } from '@modules/error';
 import { APP_ERROR_TYPE } from '@modules/error/filters/error-filter.constant';
+import type {
+  HandleNonAppErrorParams,
+  LogResponseParams,
+} from '@modules/error/types/error-filter.types';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
 @Catch()
 @Injectable()
 export class HttpExceptionFilter implements ExceptionFilter {
   constructor(@Inject(LOGGER_PROVIDER) private readonly logProvider: LogProviderInterface) {}
-  logResponse(
-    exception: AppError | HttpException | Error,
-    request: FastifyRequest,
-    responseBody?: Record<string, unknown>,
-  ) {
+
+  logResponse({ exception, request, status, responseBody, responseHeaders }: LogResponseParams) {
     try {
       const rawRequestId = request.headers['x-request-id'];
       const headerRequestId = (Array.isArray(rawRequestId) ? rawRequestId[0] : rawRequestId) ?? '';
+      const exceptionMessage = exception instanceof Error ? exception.message : String(exception);
+      const resolvedStatus =
+        status ??
+        (typeof responseBody?.statusCode === 'number'
+          ? responseBody.statusCode
+          : HttpStatus.INTERNAL_SERVER_ERROR);
+      const responseMessageRaw = responseBody?.message;
+      let responseMessages: string[] = [exceptionMessage];
+      if (Array.isArray(responseMessageRaw)) {
+        responseMessages = responseMessageRaw.map(String);
+      } else if (typeof responseMessageRaw === 'string') {
+        responseMessages = [responseMessageRaw];
+      }
 
       this.logProvider.error({
         message: 'Exception caught in filter',
-        context: 'HttpExceptionFilter',
+        context: 'HttpExceptionFilter.logResponse',
         requestId: headerRequestId,
-        params: {
+        meta: {
           request: {
-            query: request.query,
-            params: request.params,
-            headers: request.headers,
+            path: request.url,
             method: request.method,
-            url: request.url,
+            headers: request.headers,
+            params: request.params,
+            query: request.query,
+            body: request.body,
           },
-          exceptionType: exception instanceof AppError ? exception.type : 'Error',
-          exceptionMessage: exception instanceof Error ? exception.message : String(exception),
-          details: exception instanceof AppError ? exception.details : undefined,
-          responseBody,
+          response: {
+            status: resolvedStatus,
+            headers: responseHeaders ?? { 'x-request-id': headerRequestId },
+            messages: responseMessages,
+          },
+          error: {
+            type: exception instanceof AppError ? exception.type : 'Error',
+            message: exceptionMessage,
+            status: resolvedStatus,
+            body: responseBody,
+            details: exception instanceof AppError ? exception.details : undefined,
+          },
         },
       });
     } catch (logError) {
@@ -56,20 +79,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       return requestIdFromRequest;
     }
 
-    // 2. Try to get from requestContext (fallback) - loaded at runtime from logger lib if available
-    try {
-      // require at runtime to avoid compile-time errors if the logger lib doesn't export requestContext
-
-      const loggerLib: any = require('@adatechnology/logger');
-      const contextStore = loggerLib?.requestContext?.getStore?.();
-      if (contextStore?.requestId) {
-        return contextStore.requestId;
-      }
-    } catch {
-      // ignore if require fails
-    }
-
-    // 3. Try to get from x-request-id header (last resort)
+    // 2. Try to get from x-request-id header (fallback)
     const rawRequestId = request.headers['x-request-id'];
     return (Array.isArray(rawRequestId) ? rawRequestId[0] : rawRequestId) ?? '';
   }
@@ -108,18 +118,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
           responseBody.details = details;
         }
 
-        this.logResponse(exception, request, responseBody);
+        this.logResponse({
+          exception,
+          request,
+          status,
+          responseBody,
+          responseHeaders: { 'x-request-id': requestId },
+        });
         response.status(status).send(responseBody);
         return;
       }
 
-      this.handleNonAppError(exception, request, response);
+      this.handleNonAppError({ exception, request, response, requestId });
     } catch (sendError) {
       this.handleFilterError(sendError);
     }
   }
 
-  private handleNonAppError(exception: unknown, request: FastifyRequest, response: FastifyReply) {
+  private handleNonAppError({ exception, request, response, requestId }: HandleNonAppErrorParams) {
     const status = this.getStatus(exception);
     const message = this.getMessage(exception);
 
@@ -129,7 +145,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
       message,
     };
-    this.logResponse(exception as Error, request, errorResponseBody);
+    this.logResponse({
+      exception: exception as Error,
+      request,
+      status,
+      responseBody: errorResponseBody,
+      responseHeaders: { 'x-request-id': requestId },
+    });
     response.status(status).send(errorResponseBody);
   }
 
@@ -157,7 +179,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     try {
       this.logProvider.error({
         message: 'Failed to send error response',
-        context: 'HttpExceptionFilter',
+        context: 'HttpExceptionFilter.handleFilterError',
       });
     } catch (logError) {
       console.error(

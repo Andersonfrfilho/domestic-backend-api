@@ -54,7 +54,7 @@ export const USER_ERROR_CONFIGS = {
   }),
 
   duplicateKeycloakId: (keycloakId: string): ConflictErrorConfig => ({
-    message: 'User with this Keycloak ID already exists',
+    message: `User with this Keycloak ID already exists: ${keycloakId}`,
     code: UserErrorCode.DUPLICATE_KEYCLOAK_ID,
     details: { keycloakId },
   }),

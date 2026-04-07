@@ -6,7 +6,17 @@ import { SharedInfrastructureProviderQueueModule } from './queue/queue.module';
 import { StorageModule } from './storage/storage.module';
 
 @Module({
-  imports: [LoggerModule, SharedProviderDatabaseModule, SharedInfrastructureProviderQueueModule, StorageModule],
-  exports: [LoggerModule, SharedProviderDatabaseModule, SharedInfrastructureProviderQueueModule, StorageModule],
+  imports: [
+    LoggerModule,
+    SharedProviderDatabaseModule,
+    SharedInfrastructureProviderQueueModule,
+    StorageModule,
+  ],
+  exports: [
+    LoggerModule,
+    SharedProviderDatabaseModule,
+    SharedInfrastructureProviderQueueModule,
+    StorageModule,
+  ],
 })
 export class SharedProviderModule {}

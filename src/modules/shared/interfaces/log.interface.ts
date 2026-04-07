@@ -3,6 +3,8 @@ import type { LogLevel } from '@modules/shared/enums/log.enum';
 export interface LogBaseParams {
   message: string;
   context?: string;
+  meta?: Record<string, unknown>;
+  /** @deprecated Use `meta` instead. Kept for backward compatibility. */
   params?: unknown;
   requestId?: string;
 }

@@ -9,11 +9,19 @@ export const swaggerConfig = (environment: SwaggerConfigParams) =>
     .setTitle('Zolve — Backend API')
     .setDescription(
       `API principal da plataforma Zolve. Conecta contratantes e prestadores de serviços domésticos.\n\n` +
-      `**Autenticação:** Todos os endpoints (exceto \`POST /users\` e \`GET /health\`) requerem autenticação via Kong API Gateway.\n` +
-      `O Kong injeta os headers \`X-User-Id\` (keycloak_id), \`X-User-Roles\` e \`X-User-Type\` após validar o JWT.`,
+        `**Autenticação:** Todos os endpoints (exceto \`POST /users\` e \`GET /health\`) requerem autenticação via Kong API Gateway.\n` +
+        `O Kong injeta os headers \`X-User-Id\` (keycloak_id), \`X-User-Roles\` e \`X-User-Type\` após validar o JWT.`,
     )
     .setVersion('1.0')
-    .addApiKey({ type: 'apiKey', name: 'X-User-Id', in: 'header', description: 'keycloak_id do usuário (injetado pelo Kong)' }, 'kong-user-id')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'X-User-Id',
+        in: 'header',
+        description: 'keycloak_id do usuário (injetado pelo Kong)',
+      },
+      'kong-user-id',
+    )
     .addServer(environment.baseUrlDevelopment || 'http://localhost:3333', 'Development')
     .addServer(environment.baseUrlStaging || 'https://api-hml.example.com', 'Staging (STG)')
     .addServer(environment.baseUrlProduction || 'https://api-prod.example.com', 'Production')

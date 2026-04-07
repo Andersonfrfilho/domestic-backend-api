@@ -13,7 +13,7 @@ BASE="http://localhost:3333/v1"
 
 # IDs de exemplo — substitua pelos reais após criar os recursos
 USER_ID="550e8400-e29b-41d4-a716-446655440001"
-KEYCLOAK_ID="auth0|abc123def456"
+KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
 PROVIDER_ID="550e8400-e29b-41d4-a716-446655440002"
 CATEGORY_ID="550e8400-e29b-41d4-a716-446655440003"
 SERVICE_ID="550e8400-e29b-41d4-a716-446655440004"
@@ -22,6 +22,22 @@ SERVICE_REQUEST_ID="550e8400-e29b-41d4-a716-446655440006"
 REVIEW_ID="550e8400-e29b-41d4-a716-446655440007"
 DOCUMENT_ID="550e8400-e29b-41d4-a716-446655440008"
 NOTIFICATION_ID="550e8400-e29b-41d4-a716-446655440009"
+```
+
+> ⚠️ **Importante:** neste backend o campo `keycloak_id` está persistido como **UUID** no banco.
+> Portanto, use sempre o **ID interno do usuário no Keycloak** (claim `sub`), e não identificadores no formato `auth0|...`.
+
+### Passo anterior (recomendado): obter o `KEYCLOAK_ID` correto
+
+1. Abra o Admin Console do Keycloak e acesse o realm `domestic-backend`.
+2. Vá em **Users** e selecione o usuário (ex.: `contractor-test`, `provider-test`, `admin`).
+3. Copie o campo **ID** (UUID).
+4. Use esse valor em `KEYCLOAK_ID` e no header `X-User-Id`.
+
+Exemplo de valor válido:
+
+```bash
+KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
 ```
 
 ---
@@ -35,6 +51,7 @@ curl -s http://localhost:3333/health | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "status": "ok",
@@ -57,19 +74,20 @@ curl -s http://localhost:3333/health | jq
 ### POST /v1/users — Criar usuário
 
 ```bash
-curl -s -X POST "$BASE/users" \
+curl -s -X POST "http://localhost:3333/v1/users" \
   -H "Content-Type: application/json" \
   -d '{
     "fullName": "João Silva",
-    "keycloakId": "auth0|abc123def456"
+    "keycloakId": "7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91"
   }' | jq
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "auth0|abc123def456",
+  "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Silva",
   "status": "PENDING",
   "createdAt": "2026-04-05T22:00:00.000Z"
@@ -77,11 +95,12 @@ curl -s -X POST "$BASE/users" \
 ```
 
 **Erro — keycloakId duplicado — 409**
+
 ```json
 {
   "statusCode": 409,
   "code": "DUPLICATE_KEYCLOAK_ID",
-  "message": "A keycloak ID already exists."
+  "message": "User with this Keycloak ID already exists: <KEYCLOAK_ID>"
 }
 ```
 
@@ -90,15 +109,16 @@ curl -s -X POST "$BASE/users" \
 ### GET /v1/users/me — Perfil do usuário autenticado
 
 ```bash
-curl -s "$BASE/users/me" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
+curl -s "http://localhost:3333/v1/users/me" \
+  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "auth0|abc123def456",
+  "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Silva",
   "status": "ACTIVE",
   "createdAt": "2026-04-05T22:00:00.000Z"
@@ -106,6 +126,7 @@ curl -s "$BASE/users/me" \
 ```
 
 **Erro — usuário não encontrado — 404**
+
 ```json
 {
   "statusCode": 404,
@@ -119,14 +140,15 @@ curl -s "$BASE/users/me" \
 ### GET /v1/users/:id — Buscar usuário por ID
 
 ```bash
-curl -s "$BASE/users/$USER_ID" | jq
+curl -s "http://localhost:3333/v1/users/$USER_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "auth0|abc123def456",
+  "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Silva",
   "status": "ACTIVE",
   "createdAt": "2026-04-05T22:00:00.000Z"
@@ -138,16 +160,17 @@ curl -s "$BASE/users/$USER_ID" | jq
 ### PUT /v1/users/:id — Atualizar usuário
 
 ```bash
-curl -s -X PUT "$BASE/users/$USER_ID" \
+curl -s -X PUT "http://localhost:3333/v1/users/$USER_ID" \
   -H "Content-Type: application/json" \
   -d '{ "fullName": "João Atualizado" }' | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "auth0|abc123def456",
+  "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Atualizado",
   "status": "ACTIVE",
   "createdAt": "2026-04-05T22:00:00.000Z"
@@ -159,21 +182,22 @@ curl -s -X PUT "$BASE/users/$USER_ID" \
 ### DELETE /v1/users/:id — Deletar usuário
 
 ```bash
-curl -s -X DELETE "$BASE/users/$USER_ID" -o /dev/null -w "%{http_code}\n"
+curl -s -X DELETE "http://localhost:3333/v1/users/$USER_ID" -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
 ### GET /v1/users/admin/stats — Estatísticas (admin)
 
 ```bash
-curl -s "$BASE/users/admin/stats" \
+curl -s "http://localhost:3333/v1/users/admin/stats" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "totalUsers": 42,
@@ -187,11 +211,12 @@ curl -s "$BASE/users/admin/stats" \
 ### GET /v1/users/me/addresses — Listar endereços do usuário
 
 ```bash
-curl -s "$BASE/users/me/addresses" \
+curl -s "http://localhost:3333/v1/users/me/addresses" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -216,7 +241,7 @@ curl -s "$BASE/users/me/addresses" \
 ### POST /v1/users/me/addresses — Adicionar endereço
 
 ```bash
-curl -s -X POST "$BASE/users/me/addresses" \
+curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -235,6 +260,7 @@ curl -s -X POST "$BASE/users/me/addresses" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440005",
@@ -257,12 +283,12 @@ curl -s -X POST "$BASE/users/me/addresses" \
 ### DELETE /v1/users/me/addresses/:addressId — Remover endereço
 
 ```bash
-curl -s -X DELETE "$BASE/users/me/addresses/$ADDRESS_ID" \
+curl -s -X DELETE "http://localhost:3333/v1/users/me/addresses/$ADDRESS_ID" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
@@ -271,10 +297,11 @@ curl -s -X DELETE "$BASE/users/me/addresses/$ADDRESS_ID" \
 ### GET /v1/categories — Listar categorias
 
 ```bash
-curl -s "$BASE/categories" | jq
+curl -s "http://localhost:3333/v1/categories" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -299,10 +326,11 @@ curl -s "$BASE/categories" | jq
 ### GET /v1/categories/:id — Buscar categoria por ID
 
 ```bash
-curl -s "$BASE/categories/$CATEGORY_ID" | jq
+curl -s "http://localhost:3333/v1/categories/$CATEGORY_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440003",
@@ -314,6 +342,7 @@ curl -s "$BASE/categories/$CATEGORY_ID" | jq
 ```
 
 **Erro — não encontrada — 404**
+
 ```json
 {
   "statusCode": 404,
@@ -327,7 +356,7 @@ curl -s "$BASE/categories/$CATEGORY_ID" | jq
 ### POST /v1/categories — Criar categoria (admin)
 
 ```bash
-curl -s -X POST "$BASE/categories" \
+curl -s -X POST "http://localhost:3333/v1/categories" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -338,6 +367,7 @@ curl -s -X POST "$BASE/categories" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440011",
@@ -349,6 +379,7 @@ curl -s -X POST "$BASE/categories" \
 ```
 
 **Erro — slug duplicado — 409**
+
 ```json
 {
   "statusCode": 409,
@@ -362,7 +393,7 @@ curl -s -X POST "$BASE/categories" \
 ### PUT /v1/categories/:id — Atualizar categoria (admin)
 
 ```bash
-curl -s -X PUT "$BASE/categories/$CATEGORY_ID" \
+curl -s -X PUT "http://localhost:3333/v1/categories/$CATEGORY_ID" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -372,6 +403,7 @@ curl -s -X PUT "$BASE/categories/$CATEGORY_ID" \
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440003",
@@ -387,12 +419,12 @@ curl -s -X PUT "$BASE/categories/$CATEGORY_ID" \
 ### DELETE /v1/categories/:id — Desativar categoria (admin)
 
 ```bash
-curl -s -X DELETE "$BASE/categories/$CATEGORY_ID" \
+curl -s -X DELETE "http://localhost:3333/v1/categories/$CATEGORY_ID" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
@@ -402,13 +434,14 @@ curl -s -X DELETE "$BASE/categories/$CATEGORY_ID" \
 
 ```bash
 # Todos os serviços
-curl -s "$BASE/services" | jq
+curl -s "http://localhost:3333/v1/services" | jq
 
 # Filtrar por categoria
-curl -s "$BASE/services?categoryId=$CATEGORY_ID" | jq
+curl -s "http://localhost:3333/v1/services?categoryId=$CATEGORY_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -430,10 +463,11 @@ curl -s "$BASE/services?categoryId=$CATEGORY_ID" | jq
 ### GET /v1/services/:id — Buscar serviço por ID
 
 ```bash
-curl -s "$BASE/services/$SERVICE_ID" | jq
+curl -s "http://localhost:3333/v1/services/$SERVICE_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -453,7 +487,7 @@ curl -s "$BASE/services/$SERVICE_ID" | jq
 ### POST /v1/services — Criar serviço (admin)
 
 ```bash
-curl -s -X POST "$BASE/services" \
+curl -s -X POST "http://localhost:3333/v1/services" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -464,6 +498,7 @@ curl -s -X POST "$BASE/services" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440012",
@@ -474,6 +509,7 @@ curl -s -X POST "$BASE/services" \
 ```
 
 **Erro — categoria não encontrada — 404**
+
 ```json
 {
   "statusCode": 404,
@@ -487,7 +523,7 @@ curl -s -X POST "$BASE/services" \
 ### PUT /v1/services/:id — Atualizar serviço (admin)
 
 ```bash
-curl -s -X PUT "$BASE/services/$SERVICE_ID" \
+curl -s -X PUT "http://localhost:3333/v1/services/$SERVICE_ID" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -497,6 +533,7 @@ curl -s -X PUT "$BASE/services/$SERVICE_ID" \
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -513,7 +550,7 @@ curl -s -X PUT "$BASE/services/$SERVICE_ID" \
 ### POST /v1/providers — Criar perfil de prestador
 
 ```bash
-curl -s -X POST "$BASE/providers" \
+curl -s -X POST "http://localhost:3333/v1/providers" \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "550e8400-e29b-41d4-a716-446655440001",
@@ -523,6 +560,7 @@ curl -s -X POST "$BASE/providers" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -536,6 +574,7 @@ curl -s -X POST "$BASE/providers" \
 ```
 
 **Erro — prestador já existe para esse usuário — 409**
+
 ```json
 {
   "statusCode": 409,
@@ -549,10 +588,11 @@ curl -s -X POST "$BASE/providers" \
 ### GET /v1/providers — Listar prestadores aprovados
 
 ```bash
-curl -s "$BASE/providers" | jq
+curl -s "http://localhost:3333/v1/providers" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -572,11 +612,12 @@ curl -s "$BASE/providers" | jq
 ### GET /v1/providers/admin/pending — Listar pendentes de verificação (admin)
 
 ```bash
-curl -s "$BASE/providers/admin/pending" \
+curl -s "http://localhost:3333/v1/providers/admin/pending" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -594,10 +635,11 @@ curl -s "$BASE/providers/admin/pending" \
 ### GET /v1/providers/:id — Buscar prestador por ID
 
 ```bash
-curl -s "$BASE/providers/$PROVIDER_ID" | jq
+curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -611,6 +653,7 @@ curl -s "$BASE/providers/$PROVIDER_ID" | jq
 ```
 
 **Erro — não encontrado — 404**
+
 ```json
 {
   "statusCode": 404,
@@ -624,7 +667,7 @@ curl -s "$BASE/providers/$PROVIDER_ID" | jq
 ### PUT /v1/providers/:id — Atualizar perfil do prestador
 
 ```bash
-curl -s -X PUT "$BASE/providers/$PROVIDER_ID" \
+curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID" \
   -H "Content-Type: application/json" \
   -d '{
     "businessName": "João Limpezas Premium",
@@ -634,6 +677,7 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID" \
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440002",
@@ -649,17 +693,18 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID" \
 ### GET /v1/providers/:id/services — Listar serviços do prestador
 
 ```bash
-curl -s "$BASE/providers/$PROVIDER_ID/services" | jq
+curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/services" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440015",
     "providerId": "550e8400-e29b-41d4-a716-446655440002",
     "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-    "priceBase": 150.00,
+    "priceBase": 150.0,
     "priceType": "FIXED",
     "service": {
       "id": "550e8400-e29b-41d4-a716-446655440004",
@@ -674,7 +719,7 @@ curl -s "$BASE/providers/$PROVIDER_ID/services" | jq
 ### POST /v1/providers/:id/services — Vincular serviço ao prestador
 
 ```bash
-curl -s -X POST "$BASE/providers/$PROVIDER_ID/services" \
+curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/services" \
   -H "Content-Type: application/json" \
   -d '{
     "serviceId": "550e8400-e29b-41d4-a716-446655440004",
@@ -684,17 +729,19 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/services" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440015",
   "providerId": "550e8400-e29b-41d4-a716-446655440002",
   "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-  "priceBase": 150.00,
+  "priceBase": 150.0,
   "priceType": "FIXED"
 }
 ```
 
 **Erro — serviço já vinculado — 409**
+
 ```json
 {
   "statusCode": 409,
@@ -708,21 +755,22 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/services" \
 ### DELETE /v1/providers/:id/services/:serviceId — Desvincular serviço
 
 ```bash
-curl -s -X DELETE "$BASE/providers/$PROVIDER_ID/services/$SERVICE_ID" \
+curl -s -X DELETE "http://localhost:3333/v1/providers/$PROVIDER_ID/services/$SERVICE_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
 ### GET /v1/providers/:id/work-locations — Listar locais de atendimento
 
 ```bash
-curl -s "$BASE/providers/$PROVIDER_ID/work-locations" | jq
+curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -745,7 +793,7 @@ curl -s "$BASE/providers/$PROVIDER_ID/work-locations" | jq
 ### POST /v1/providers/:id/work-locations — Adicionar local de atendimento
 
 ```bash
-curl -s -X POST "$BASE/providers/$PROVIDER_ID/work-locations" \
+curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations" \
   -H "Content-Type: application/json" \
   -d '{
     "addressId": "550e8400-e29b-41d4-a716-446655440005",
@@ -755,6 +803,7 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/work-locations" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440016",
@@ -772,22 +821,23 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/work-locations" \
 ```bash
 LOCATION_ID="550e8400-e29b-41d4-a716-446655440016"
 
-curl -s -X DELETE "$BASE/providers/$PROVIDER_ID/work-locations/$LOCATION_ID" \
+curl -s -X DELETE "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations/$LOCATION_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
 ### POST /v1/providers/:id/verification — Submeter para verificação
 
 ```bash
-curl -s -X POST "$BASE/providers/$PROVIDER_ID/verification" \
+curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440017",
@@ -801,6 +851,7 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/verification" \
 ```
 
 **Erro — transição de status inválida — 422**
+
 ```json
 {
   "statusCode": 422,
@@ -814,10 +865,11 @@ curl -s -X POST "$BASE/providers/$PROVIDER_ID/verification" \
 ### GET /v1/providers/:id/verification — Status de verificação
 
 ```bash
-curl -s "$BASE/providers/$PROVIDER_ID/verification" | jq
+curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440017",
@@ -835,11 +887,12 @@ curl -s "$BASE/providers/$PROVIDER_ID/verification" | jq
 ### PUT /v1/providers/:id/verification/approve — Aprovar verificação (admin)
 
 ```bash
-curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/approve" \
+curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440017",
@@ -847,7 +900,7 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/approve" \
   "status": "APPROVED",
   "submittedAt": "2026-04-05T22:00:00.000Z",
   "reviewedAt": "2026-04-05T23:00:00.000Z",
-  "reviewedBy": "auth0|abc123def456",
+  "reviewedBy": "22222222-2222-4222-8222-222222222222",
   "rejectionReason": null
 }
 ```
@@ -857,13 +910,14 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/approve" \
 ### PUT /v1/providers/:id/verification/reject — Rejeitar verificação (admin)
 
 ```bash
-curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/reject" \
+curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/reject" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{ "reason": "Documentos insuficientes. Envie CPF e comprovante de residência." }' | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440017",
@@ -871,7 +925,7 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/reject" \
   "status": "REJECTED",
   "submittedAt": "2026-04-05T22:00:00.000Z",
   "reviewedAt": "2026-04-05T23:00:00.000Z",
-  "reviewedBy": "auth0|abc123def456",
+  "reviewedBy": "22222222-2222-4222-8222-222222222222",
   "rejectionReason": "Documentos insuficientes. Envie CPF e comprovante de residência."
 }
 ```
@@ -883,7 +937,7 @@ curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/reject" \
 ### POST /v1/service-requests — Criar solicitação de serviço
 
 ```bash
-curl -s -X POST "$BASE/service-requests" \
+curl -s -X POST "http://localhost:3333/v1/service-requests" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -897,6 +951,7 @@ curl -s -X POST "$BASE/service-requests" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -906,13 +961,14 @@ curl -s -X POST "$BASE/service-requests" \
   "addressId": "550e8400-e29b-41d4-a716-446655440005",
   "description": "Preciso de limpeza completa em apartamento de 60m²",
   "scheduledAt": "2026-04-10T09:00:00.000Z",
-  "priceFinal": 150.00,
+  "priceFinal": 150.0,
   "status": "PENDING",
   "createdAt": "2026-04-05T22:00:00.000Z"
 }
 ```
 
 **Erro — prestador não aprovado — 422**
+
 ```json
 {
   "statusCode": 422,
@@ -927,24 +983,25 @@ curl -s -X POST "$BASE/service-requests" \
 
 ```bash
 # Como contratante (customer)
-curl -s "$BASE/service-requests" \
+curl -s "http://localhost:3333/v1/service-requests" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -H "X-User-Type: CUSTOMER" | jq
 
 # Como prestador
-curl -s "$BASE/service-requests" \
+curl -s "http://localhost:3333/v1/service-requests" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -H "X-User-Type: PROVIDER" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440006",
     "status": "PENDING",
     "scheduledAt": "2026-04-10T09:00:00.000Z",
-    "priceFinal": 150.00,
+    "priceFinal": 150.0,
     "createdAt": "2026-04-05T22:00:00.000Z"
   }
 ]
@@ -955,10 +1012,11 @@ curl -s "$BASE/service-requests" \
 ### GET /v1/service-requests/:id — Buscar solicitação por ID
 
 ```bash
-curl -s "$BASE/service-requests/$SERVICE_REQUEST_ID" | jq
+curl -s "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -967,7 +1025,7 @@ curl -s "$BASE/service-requests/$SERVICE_REQUEST_ID" | jq
   "serviceId": "550e8400-e29b-41d4-a716-446655440004",
   "description": "Preciso de limpeza completa em apartamento de 60m²",
   "scheduledAt": "2026-04-10T09:00:00.000Z",
-  "priceFinal": 150.00,
+  "priceFinal": 150.0,
   "status": "PENDING",
   "createdAt": "2026-04-05T22:00:00.000Z"
 }
@@ -978,11 +1036,12 @@ curl -s "$BASE/service-requests/$SERVICE_REQUEST_ID" | jq
 ### PUT /v1/service-requests/:id/accept — Aceitar solicitação (prestador)
 
 ```bash
-curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/accept" \
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/accept" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -996,11 +1055,12 @@ curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/accept" \
 ### PUT /v1/service-requests/:id/reject — Rejeitar solicitação (prestador)
 
 ```bash
-curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/reject" \
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/reject" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -1014,11 +1074,12 @@ curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/reject" \
 ### PUT /v1/service-requests/:id/complete — Confirmar conclusão (contratante)
 
 ```bash
-curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/complete" \
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/complete" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -1028,6 +1089,7 @@ curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/complete" \
 ```
 
 **Erro — transição inválida (ex: já cancelada) — 422**
+
 ```json
 {
   "statusCode": 422,
@@ -1041,11 +1103,12 @@ curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/complete" \
 ### PUT /v1/service-requests/:id/cancel — Cancelar solicitação (contratante)
 
 ```bash
-curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/cancel" \
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/cancel" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
@@ -1063,7 +1126,7 @@ curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/cancel" \
 > Só é possível após a solicitação estar com status `COMPLETED`.
 
 ```bash
-curl -s -X POST "$BASE/reviews" \
+curl -s -X POST "http://localhost:3333/v1/reviews" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -d '{
@@ -1074,6 +1137,7 @@ curl -s -X POST "$BASE/reviews" \
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440007",
@@ -1087,6 +1151,7 @@ curl -s -X POST "$BASE/reviews" \
 ```
 
 **Erro — serviço não concluído — 422**
+
 ```json
 {
   "statusCode": 422,
@@ -1096,6 +1161,7 @@ curl -s -X POST "$BASE/reviews" \
 ```
 
 **Erro — avaliação já existe — 409**
+
 ```json
 {
   "statusCode": 409,
@@ -1109,10 +1175,11 @@ curl -s -X POST "$BASE/reviews" \
 ### GET /v1/reviews/provider/:providerId — Avaliações de um prestador
 
 ```bash
-curl -s "$BASE/reviews/provider/$PROVIDER_ID" | jq
+curl -s "http://localhost:3333/v1/reviews/provider/$PROVIDER_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -1141,13 +1208,14 @@ curl -s "$BASE/reviews/provider/$PROVIDER_ID" | jq
 > Content-Type deve ser `multipart/form-data`. Limite: 50 MB.
 
 ```bash
-curl -s -X POST "$BASE/documents" \
+curl -s -X POST "http://localhost:3333/v1/documents" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -F "file=@/caminho/para/documento.pdf" \
   -F "documentType=CPF" | jq
 ```
 
 **Resposta esperada — 201**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440008",
@@ -1165,11 +1233,12 @@ curl -s -X POST "$BASE/documents" \
 ### GET /v1/documents/:id/url — URL assinada para download
 
 ```bash
-curl -s "$BASE/documents/$DOCUMENT_ID/url" \
+curl -s "http://localhost:3333/v1/documents/$DOCUMENT_ID/url" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "url": "https://storage.zolve.com/documents/doc.pdf?X-Amz-Signature=abc...&X-Amz-Expires=900",
@@ -1182,11 +1251,12 @@ curl -s "$BASE/documents/$DOCUMENT_ID/url" \
 ### PUT /v1/documents/:id/approve — Aprovar documento (admin)
 
 ```bash
-curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/approve" \
+curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/approve" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440008",
@@ -1200,11 +1270,12 @@ curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/approve" \
 ### PUT /v1/documents/:id/reject — Rejeitar documento (admin)
 
 ```bash
-curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/reject" \
+curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/reject" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440008",
@@ -1214,6 +1285,7 @@ curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/reject" \
 ```
 
 **Erro — transição inválida — 422**
+
 ```json
 {
   "statusCode": 422,
@@ -1229,11 +1301,12 @@ curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/reject" \
 ### GET /v1/notifications — Listar notificações
 
 ```bash
-curl -s "$BASE/notifications" \
+curl -s "http://localhost:3333/v1/notifications" \
   -H "X-User-Id: $KEYCLOAK_ID" | jq
 ```
 
 **Resposta esperada — 200**
+
 ```json
 [
   {
@@ -1253,12 +1326,12 @@ curl -s "$BASE/notifications" \
 ### PUT /v1/notifications/:id/read — Marcar como lida
 
 ```bash
-curl -s -X PUT "$BASE/notifications/$NOTIFICATION_ID/read" \
+curl -s -X PUT "http://localhost:3333/v1/notifications/$NOTIFICATION_ID/read" \
   -H "X-User-Id: $KEYCLOAK_ID" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** *(sem body)*
+**Resposta esperada — 204** _(sem body)_
 
 ---
 
@@ -1270,79 +1343,82 @@ Script que exercita o fluxo end-to-end da plataforma do cadastro até a avaliaç
 #!/bin/bash
 set -e
 BASE="http://localhost:3333/v1"
+ADMIN_KEYCLOAK_ID="22222222-2222-4222-8222-222222222222"
+CUSTOMER_KEYCLOAK_ID="33333333-3333-4333-8333-333333333333"
+PROVIDER_KEYCLOAK_ID="44444444-4444-4444-8444-444444444444"
 
 echo "=== 1. Criar usuário contratante ==="
-CUSTOMER=$(curl -s -X POST "$BASE/users" \
+CUSTOMER=$(curl -s -X POST "http://localhost:3333/v1/users" \
   -H "Content-Type: application/json" \
-  -d '{"fullName":"Maria Contratante","keycloakId":"kc-customer-001"}')
+  -d "{\"fullName\":\"Maria Contratante\",\"keycloakId\":\"$CUSTOMER_KEYCLOAK_ID\"}")
 echo $CUSTOMER | jq .
 CUSTOMER_ID=$(echo $CUSTOMER | jq -r '.id')
 
 echo "=== 2. Criar usuário prestador ==="
-PROVIDER_USER=$(curl -s -X POST "$BASE/users" \
+PROVIDER_USER=$(curl -s -X POST "http://localhost:3333/v1/users" \
   -H "Content-Type: application/json" \
-  -d '{"fullName":"Carlos Prestador","keycloakId":"kc-provider-001"}')
+  -d "{\"fullName\":\"Carlos Prestador\",\"keycloakId\":\"$PROVIDER_KEYCLOAK_ID\"}")
 PROVIDER_USER_ID=$(echo $PROVIDER_USER | jq -r '.id')
 
 echo "=== 3. Criar perfil do prestador ==="
-PROVIDER=$(curl -s -X POST "$BASE/providers" \
+PROVIDER=$(curl -s -X POST "http://localhost:3333/v1/providers" \
   -H "Content-Type: application/json" \
   -d "{\"userId\":\"$PROVIDER_USER_ID\",\"businessName\":\"Carlos Clean\",\"description\":\"Limpeza profissional\"}")
 echo $PROVIDER | jq .
 PROVIDER_ID=$(echo $PROVIDER | jq -r '.id')
 
 echo "=== 4. Criar categoria ==="
-CATEGORY=$(curl -s -X POST "$BASE/categories" \
+CATEGORY=$(curl -s -X POST "http://localhost:3333/v1/categories" \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: kc-admin-001" \
+  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
   -d '{"name":"Limpeza","slug":"limpeza"}')
 CATEGORY_ID=$(echo $CATEGORY | jq -r '.id')
 
 echo "=== 5. Criar serviço ==="
-SERVICE=$(curl -s -X POST "$BASE/services" \
+SERVICE=$(curl -s -X POST "http://localhost:3333/v1/services" \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: kc-admin-001" \
+  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
   -d "{\"categoryId\":\"$CATEGORY_ID\",\"name\":\"Limpeza Completa\"}")
 SERVICE_ID=$(echo $SERVICE | jq -r '.id')
 
 echo "=== 6. Vincular serviço ao prestador ==="
-curl -s -X POST "$BASE/providers/$PROVIDER_ID/services" \
+curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/services" \
   -H "Content-Type: application/json" \
   -d "{\"serviceId\":\"$SERVICE_ID\",\"priceBase\":120.00,\"priceType\":\"FIXED\"}" | jq .
 
 echo "=== 7. Aprovar prestador (admin) ==="
-curl -s -X POST "$BASE/providers/$PROVIDER_ID/verification" \
-  -H "X-User-Id: kc-provider-001" | jq .
-curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/approve" \
-  -H "X-User-Id: kc-admin-001" | jq .
+curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
+  -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
+curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
+  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" | jq .
 
 echo "=== 8. Adicionar endereço ao contratante ==="
-ADDRESS=$(curl -s -X POST "$BASE/users/me/addresses" \
+ADDRESS=$(curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: kc-customer-001" \
+  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d '{"street":"Av. Paulista","number":"1000","neighborhood":"Bela Vista","city":"São Paulo","state":"SP","zipCode":"01310-100","isPrimary":true}')
 ADDRESS_ID=$(echo $ADDRESS | jq -r '.id')
 
 echo "=== 9. Criar solicitação de serviço ==="
-SR=$(curl -s -X POST "$BASE/service-requests" \
+SR=$(curl -s -X POST "http://localhost:3333/v1/service-requests" \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: kc-customer-001" \
+  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d "{\"providerId\":\"$PROVIDER_ID\",\"serviceId\":\"$SERVICE_ID\",\"addressId\":\"$ADDRESS_ID\",\"scheduledAt\":\"2026-04-10T09:00:00.000Z\",\"priceFinal\":120.00}")
 echo $SR | jq .
 SR_ID=$(echo $SR | jq -r '.id')
 
 echo "=== 10. Prestador aceita ==="
-curl -s -X PUT "$BASE/service-requests/$SR_ID/accept" \
-  -H "X-User-Id: kc-provider-001" | jq .
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/accept" \
+  -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
 
 echo "=== 11. Contratante confirma conclusão ==="
-curl -s -X PUT "$BASE/service-requests/$SR_ID/complete" \
-  -H "X-User-Id: kc-customer-001" | jq .
+curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/complete" \
+  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" | jq .
 
 echo "=== 12. Contratante avalia prestador ==="
-curl -s -X POST "$BASE/reviews" \
+curl -s -X POST "http://localhost:3333/v1/reviews" \
   -H "Content-Type: application/json" \
-  -H "X-User-Id: kc-customer-001" \
+  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
   -d "{\"serviceRequestId\":\"$SR_ID\",\"rating\":5,\"comment\":\"Perfeito! Recomendo.\"}" | jq .
 
 echo "=== Fluxo completo finalizado ==="
@@ -1352,23 +1428,23 @@ echo "=== Fluxo completo finalizado ==="
 
 ## Referência rápida de erros comuns
 
-| Código HTTP | Code | Quando ocorre |
-|---|---|---|
-| 400 | `VALIDATION_ERROR` | Body inválido, campo obrigatório ausente |
-| 401 | `UNAUTHORIZED_ACCESS` | `X-User-Id` ausente em rota protegida |
-| 404 | `USER_NOT_FOUND` | Usuário não existe |
-| 404 | `PROVIDER_NOT_FOUND` | Prestador não existe |
-| 404 | `CATEGORY_NOT_FOUND` | Categoria não existe |
-| 404 | `SERVICE_NOT_FOUND` | Serviço não existe |
-| 404 | `SERVICE_REQUEST_NOT_FOUND` | Solicitação não existe |
-| 404 | `DOCUMENT_NOT_FOUND` | Documento não existe |
-| 409 | `DUPLICATE_KEYCLOAK_ID` | Usuário já cadastrado com esse keycloakId |
-| 409 | `PROVIDER_ALREADY_EXISTS` | Prestador já existe para esse usuário |
-| 409 | `PROVIDER_SERVICE_ALREADY_LINKED` | Serviço já vinculado ao prestador |
-| 409 | `CATEGORY_DUPLICATE_SLUG` | Slug de categoria já em uso |
-| 409 | `REVIEW_ALREADY_EXISTS` | Solicitação já foi avaliada |
-| 422 | `SERVICE_REQUEST_PROVIDER_NOT_APPROVED` | Prestador não está aprovado |
-| 422 | `SERVICE_REQUEST_INVALID_STATUS_TRANSITION` | Transição de status inválida |
-| 422 | `REVIEW_SERVICE_REQUEST_NOT_COMPLETED` | Serviço ainda não concluído |
-| 422 | `PROVIDER_INVALID_VERIFICATION_STATUS` | Transição de verificação inválida |
-| 422 | `DOCUMENT_INVALID_STATUS_TRANSITION` | Transição de documento inválida |
+| Código HTTP | Code                                        | Quando ocorre                             |
+| ----------- | ------------------------------------------- | ----------------------------------------- |
+| 400         | `VALIDATION_ERROR`                          | Body inválido, campo obrigatório ausente  |
+| 401         | `UNAUTHORIZED_ACCESS`                       | `X-User-Id` ausente em rota protegida     |
+| 404         | `USER_NOT_FOUND`                            | Usuário não existe                        |
+| 404         | `PROVIDER_NOT_FOUND`                        | Prestador não existe                      |
+| 404         | `CATEGORY_NOT_FOUND`                        | Categoria não existe                      |
+| 404         | `SERVICE_NOT_FOUND`                         | Serviço não existe                        |
+| 404         | `SERVICE_REQUEST_NOT_FOUND`                 | Solicitação não existe                    |
+| 404         | `DOCUMENT_NOT_FOUND`                        | Documento não existe                      |
+| 409         | `DUPLICATE_KEYCLOAK_ID`                     | Usuário já cadastrado com esse keycloakId |
+| 409         | `PROVIDER_ALREADY_EXISTS`                   | Prestador já existe para esse usuário     |
+| 409         | `PROVIDER_SERVICE_ALREADY_LINKED`           | Serviço já vinculado ao prestador         |
+| 409         | `CATEGORY_DUPLICATE_SLUG`                   | Slug de categoria já em uso               |
+| 409         | `REVIEW_ALREADY_EXISTS`                     | Solicitação já foi avaliada               |
+| 422         | `SERVICE_REQUEST_PROVIDER_NOT_APPROVED`     | Prestador não está aprovado               |
+| 422         | `SERVICE_REQUEST_INVALID_STATUS_TRANSITION` | Transição de status inválida              |
+| 422         | `REVIEW_SERVICE_REQUEST_NOT_COMPLETED`      | Serviço ainda não concluído               |
+| 422         | `PROVIDER_INVALID_VERIFICATION_STATUS`      | Transição de verificação inválida         |
+| 422         | `DOCUMENT_INVALID_STATUS_TRANSITION`        | Transição de documento inválida           |
