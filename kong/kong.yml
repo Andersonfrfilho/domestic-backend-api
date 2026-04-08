@@ -199,17 +199,6 @@ services:
                     return kong.response.exit(401, { message = "Invalid token issuer" })
                   end
 
-                  -- Inject Kong identity headers
-                  kong.service.request.set_header("X-User-Id", payload.sub or "")
-
-                  local roles = {}
-                  if payload.realm_access and payload.realm_access.roles then
-                    for _, role in ipairs(payload.realm_access.roles) do
-                      table.insert(roles, role)
-                    end
-                  end
-                  kong.service.request.set_header("X-User-Roles", table.concat(roles, ","))
-
                   -- ── Zero-trust: replace user token with Kong service token ──
                   -- Fetch (or use cached) Kong's own client_credentials token.
                   -- The upstream service uses B2BGuard to verify this token,
@@ -250,7 +239,12 @@ services:
                     SHARED:set(KONG_TOKEN_KEY, kong_token, KONG_TOKEN_TTL)
                   end
 
-                  -- Replace user token with Kong service token on upstream request
+                  -- Forward the original user token as X-Access-Token (B2C context)
+                  -- so downstream services can access full user claims if needed.
+                  kong.service.request.set_header("X-Access-Token", token)
+
+                  -- Set Kong service token as Authorization (B2B caller identity).
+                  -- Downstream services use B2BGuard to validate this.
                   kong.service.request.set_header("Authorization", "Bearer " .. kong_token)
 
           # ── Rate limiting ─────────────────────────────────────────────────

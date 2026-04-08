@@ -1,5 +1,5 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
-import { Controller, Get, Headers, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
@@ -30,9 +30,9 @@ export class DocumentController {
 
   @Post()
   @Roles(ROLES.DOCUMENT.VERIFIER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Upload de documento (PROVIDER)' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -45,7 +45,7 @@ export class DocumentController {
     },
   })
   @ApiOkResponse({ type: Document })
-  async upload(@Headers('x-user-id') keycloakId: string, @Req() req: any): Promise<Document> {
+  async upload(@AuthUser() keycloakId: string, @Req() req: any): Promise<Document> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
 
     const data = await req.file();

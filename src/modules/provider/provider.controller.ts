@@ -1,10 +1,9 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import {
   Body,
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Inject,
@@ -169,30 +168,30 @@ export class ProviderController {
 
   @Put(':id/verification/approve')
   @Roles(ROLES.SERVICE.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Aprovar prestador (Admin)' })
-  @ApiHeader({ name: 'X-User-Id', required: true, description: 'ID do admin revisor' })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'Admin user JWT forwarded by Kong' })
   @ApiOkResponse({ type: ProviderVerification })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse({ description: 'Status de verificação inválido' })
   async approve(
     @Param('id') id: string,
-    @Headers('x-user-id') reviewedBy: string,
+    @AuthUser() reviewedBy: string,
   ): Promise<ProviderVerification> {
     return this.providerService.approve({ providerId: id, reviewedBy });
   }
 
   @Put(':id/verification/reject')
   @Roles(ROLES.SERVICE.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Rejeitar prestador (Admin)' })
-  @ApiHeader({ name: 'X-User-Id', required: true, description: 'ID do admin revisor' })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'Admin user JWT forwarded by Kong' })
   @ApiOkResponse({ type: ProviderVerification })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
   async reject(
     @Param('id') id: string,
-    @Headers('x-user-id') reviewedBy: string,
+    @AuthUser() reviewedBy: string,
     @Body() body: RejectProviderRequestDto,
   ): Promise<ProviderVerification> {
     return this.providerService.reject({ providerId: id, reviewedBy, reason: body.reason });

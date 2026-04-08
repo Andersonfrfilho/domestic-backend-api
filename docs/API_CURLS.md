@@ -1,69 +1,137 @@
-# API Curls — Zolve Backend
+# API Curls — Domestic Backend
 
-> **Base URL:** `http://localhost:3333`  
-> **Versão:** todas as rotas respondem em `/v1/...` (NestJS URI versioning, `defaultVersion: '1'`)  
-> **Auth (B2B):** obtenha um `access_token` via Keycloak (`client_credentials`) e envie `Authorization: Bearer <token>` nas rotas protegidas.  
-> **Contexto de usuário:** rotas `.../me...` continuam exigindo `X-User-Id` (UUID do usuário no Keycloak).
+> **Base URL:** `http://localhost:3333` (direto) | `http://localhost:8000` (via Kong)
+> **Versão:** todas as rotas respondem em `/v1/...` (NestJS URI versioning)
 
 ---
 
-## Variáveis de referência
+## Contrato de headers
+
+| Header | Tipo | Quem injeta | Descrição |
+|---|---|---|---|
+| `Authorization` | `Bearer <service_token>` | Kong / serviço | Identidade do chamador (B2B). Kong usa seu próprio `client_credentials`. |
+| `X-Access-Token` | `<user_jwt>` | Kong | Token original do usuário (B2C). Claims (`sub`, `email`, roles) decodificados localmente. |
+
+> **Não existem mais `X-User-Id` nem `X-User-Roles`.**
+> Todos os dados do usuário vêm do JWT em `X-Access-Token`.
+
+---
+
+## Passo 1 — Obter tokens para testes
+
+### Token do usuário (B2C) — `password` grant
+
+Use para simular o token que o frontend envia ao Kong.
+Kong valida e injeta em `X-Access-Token`.
 
 ```bash
-BASE="http://localhost:3333/v1"
+# contractor-test (roles: user-manager, manage-requests, manage-reviews, send-notifications)
+USER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password' \
+  -d 'client_id=domestic-backend-bff' \
+  -d 'client_secret=backend-bff-client-secret' \
+  -d 'username=contractor-test@domestic.local' \
+  -d 'password=Test123!' | jq -r '.access_token')
 
-# Keycloak (B2B)
-KEYCLOAK_BASE_URL="http://localhost:8080"
-KEYCLOAK_REALM="domestic-backend"
-B2B_CLIENT_ID="domestic-backend-bff"
-B2B_CLIENT_SECRET="backend-bff-client-secret"
-ACCESS_TOKEN=""
-
-# IDs de exemplo — substitua pelos reais após criar os recursos
-USER_ID="550e8400-e29b-41d4-a716-446655440001"
-KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
-PROVIDER_ID="550e8400-e29b-41d4-a716-446655440002"
-CATEGORY_ID="550e8400-e29b-41d4-a716-446655440003"
-SERVICE_ID="550e8400-e29b-41d4-a716-446655440004"
-ADDRESS_ID="550e8400-e29b-41d4-a716-446655440005"
-SERVICE_REQUEST_ID="550e8400-e29b-41d4-a716-446655440006"
-REVIEW_ID="550e8400-e29b-41d4-a716-446655440007"
-DOCUMENT_ID="550e8400-e29b-41d4-a716-446655440008"
-NOTIFICATION_ID="550e8400-e29b-41d4-a716-446655440009"
+echo "USER_TOKEN: ${USER_TOKEN:0:50}..."
 ```
 
-> ⚠️ **Importante:** neste backend o campo `keycloak_id` está persistido como **UUID** no banco.
-> Portanto, use sempre o **ID interno do usuário no Keycloak** (claim `sub`), e não identificadores no formato `auth0|...`.
-
-### Passo anterior (recomendado): obter o `KEYCLOAK_ID` correto
-
-1. Abra o Admin Console do Keycloak e acesse o realm `domestic-backend`.
-2. Vá em **Users** e selecione o usuário (ex.: `contractor-test`, `provider-test`, `admin`).
-3. Copie o campo **ID** (UUID).
-4. Use esse valor em `KEYCLOAK_ID` e no header `X-User-Id`.
-
-Exemplo de valor válido:
-
 ```bash
-KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
+# provider-test (roles: user-manager, manage-requests, manage-services)
+PROVIDER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password' \
+  -d 'client_id=domestic-backend-bff' \
+  -d 'client_secret=backend-bff-client-secret' \
+  -d 'username=provider-test@domestic.local' \
+  -d 'password=Test123!' | jq -r '.access_token')
+
+echo "PROVIDER_TOKEN: ${PROVIDER_TOKEN:0:50}..."
 ```
 
-### Novo passo obrigatório: autenticação B2B para obter token
-
 ```bash
-curl -v -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+# admin (roles: user-manager, manage-services, manage-requests, manage-reviews, send-notifications)
+ADMIN_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
   -d 'grant_type=password' \
   -d 'client_id=domestic-backend-bff' \
   -d 'client_secret=backend-bff-client-secret' \
   -d 'username=admin@domestic.local' \
-  -d 'password=ChangeMeSecurePassword123!'
+  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
 
-echo "$ACCESS_TOKEN" | head -c 30 && echo "..."
+echo "ADMIN_TOKEN: ${ADMIN_TOKEN:0:50}..."
 ```
 
-> Se retornar `null`, valide `KEYCLOAK_BASE_URL`, `KEYCLOAK_REALM`, `B2B_CLIENT_ID` e `B2B_CLIENT_SECRET`.
-> Em todas as rotas protegidas, adicione: `-H "Authorization: Bearer $ACCESS_TOKEN"`.
+### Token do serviço (B2B) — `client_credentials` grant
+
+Simula o token que o Kong ou o BFF envia em `Authorization`.
+
+```bash
+SERVICE_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=client_credentials' \
+  -d 'client_id=domestic-backend-bff' \
+  -d 'client_secret=backend-bff-client-secret' | jq -r '.access_token')
+
+echo "SERVICE_TOKEN: ${SERVICE_TOKEN:0:50}..."
+```
+
+---
+
+## Passo 2 — Variáveis de referência
+
+```bash
+BASE='http://localhost:3333/v1'
+
+# Tokens (preencha após o Passo 1)
+USER_TOKEN=''
+PROVIDER_TOKEN=''
+ADMIN_TOKEN=''
+SERVICE_TOKEN=''
+
+# IDs — substitua pelos reais após criar os recursos
+USER_KEYCLOAK_ID=''        # sub do JWT do usuário (jq -r '.sub' <<< $(echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null))
+PROVIDER_KEYCLOAK_ID=''
+ADMIN_KEYCLOAK_ID=''
+USER_ID=''
+PROVIDER_ID=''
+CATEGORY_ID=''
+SERVICE_ID=''
+ADDRESS_ID=''
+SERVICE_REQUEST_ID=''
+REVIEW_ID=''
+DOCUMENT_ID=''
+NOTIFICATION_ID=''
+```
+
+### Extrair o `sub` (keycloak_id) de um token
+
+```bash
+# Decodifica o payload do JWT e extrai o sub
+echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub'
+```
+
+---
+
+## Modo de teste local (sem Kong)
+
+Localmente você simula o que o Kong faria: envia `Authorization` com o service token e `X-Access-Token` com o user token.
+
+```bash
+# Atalhos para testes locais — simula Kong
+AUTH_CONTRACTOR="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $USER_TOKEN'"
+AUTH_PROVIDER="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $PROVIDER_TOKEN'"
+AUTH_ADMIN="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $ADMIN_TOKEN'"
+```
+
+Via Kong (porta 8000) você envia só o token do usuário — Kong faz o resto:
+
+```bash
+# Via Kong — envia só o Bearer do usuário
+curl -s "$BASE_KONG/v1/users/me" \
+  -H "Authorization: Bearer $USER_TOKEN" | jq
+```
 
 ---
 
@@ -83,11 +151,6 @@ curl -s http://localhost:3333/health | jq
   "info": {
     "database": { "status": "up" },
     "redis": { "status": "up" }
-  },
-  "error": {},
-  "details": {
-    "database": { "status": "up" },
-    "redis": { "status": "up" }
   }
 }
 ```
@@ -96,14 +159,14 @@ curl -s http://localhost:3333/health | jq
 
 ## Users
 
-### POST /v1/users — Criar usuário
+### POST /v1/users — Criar usuário (público)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/users" \
-  -H "Content-Type: application/json" \
+curl -s -X POST "$BASE/users" \
+  -H 'Content-Type: application/json' \
   -d '{
     "fullName": "João Silva",
-    "keycloakId": "7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91"
+    "keycloakId": "'$USER_KEYCLOAK_ID'"
   }' | jq
 ```
 
@@ -115,17 +178,7 @@ curl -s -X POST "http://localhost:3333/v1/users" \
   "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Silva",
   "status": "PENDING",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
-```
-
-**Erro — keycloakId duplicado — 409**
-
-```json
-{
-  "statusCode": 409,
-  "code": "DUPLICATE_KEYCLOAK_ID",
-  "message": "User with this Keycloak ID already exists: <KEYCLOAK_ID>"
+  "createdAt": "2026-04-08T10:00:00.000Z"
 }
 ```
 
@@ -134,9 +187,9 @@ curl -s -X POST "http://localhost:3333/v1/users" \
 ### GET /v1/users/me — Perfil do usuário autenticado
 
 ```bash
-curl -s "http://localhost:3333/v1/users/me" \
-  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsZW9VcDBERHk0SE1ralFCTWg2NHVSSDNDRWdsVERlU1pKcThfN2J4LUFnIn0.eyJleHAiOjE3NzU2MTk5NTcsImlhdCI6MTc3NTYxNjM1NywianRpIjoiNjRlODFhZmMtY2IxMy00MmFjLTg3NmYtNmJiYWQ3YjA4NTY1IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9kb21lc3RpYy1iYWNrZW5kIiwic3ViIjoiYzk4YzYxOWItYzVkMS00OWRlLTgxYzktZTM4NTZjN2MxYWI5IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZG9tZXN0aWMtYmFja2VuZC1iZmYiLCJzY29wZSI6InNlbmQtbm90aWZpY2F0aW9ucyBtYW5hZ2UtcmV2aWV3cyB1c2VyLXByb2ZpbGUgbWFuYWdlLXJlcXVlc3RzIG1hbmFnZS1zZXJ2aWNlcyIsImNsaWVudEhvc3QiOiIxOTIuMTY4LjY1LjEiLCJjbGllbnRBZGRyZXNzIjoiMTkyLjE2OC42NS4xIiwiY2xpZW50X2lkIjoiZG9tZXN0aWMtYmFja2VuZC1iZmYifQ.lkKreN175iNte5K5PiUL18lR3SnZOlWK6ch1OhXxj1RzpnKe-ewTNwEIZt-5UVMYgTQf2AmTIvwB_ohnYQeBu8HDwo3OYJbVXHp5lh0urwUeziDO_369xsvHgM71zJDiH6fllmt2mcjvTYIg15vs-bXcNV5U5JekeJa_ieF04EIzLBPOECbgyPHLp5FZIiol4pnIDesydoGyslVlhgpnC0zMmy8TXz_BDYnQ2tDauekRNsKkAx5PAkCG7TNIJ0LNCZjEG9dDFyTdq7oDu0g4lZ_k-llTliHC11gNrsRwyuJQBZ6Qh8ml4TYs00d9NIsJ8cWf3kwcDWkJK8S6t7OgEw" \
-  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91" | jq
+curl -s "$BASE/users/me" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 ```
 
 **Resposta esperada — 200**
@@ -146,39 +199,22 @@ curl -s "http://localhost:3333/v1/users/me" \
   "id": "550e8400-e29b-41d4-a716-446655440001",
   "keycloakId": "11111111-1111-4111-8111-111111111111",
   "fullName": "João Silva",
-  "status": "ACTIVE",
-  "createdAt": "2026-04-05T22:00:00.000Z"
+  "status": "ACTIVE"
 }
 ```
 
-**Erro — usuário não encontrado — 404**
+**Erro — sem X-Access-Token — 401**
 
 ```json
-{
-  "statusCode": 404,
-  "code": "USER_NOT_FOUND",
-  "message": "User not found."
-}
+{ "statusCode": 401, "message": "Missing X-Access-Token header." }
 ```
 
 ---
 
-### GET /v1/users/:id — Buscar usuário por ID
+### GET /v1/users/:id — Buscar usuário por ID (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "11111111-1111-4111-8111-111111111111",
-  "fullName": "João Silva",
-  "status": "ACTIVE",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
+curl -s "$BASE/users/$USER_ID" | jq
 ```
 
 ---
@@ -186,82 +222,45 @@ curl -s "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" | 
 ### PUT /v1/users/:id — Atualizar usuário
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" \
-  -H "Content-Type: application/json" \
+curl -s -X PUT "$BASE/users/$USER_ID" \
+  -H 'Content-Type: application/json' \
   -d '{ "fullName": "João Atualizado" }' | jq
 ```
 
-**Resposta esperada — 200**
+---
 
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440001",
-  "keycloakId": "11111111-1111-4111-8111-111111111111",
-  "fullName": "João Atualizado",
-  "status": "ACTIVE",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
+### DELETE /v1/users/:id — Deletar usuário (soft delete)
+
+```bash
+curl -s -X DELETE "$BASE/users/$USER_ID" -o /dev/null -w "%{http_code}\n"
 ```
+
+**Resposta esperada — 204**
 
 ---
 
-### DELETE /v1/users/:id — Deletar usuário
+### GET /v1/users/admin/stats
 
 ```bash
-curl -s -X DELETE "http://localhost:3333/v1/users/5402f0fb-c7a7-45d7-8f77-b92211985e34" -o /dev/null -w "%{http_code}\n"
-```
-
-**Resposta esperada — 204** _(sem body)_
-
----
-
-### GET /v1/users/admin/stats — Estatísticas (admin)
-
-```bash
-curl -s "http://localhost:3333/v1/users/admin/stats" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: 11111111-1111-4111-8111-111111111111" | jq
+curl -s "$BASE/users/admin/stats" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" | jq
 ```
 
 **Resposta esperada — 200**
 
 ```json
-{
-  "totalUsers": 42,
-  "customers": 35,
-  "providers": 7
-}
+{ "totalUsers": 42, "customers": 35, "providers": 7 }
 ```
 
 ---
 
-### GET /v1/users/me/addresses — Listar endereços do usuário
+### GET /v1/users/me/addresses — Listar endereços
 
 ```bash
-curl -s "http://localhost:3333/v1/users/me/addresses" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440005",
-    "street": "Rua das Flores",
-    "number": "123",
-    "complement": "Apto 4B",
-    "neighborhood": "Centro",
-    "city": "São Paulo",
-    "state": "SP",
-    "zipCode": "01310-100",
-    "latitude": -23.5505,
-    "longitude": -46.6333,
-    "label": "Casa",
-    "isPrimary": true
-  }
-]
+curl -s "$BASE/users/me/addresses" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 ```
 
 ---
@@ -269,10 +268,10 @@ curl -s "http://localhost:3333/v1/users/me/addresses" \
 ### POST /v1/users/me/addresses — Adicionar endereço
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X POST "$BASE/users/me/addresses" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
   -d '{
     "street": "Rua das Flores",
     "number": "123",
@@ -288,97 +287,35 @@ curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
   }' | jq
 ```
 
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440005",
-  "street": "Rua das Flores",
-  "number": "123",
-  "complement": "Apto 4B",
-  "neighborhood": "Centro",
-  "city": "São Paulo",
-  "state": "SP",
-  "zipCode": "01310-100",
-  "latitude": -23.5505,
-  "longitude": -46.6333,
-  "label": "Casa",
-  "isPrimary": true
-}
-```
-
 ---
 
 ### DELETE /v1/users/me/addresses/:addressId — Remover endereço
 
 ```bash
-curl -s -X DELETE "http://localhost:3333/v1/users/me/addresses/$ADDRESS_ID" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X DELETE "$BASE/users/me/addresses/$ADDRESS_ID" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** _(sem body)_
+**Resposta esperada — 204**
 
 ---
 
 ## Categories
 
-### GET /v1/categories — Listar categorias
+### GET /v1/categories — Listar categorias (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/categories" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440003",
-    "name": "Limpeza",
-    "slug": "limpeza",
-    "iconUrl": "https://cdn.zolve.com/icons/cleaning.svg",
-    "isActive": true
-  },
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440010",
-    "name": "Elétrica",
-    "slug": "eletrica",
-    "iconUrl": null,
-    "isActive": true
-  }
-]
+curl -s "$BASE/categories" | jq
 ```
 
 ---
 
-### GET /v1/categories/:id — Buscar categoria por ID
+### GET /v1/categories/:id — Buscar categoria (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/categories/$CATEGORY_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440003",
-  "name": "Limpeza",
-  "slug": "limpeza",
-  "iconUrl": "https://cdn.zolve.com/icons/cleaning.svg",
-  "isActive": true
-}
-```
-
-**Erro — não encontrada — 404**
-
-```json
-{
-  "statusCode": 404,
-  "code": "CATEGORY_NOT_FOUND",
-  "message": "Category not found."
-}
+curl -s "$BASE/categories/$CATEGORY_ID" | jq
 ```
 
 ---
@@ -386,37 +323,15 @@ curl -s "http://localhost:3333/v1/categories/$CATEGORY_ID" | jq
 ### POST /v1/categories — Criar categoria (admin)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/categories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X POST "$BASE/categories" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
   -d '{
     "name": "Jardinagem",
     "slug": "jardinagem",
-    "iconUrl": "https://cdn.zolve.com/icons/garden.svg"
+    "iconUrl": "https://cdn.domestic.com/icons/garden.svg"
   }' | jq
-```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440011",
-  "name": "Jardinagem",
-  "slug": "jardinagem",
-  "iconUrl": "https://cdn.zolve.com/icons/garden.svg",
-  "isActive": true
-}
-```
-
-**Erro — slug duplicado — 409**
-
-```json
-{
-  "statusCode": 409,
-  "code": "CATEGORY_DUPLICATE_SLUG",
-  "message": "A category with this slug already exists."
-}
 ```
 
 ---
@@ -424,26 +339,11 @@ curl -s -X POST "http://localhost:3333/v1/categories" \
 ### PUT /v1/categories/:id — Atualizar categoria (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/categories/$CATEGORY_ID" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
-  -d '{
-    "name": "Limpeza Residencial",
-    "iconUrl": "https://cdn.zolve.com/icons/cleaning-v2.svg"
-  }' | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440003",
-  "name": "Limpeza Residencial",
-  "slug": "limpeza",
-  "iconUrl": "https://cdn.zolve.com/icons/cleaning-v2.svg",
-  "isActive": true
-}
+curl -s -X PUT "$BASE/categories/$CATEGORY_ID" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
+  -d '{ "name": "Limpeza Residencial" }' | jq
 ```
 
 ---
@@ -451,68 +351,29 @@ curl -s -X PUT "http://localhost:3333/v1/categories/$CATEGORY_ID" \
 ### DELETE /v1/categories/:id — Desativar categoria (admin)
 
 ```bash
-curl -s -X DELETE "http://localhost:3333/v1/categories/$CATEGORY_ID" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X DELETE "$BASE/categories/$CATEGORY_ID" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
   -o /dev/null -w "%{http_code}\n"
 ```
-
-**Resposta esperada — 204** _(sem body)_
 
 ---
 
 ## Services
 
-### GET /v1/services — Listar serviços
+### GET /v1/services — Listar serviços (público)
 
 ```bash
-# Todos os serviços
-curl -s "http://localhost:3333/v1/services" | jq
-
-# Filtrar por categoria
-curl -s "http://localhost:3333/v1/services?categoryId=$CATEGORY_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440004",
-    "categoryId": "550e8400-e29b-41d4-a716-446655440003",
-    "name": "Limpeza Completa",
-    "description": "Limpeza completa do imóvel incluindo todos os cômodos",
-    "category": {
-      "id": "550e8400-e29b-41d4-a716-446655440003",
-      "name": "Limpeza",
-      "slug": "limpeza"
-    }
-  }
-]
+curl -s "$BASE/services" | jq
+curl -s "$BASE/services?categoryId=$CATEGORY_ID" | jq
 ```
 
 ---
 
-### GET /v1/services/:id — Buscar serviço por ID
+### GET /v1/services/:id — Buscar serviço (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/services/$SERVICE_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440004",
-  "categoryId": "550e8400-e29b-41d4-a716-446655440003",
-  "name": "Limpeza Completa",
-  "description": "Limpeza completa do imóvel incluindo todos os cômodos",
-  "category": {
-    "id": "550e8400-e29b-41d4-a716-446655440003",
-    "name": "Limpeza",
-    "slug": "limpeza"
-  }
-}
+curl -s "$BASE/services/$SERVICE_ID" | jq
 ```
 
 ---
@@ -520,36 +381,15 @@ curl -s "http://localhost:3333/v1/services/$SERVICE_ID" | jq
 ### POST /v1/services — Criar serviço (admin)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/services" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X POST "$BASE/services" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
   -d '{
-    "categoryId": "550e8400-e29b-41d4-a716-446655440003",
-    "name": "Limpeza de Vidros",
-    "description": "Limpeza externa e interna de vidros e janelas"
+    "categoryId": "'$CATEGORY_ID'",
+    "name": "Limpeza Completa",
+    "description": "Limpeza completa do imóvel"
   }' | jq
-```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440012",
-  "categoryId": "550e8400-e29b-41d4-a716-446655440003",
-  "name": "Limpeza de Vidros",
-  "description": "Limpeza externa e interna de vidros e janelas"
-}
-```
-
-**Erro — categoria não encontrada — 404**
-
-```json
-{
-  "statusCode": 404,
-  "code": "SERVICE_CATEGORY_NOT_FOUND",
-  "message": "Category not found for this service."
-}
 ```
 
 ---
@@ -557,25 +397,11 @@ curl -s -X POST "http://localhost:3333/v1/services" \
 ### PUT /v1/services/:id — Atualizar serviço (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/services/$SERVICE_ID" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
-  -d '{
-    "name": "Limpeza Completa Premium",
-    "description": "Limpeza completa com produtos premium"
-  }' | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440004",
-  "categoryId": "550e8400-e29b-41d4-a716-446655440003",
-  "name": "Limpeza Completa Premium",
-  "description": "Limpeza completa com produtos premium"
-}
+curl -s -X PUT "$BASE/services/$SERVICE_ID" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
+  -d '{ "name": "Limpeza Completa Premium" }' | jq
 ```
 
 ---
@@ -585,243 +411,81 @@ curl -s -X PUT "http://localhost:3333/v1/services/$SERVICE_ID" \
 ### POST /v1/providers — Criar perfil de prestador
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/providers" \
-  -H "Content-Type: application/json" \
+curl -s -X POST "$BASE/providers" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
   -d '{
-    "userId": "550e8400-e29b-41d4-a716-446655440001",
-    "businessName": "João Limpezas Ltda",
-    "description": "Especialista em limpeza residencial com 10 anos de experiência"
+    "userId": "'$USER_ID'",
+    "businessName": "Limpeza Express",
+    "description": "Serviços de limpeza residencial com 5 anos de experiência",
+    "isAvailable": true
   }' | jq
 ```
 
-**Resposta esperada — 201**
+---
 
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440002",
-  "userId": "550e8400-e29b-41d4-a716-446655440001",
-  "businessName": "João Limpezas Ltda",
-  "description": "Especialista em limpeza residencial com 10 anos de experiência",
-  "isAvailable": true,
-  "verificationStatus": "PENDING",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
-```
+### GET /v1/providers — Listar prestadores aprovados (público)
 
-**Erro — prestador já existe para esse usuário — 409**
-
-```json
-{
-  "statusCode": 409,
-  "code": "PROVIDER_ALREADY_EXISTS",
-  "message": "Provider profile already exists for this user."
-}
+```bash
+curl -s "$BASE/providers" | jq
 ```
 
 ---
 
-### GET /v1/providers — Listar prestadores aprovados
+### GET /v1/providers/admin/pending — Listar aguardando aprovação (admin)
 
 ```bash
-curl -s "http://localhost:3333/v1/providers" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440002",
-    "userId": "550e8400-e29b-41d4-a716-446655440001",
-    "businessName": "João Limpezas Ltda",
-    "description": "Especialista em limpeza residencial",
-    "isAvailable": true,
-    "verificationStatus": "APPROVED",
-    "createdAt": "2026-04-05T22:00:00.000Z"
-  }
-]
+curl -s "$BASE/providers/admin/pending" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" | jq
 ```
 
 ---
 
-### GET /v1/providers/admin/pending — Listar pendentes de verificação (admin)
+### GET /v1/providers/:id — Buscar prestador (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/providers/admin/pending" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440013",
-    "userId": "550e8400-e29b-41d4-a716-446655440014",
-    "businessName": "Maria Elétrica",
-    "verificationStatus": "UNDER_REVIEW",
-    "createdAt": "2026-04-05T22:00:00.000Z"
-  }
-]
+curl -s "$BASE/providers/$PROVIDER_ID" | jq
 ```
 
 ---
 
-### GET /v1/providers/:id — Buscar prestador por ID
+### PUT /v1/providers/:id — Atualizar perfil
 
 ```bash
-curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440002",
-  "userId": "550e8400-e29b-41d4-a716-446655440001",
-  "businessName": "João Limpezas Ltda",
-  "description": "Especialista em limpeza residencial",
-  "isAvailable": true,
-  "verificationStatus": "APPROVED",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
-```
-
-**Erro — não encontrado — 404**
-
-```json
-{
-  "statusCode": 404,
-  "code": "PROVIDER_NOT_FOUND",
-  "message": "Provider not found."
-}
+curl -s -X PUT "$BASE/providers/$PROVIDER_ID" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
+  -d '{ "description": "Serviços premium de limpeza", "isAvailable": false }' | jq
 ```
 
 ---
 
-### PUT /v1/providers/:id — Atualizar perfil do prestador
+### POST /v1/providers/:id/services — Adicionar serviço ao prestador
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID" \
-  -H "Content-Type: application/json" \
+curl -s -X POST "$BASE/providers/$PROVIDER_ID/services" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
   -d '{
-    "businessName": "João Limpezas Premium",
-    "description": "Serviços premium de limpeza residencial e comercial",
-    "isAvailable": false
-  }' | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440002",
-  "businessName": "João Limpezas Premium",
-  "description": "Serviços premium de limpeza residencial e comercial",
-  "isAvailable": false,
-  "verificationStatus": "APPROVED"
-}
-```
-
----
-
-### GET /v1/providers/:id/services — Listar serviços do prestador
-
-```bash
-curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/services" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440015",
-    "providerId": "550e8400-e29b-41d4-a716-446655440002",
-    "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-    "priceBase": 150.0,
-    "priceType": "FIXED",
-    "service": {
-      "id": "550e8400-e29b-41d4-a716-446655440004",
-      "name": "Limpeza Completa"
-    }
-  }
-]
-```
-
----
-
-### POST /v1/providers/:id/services — Vincular serviço ao prestador
-
-```bash
-curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/services" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "serviceId": "550e8400-e29b-41d4-a716-446655440004",
+    "serviceId": "'$SERVICE_ID'",
     "priceBase": 150.00,
     "priceType": "FIXED"
   }' | jq
 ```
 
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440015",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-  "priceBase": 150.0,
-  "priceType": "FIXED"
-}
-```
-
-**Erro — serviço já vinculado — 409**
-
-```json
-{
-  "statusCode": 409,
-  "code": "PROVIDER_SERVICE_ALREADY_LINKED",
-  "message": "This service is already linked to the provider."
-}
-```
-
 ---
 
-### DELETE /v1/providers/:id/services/:serviceId — Desvincular serviço
+### DELETE /v1/providers/:id/services/:serviceId
 
 ```bash
-curl -s -X DELETE "http://localhost:3333/v1/providers/$PROVIDER_ID/services/$SERVICE_ID" \
+curl -s -X DELETE "$BASE/providers/$PROVIDER_ID/services/$SERVICE_ID" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
   -o /dev/null -w "%{http_code}\n"
-```
-
-**Resposta esperada — 204** _(sem body)_
-
----
-
-### GET /v1/providers/:id/work-locations — Listar locais de atendimento
-
-```bash
-curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440016",
-    "providerId": "550e8400-e29b-41d4-a716-446655440002",
-    "addressId": "550e8400-e29b-41d4-a716-446655440005",
-    "name": "Zona Sul SP",
-    "isPrimary": true,
-    "address": {
-      "city": "São Paulo",
-      "state": "SP",
-      "neighborhood": "Vila Mariana"
-    }
-  }
-]
 ```
 
 ---
@@ -829,470 +493,195 @@ curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations" | jq
 ### POST /v1/providers/:id/work-locations — Adicionar local de atendimento
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations" \
-  -H "Content-Type: application/json" \
+curl -s -X POST "$BASE/providers/$PROVIDER_ID/work-locations" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
   -d '{
-    "addressId": "550e8400-e29b-41d4-a716-446655440005",
-    "name": "Zona Sul SP",
-    "isPrimary": true
+    "city": "São Paulo",
+    "state": "SP",
+    "neighborhood": "Pinheiros",
+    "radiusKm": 10
   }' | jq
 ```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440016",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "addressId": "550e8400-e29b-41d4-a716-446655440005",
-  "name": "Zona Sul SP",
-  "isPrimary": true
-}
-```
-
----
-
-### DELETE /v1/providers/:id/work-locations/:locationId — Remover local de atendimento
-
-```bash
-LOCATION_ID="550e8400-e29b-41d4-a716-446655440016"
-
-curl -s -X DELETE "http://localhost:3333/v1/providers/$PROVIDER_ID/work-locations/$LOCATION_ID" \
-  -o /dev/null -w "%{http_code}\n"
-```
-
-**Resposta esperada — 204** _(sem body)_
 
 ---
 
 ### POST /v1/providers/:id/verification — Submeter para verificação
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440017",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "UNDER_REVIEW",
-  "submittedAt": "2026-04-05T22:00:00.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null,
-  "rejectionReason": null
-}
-```
-
-**Erro — transição de status inválida — 422**
-
-```json
-{
-  "statusCode": 422,
-  "code": "PROVIDER_INVALID_VERIFICATION_STATUS",
-  "message": "Invalid verification status transition."
-}
+curl -s -X POST "$BASE/providers/$PROVIDER_ID/verification" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq
 ```
 
 ---
 
-### GET /v1/providers/:id/verification — Status de verificação
+### GET /v1/providers/:id/verification — Status da verificação
 
 ```bash
-curl -s "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440017",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "UNDER_REVIEW",
-  "submittedAt": "2026-04-05T22:00:00.000Z",
-  "reviewedAt": null,
-  "reviewedBy": null,
-  "rejectionReason": null
-}
+curl -s "$BASE/providers/$PROVIDER_ID/verification" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq
 ```
 
 ---
 
-### PUT /v1/providers/:id/verification/approve — Aprovar verificação (admin)
+### PUT /v1/providers/:id/verification/approve — Aprovar prestador (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
+curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/approve" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" | jq
 ```
 
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440017",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "APPROVED",
-  "submittedAt": "2026-04-05T22:00:00.000Z",
-  "reviewedAt": "2026-04-05T23:00:00.000Z",
-  "reviewedBy": "22222222-2222-4222-8222-222222222222",
-  "rejectionReason": null
-}
-```
+> `@AuthUser()` extrai o `sub` do `ADMIN_TOKEN` como `reviewedBy`.
 
 ---
 
-### PUT /v1/providers/:id/verification/reject — Rejeitar verificação (admin)
+### PUT /v1/providers/:id/verification/reject — Rejeitar prestador (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/reject" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
-  -d '{ "reason": "Documentos insuficientes. Envie CPF e comprovante de residência." }' | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440017",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "status": "REJECTED",
-  "submittedAt": "2026-04-05T22:00:00.000Z",
-  "reviewedAt": "2026-04-05T23:00:00.000Z",
-  "reviewedBy": "22222222-2222-4222-8222-222222222222",
-  "rejectionReason": "Documentos insuficientes. Envie CPF e comprovante de residência."
-}
+curl -s -X PUT "$BASE/providers/$PROVIDER_ID/verification/reject" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" \
+  -d '{ "reason": "Documentação incompleta" }' | jq
 ```
 
 ---
 
 ## Service Requests
 
-### POST /v1/service-requests — Criar solicitação de serviço
+### POST /v1/service-requests — Criar solicitação (CUSTOMER)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/service-requests" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X POST "$BASE/service-requests" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
   -d '{
-    "providerId": "550e8400-e29b-41d4-a716-446655440002",
-    "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-    "addressId": "550e8400-e29b-41d4-a716-446655440005",
-    "description": "Preciso de limpeza completa em apartamento de 60m²",
-    "scheduledAt": "2026-04-10T09:00:00.000Z",
-    "priceFinal": 150.00
+    "providerId": "'$PROVIDER_ID'",
+    "serviceId": "'$SERVICE_ID'",
+    "scheduledDate": "2026-04-15T14:00:00.000Z",
+    "notes": "Apartamento de 2 quartos"
   }' | jq
 ```
 
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "customerId": "550e8400-e29b-41d4-a716-446655440001",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-  "addressId": "550e8400-e29b-41d4-a716-446655440005",
-  "description": "Preciso de limpeza completa em apartamento de 60m²",
-  "scheduledAt": "2026-04-10T09:00:00.000Z",
-  "priceFinal": 150.0,
-  "status": "PENDING",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
-```
-
-**Erro — prestador não aprovado — 422**
-
-```json
-{
-  "statusCode": 422,
-  "code": "SERVICE_REQUEST_PROVIDER_NOT_APPROVED",
-  "message": "Provider is not approved to receive service requests."
-}
-```
-
 ---
 
-### GET /v1/service-requests — Listar solicitações do usuário autenticado
+### GET /v1/service-requests — Listar solicitações
 
 ```bash
-# Como contratante (customer)
-curl -s "http://localhost:3333/v1/service-requests" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
-  -H "X-User-Type: CUSTOMER" | jq
+# Como contratante (CUSTOMER)
+curl -s "$BASE/service-requests" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 
-# Como prestador
-curl -s "http://localhost:3333/v1/service-requests" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+# Como prestador (PROVIDER) — passa X-User-Type
+curl -s "$BASE/service-requests" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
   -H "X-User-Type: PROVIDER" | jq
 ```
 
-**Resposta esperada — 200**
+---
 
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440006",
-    "status": "PENDING",
-    "scheduledAt": "2026-04-10T09:00:00.000Z",
-    "priceFinal": 150.0,
-    "createdAt": "2026-04-05T22:00:00.000Z"
-  }
-]
+### GET /v1/service-requests/:id — Detalhe da solicitação (público)
+
+```bash
+curl -s "$BASE/service-requests/$SERVICE_REQUEST_ID" | jq
 ```
 
 ---
 
-### GET /v1/service-requests/:id — Buscar solicitação por ID
+### PUT /v1/service-requests/:id/accept — Prestador aceita (PENDING → ACCEPTED)
 
 ```bash
-curl -s "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "customerId": "550e8400-e29b-41d4-a716-446655440001",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "serviceId": "550e8400-e29b-41d4-a716-446655440004",
-  "description": "Preciso de limpeza completa em apartamento de 60m²",
-  "scheduledAt": "2026-04-10T09:00:00.000Z",
-  "priceFinal": 150.0,
-  "status": "PENDING",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/accept" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq
 ```
 
 ---
 
-### PUT /v1/service-requests/:id/accept — Aceitar solicitação (prestador)
+### PUT /v1/service-requests/:id/reject — Prestador rejeita (PENDING → REJECTED)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/accept" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "status": "ACCEPTED",
-  "updatedAt": "2026-04-05T22:30:00.000Z"
-}
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/reject" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq
 ```
 
 ---
 
-### PUT /v1/service-requests/:id/reject — Rejeitar solicitação (prestador)
+### PUT /v1/service-requests/:id/complete — Contratante confirma conclusão (ACCEPTED → COMPLETED)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/reject" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "status": "REJECTED",
-  "updatedAt": "2026-04-05T22:30:00.000Z"
-}
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/complete" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 ```
 
 ---
 
-### PUT /v1/service-requests/:id/complete — Confirmar conclusão (contratante)
+### PUT /v1/service-requests/:id/cancel — Cancelar solicitação
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/complete" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "status": "COMPLETED",
-  "updatedAt": "2026-04-05T23:00:00.000Z"
-}
-```
-
-**Erro — transição inválida (ex: já cancelada) — 422**
-
-```json
-{
-  "statusCode": 422,
-  "code": "SERVICE_REQUEST_INVALID_STATUS_TRANSITION",
-  "message": "Invalid status transition for this service request."
-}
-```
-
----
-
-### PUT /v1/service-requests/:id/cancel — Cancelar solicitação (contratante)
-
-```bash
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SERVICE_REQUEST_ID/cancel" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440006",
-  "status": "CANCELLED",
-  "updatedAt": "2026-04-05T22:45:00.000Z"
-}
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/cancel" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 ```
 
 ---
 
 ## Reviews
 
-### POST /v1/reviews — Criar avaliação
-
-> Só é possível após a solicitação estar com status `COMPLETED`.
+### POST /v1/reviews — Criar avaliação (CUSTOMER)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/reviews" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X POST "$BASE/reviews" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
   -d '{
-    "serviceRequestId": "550e8400-e29b-41d4-a716-446655440006",
+    "serviceRequestId": "'$SERVICE_REQUEST_ID'",
+    "providerId": "'$PROVIDER_ID'",
     "rating": 5,
-    "comment": "Serviço excelente! Muito pontual e caprichoso."
+    "comment": "Excelente serviço, muito pontual!"
   }' | jq
-```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440007",
-  "serviceRequestId": "550e8400-e29b-41d4-a716-446655440006",
-  "customerId": "550e8400-e29b-41d4-a716-446655440001",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "rating": 5,
-  "comment": "Serviço excelente! Muito pontual e caprichoso.",
-  "createdAt": "2026-04-05T23:30:00.000Z"
-}
-```
-
-**Erro — serviço não concluído — 422**
-
-```json
-{
-  "statusCode": 422,
-  "code": "REVIEW_SERVICE_REQUEST_NOT_COMPLETED",
-  "message": "Cannot review a service request that is not completed."
-}
-```
-
-**Erro — avaliação já existe — 409**
-
-```json
-{
-  "statusCode": 409,
-  "code": "REVIEW_ALREADY_EXISTS",
-  "message": "A review already exists for this service request."
-}
 ```
 
 ---
 
-### GET /v1/reviews/provider/:providerId — Avaliações de um prestador
+### GET /v1/reviews/provider/:providerId — Listar avaliações do prestador (público)
 
 ```bash
-curl -s "http://localhost:3333/v1/reviews/provider/$PROVIDER_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440007",
-    "serviceRequestId": "550e8400-e29b-41d4-a716-446655440006",
-    "rating": 5,
-    "comment": "Serviço excelente! Muito pontual e caprichoso.",
-    "createdAt": "2026-04-05T23:30:00.000Z"
-  },
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440018",
-    "serviceRequestId": "550e8400-e29b-41d4-a716-446655440019",
-    "rating": 4,
-    "comment": "Bom serviço, chegou um pouco atrasado.",
-    "createdAt": "2026-04-04T18:00:00.000Z"
-  }
-]
+curl -s "$BASE/reviews/provider/$PROVIDER_ID" | jq
 ```
 
 ---
 
 ## Documents
 
-### POST /v1/documents — Upload de documento
-
-> Content-Type deve ser `multipart/form-data`. Limite: 50 MB.
+### POST /v1/documents — Upload de documento (multipart)
 
 ```bash
-curl -s -X POST "http://localhost:3333/v1/documents" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
-  -F "file=@/caminho/para/documento.pdf" \
-  -F "documentType=CPF" | jq
+curl -s -X POST "$BASE/documents" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
+  -F 'file=@/path/to/document.pdf' \
+  -F 'documentType=CNH' | jq
 ```
-
-**Resposta esperada — 201**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440008",
-  "providerId": "550e8400-e29b-41d4-a716-446655440002",
-  "documentType": "CPF",
-  "status": "PENDING",
-  "createdAt": "2026-04-05T22:00:00.000Z"
-}
-```
-
-**Tipos de documento aceitos:** `CPF` | `CNH` | `DIPLOMA`
 
 ---
 
-### GET /v1/documents/:id/url — URL assinada para download
+### GET /v1/documents/:id/url — Obter URL assinada (TTL 15min)
 
 ```bash
-curl -s "http://localhost:3333/v1/documents/$DOCUMENT_ID/url" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "url": "https://storage.zolve.com/documents/doc.pdf?X-Amz-Signature=abc...&X-Amz-Expires=900",
-  "expiresIn": 900000
-}
+curl -s "$BASE/documents/$DOCUMENT_ID/url" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq
 ```
 
 ---
@@ -1300,19 +689,9 @@ curl -s "http://localhost:3333/v1/documents/$DOCUMENT_ID/url" \
 ### PUT /v1/documents/:id/approve — Aprovar documento (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/approve" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440008",
-  "status": "APPROVED",
-  "reviewedAt": "2026-04-05T23:00:00.000Z"
-}
+curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/approve" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" | jq
 ```
 
 ---
@@ -1320,57 +699,21 @@ curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/approve" \
 ### PUT /v1/documents/:id/reject — Rejeitar documento (admin)
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/documents/$DOCUMENT_ID/reject" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440008",
-  "status": "REJECTED",
-  "reviewedAt": "2026-04-05T23:00:00.000Z"
-}
-```
-
-**Erro — transição inválida — 422**
-
-```json
-{
-  "statusCode": 422,
-  "code": "DOCUMENT_INVALID_STATUS_TRANSITION",
-  "message": "Invalid status transition for this document."
-}
+curl -s -X PUT "$BASE/documents/$DOCUMENT_ID/reject" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $ADMIN_TOKEN" | jq
 ```
 
 ---
 
 ## Notifications
 
-### GET /v1/notifications — Listar notificações
+### GET /v1/notifications — Listar notificações do usuário
 
 ```bash
-curl -s "http://localhost:3333/v1/notifications" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" | jq
-```
-
-**Resposta esperada — 200**
-
-```json
-[
-  {
-    "id": "550e8400-e29b-41d4-a716-446655440009",
-    "userId": "550e8400-e29b-41d4-a716-446655440001",
-    "title": "Solicitação aceita",
-    "body": "O prestador João aceitou sua solicitação de limpeza.",
-    "type": "SERVICE_REQUEST_ACCEPTED",
-    "isRead": false,
-    "createdAt": "2026-04-05T22:30:00.000Z"
-  }
-]
+curl -s "$BASE/notifications" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq
 ```
 
 ---
@@ -1378,145 +721,107 @@ curl -s "http://localhost:3333/v1/notifications" \
 ### PUT /v1/notifications/:id/read — Marcar como lida
 
 ```bash
-curl -s -X PUT "http://localhost:3333/v1/notifications/$NOTIFICATION_ID/read" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $KEYCLOAK_ID" \
+curl -s -X PUT "$BASE/notifications/$NOTIFICATION_ID/read" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
   -o /dev/null -w "%{http_code}\n"
 ```
 
-**Resposta esperada — 204** _(sem body)_
+**Resposta esperada — 204**
 
 ---
 
-## Fluxo completo de exemplo
-
-Script que exercita o fluxo end-to-end da plataforma do cadastro até a avaliação:
+## Fluxo completo — exemplo ponta a ponta
 
 ```bash
 #!/bin/bash
-set -e
-BASE="http://localhost:3333/v1"
-KEYCLOAK_BASE_URL="http://localhost:8080"
-KEYCLOAK_REALM="domestic-backend"
-B2B_CLIENT_ID="domestic-backend-bff"
-B2B_CLIENT_SECRET="backend-bff-client-secret"
-ADMIN_KEYCLOAK_ID="22222222-2222-4222-8222-222222222222"
-CUSTOMER_KEYCLOAK_ID="33333333-3333-4333-8333-333333333333"
-PROVIDER_KEYCLOAK_ID="44444444-4444-4444-8444-444444444444"
+BASE='http://localhost:3333/v1'
 
-ACCESS_TOKEN=$(curl -s -X POST "$KEYCLOAK_BASE_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials" \
-  -d "client_id=$B2B_CLIENT_ID" \
-  -d "client_secret=$B2B_CLIENT_SECRET" | jq -r '.access_token')
+# 1. Obter tokens
+SERVICE_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=client_credentials&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret' | jq -r '.access_token')
 
-echo "=== 1. Criar usuário contratante ==="
-CUSTOMER=$(curl -s -X POST "http://localhost:3333/v1/users" \
-  -H "Content-Type: application/json" \
-  -d "{\"fullName\":\"Maria Contratante\",\"keycloakId\":\"$CUSTOMER_KEYCLOAK_ID\"}")
-echo $CUSTOMER | jq .
-CUSTOMER_ID=$(echo $CUSTOMER | jq -r '.id')
+USER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=contractor-test@domestic.local&password=Test123!' | jq -r '.access_token')
 
-echo "=== 2. Criar usuário prestador ==="
-PROVIDER_USER=$(curl -s -X POST "http://localhost:3333/v1/users" \
-  -H "Content-Type: application/json" \
-  -d "{\"fullName\":\"Carlos Prestador\",\"keycloakId\":\"$PROVIDER_KEYCLOAK_ID\"}")
-PROVIDER_USER_ID=$(echo $PROVIDER_USER | jq -r '.id')
+PROVIDER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=provider-test@domestic.local&password=Test123!' | jq -r '.access_token')
 
-echo "=== 3. Criar perfil do prestador ==="
-PROVIDER=$(curl -s -X POST "http://localhost:3333/v1/providers" \
-  -H "Content-Type: application/json" \
-  -d "{\"userId\":\"$PROVIDER_USER_ID\",\"businessName\":\"Carlos Clean\",\"description\":\"Limpeza profissional\"}")
-echo $PROVIDER | jq .
-PROVIDER_ID=$(echo $PROVIDER | jq -r '.id')
+USER_KEYCLOAK_ID=$(echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub')
+PROVIDER_KEYCLOAK_ID=$(echo $PROVIDER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub')
 
-echo "=== 4. Criar categoria ==="
-CATEGORY=$(curl -s -X POST "http://localhost:3333/v1/categories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
-  -d '{"name":"Limpeza","slug":"limpeza"}')
-CATEGORY_ID=$(echo $CATEGORY | jq -r '.id')
+echo "USER sub:     $USER_KEYCLOAK_ID"
+echo "PROVIDER sub: $PROVIDER_KEYCLOAK_ID"
 
-echo "=== 5. Criar serviço ==="
-SERVICE=$(curl -s -X POST "http://localhost:3333/v1/services" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" \
-  -d "{\"categoryId\":\"$CATEGORY_ID\",\"name\":\"Limpeza Completa\"}")
-SERVICE_ID=$(echo $SERVICE | jq -r '.id')
+# 2. Criar usuários
+USER_ID=$(curl -s -X POST "$BASE/users" \
+  -H 'Content-Type: application/json' \
+  -d '{"fullName":"Contratante Teste","keycloakId":"'$USER_KEYCLOAK_ID'"}' | jq -r '.id')
 
-echo "=== 6. Vincular serviço ao prestador ==="
-curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/services" \
-  -H "Content-Type: application/json" \
-  -d "{\"serviceId\":\"$SERVICE_ID\",\"priceBase\":120.00,\"priceType\":\"FIXED\"}" | jq .
+PROVIDER_USER_ID=$(curl -s -X POST "$BASE/users" \
+  -H 'Content-Type: application/json' \
+  -d '{"fullName":"Prestador Teste","keycloakId":"'$PROVIDER_KEYCLOAK_ID'"}' | jq -r '.id')
 
-echo "=== 7. Aprovar prestador (admin) ==="
-curl -s -X POST "http://localhost:3333/v1/providers/$PROVIDER_ID/verification" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
-curl -s -X PUT "http://localhost:3333/v1/providers/$PROVIDER_ID/verification/approve" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $ADMIN_KEYCLOAK_ID" | jq .
+# 3. Criar categoria e serviço
+CATEGORY_ID=$(curl -s -X POST "$BASE/categories" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
+  -d '{"name":"Limpeza","slug":"limpeza"}' | jq -r '.id')
 
-echo "=== 8. Adicionar endereço ao contratante ==="
-ADDRESS=$(curl -s -X POST "http://localhost:3333/v1/users/me/addresses" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
-  -d '{"street":"Av. Paulista","number":"1000","neighborhood":"Bela Vista","city":"São Paulo","state":"SP","zipCode":"01310-100","isPrimary":true}')
-ADDRESS_ID=$(echo $ADDRESS | jq -r '.id')
+SERVICE_ID=$(curl -s -X POST "$BASE/services" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
+  -d '{"categoryId":"'$CATEGORY_ID'","name":"Limpeza Completa","description":"Limpeza do imóvel"}' | jq -r '.id')
 
-echo "=== 9. Criar solicitação de serviço ==="
-SR=$(curl -s -X POST "http://localhost:3333/v1/service-requests" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
-  -d "{\"providerId\":\"$PROVIDER_ID\",\"serviceId\":\"$SERVICE_ID\",\"addressId\":\"$ADDRESS_ID\",\"scheduledAt\":\"2026-04-10T09:00:00.000Z\",\"priceFinal\":120.00}")
-echo $SR | jq .
-SR_ID=$(echo $SR | jq -r '.id')
+# 4. Criar perfil de prestador
+PROVIDER_ID=$(curl -s -X POST "$BASE/providers" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" \
+  -d '{"userId":"'$PROVIDER_USER_ID'","businessName":"Limpeza Express","description":"5 anos de experiência","isAvailable":true}' | jq -r '.id')
 
-echo "=== 10. Prestador aceita ==="
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/accept" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $PROVIDER_KEYCLOAK_ID" | jq .
+# 5. Criar solicitação de serviço
+SERVICE_REQUEST_ID=$(curl -s -X POST "$BASE/service-requests" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
+  -d '{"providerId":"'$PROVIDER_ID'","serviceId":"'$SERVICE_ID'","scheduledDate":"2026-04-15T14:00:00.000Z"}' | jq -r '.id')
 
-echo "=== 11. Contratante confirma conclusão ==="
-curl -s -X PUT "http://localhost:3333/v1/service-requests/$SR_ID/complete" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" | jq .
+# 6. Prestador aceita
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/accept" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $PROVIDER_TOKEN" | jq '.status'
 
-echo "=== 12. Contratante avalia prestador ==="
-curl -s -X POST "http://localhost:3333/v1/reviews" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: $CUSTOMER_KEYCLOAK_ID" \
-  -d "{\"serviceRequestId\":\"$SR_ID\",\"rating\":5,\"comment\":\"Perfeito! Recomendo.\"}" | jq .
+# 7. Contratante confirma conclusão
+curl -s -X PUT "$BASE/service-requests/$SERVICE_REQUEST_ID/complete" \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" | jq '.status'
 
-echo "=== Fluxo completo finalizado ==="
+# 8. Contratante avalia
+curl -s -X POST "$BASE/reviews" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $SERVICE_TOKEN" \
+  -H "X-Access-Token: $USER_TOKEN" \
+  -d '{"serviceRequestId":"'$SERVICE_REQUEST_ID'","providerId":"'$PROVIDER_ID'","rating":5,"comment":"Ótimo serviço!"}' | jq
+
+echo "Fluxo completo!"
 ```
 
 ---
 
-## Referência rápida de erros comuns
+## Referência de erros comuns
 
-| Código HTTP | Code                                        | Quando ocorre                             |
-| ----------- | ------------------------------------------- | ----------------------------------------- |
-| 400         | `VALIDATION_ERROR`                          | Body inválido, campo obrigatório ausente  |
-| 401         | `UNAUTHORIZED_ACCESS`                       | `X-User-Id` ausente em rota protegida     |
-| 404         | `USER_NOT_FOUND`                            | Usuário não existe                        |
-| 404         | `PROVIDER_NOT_FOUND`                        | Prestador não existe                      |
-| 404         | `CATEGORY_NOT_FOUND`                        | Categoria não existe                      |
-| 404         | `SERVICE_NOT_FOUND`                         | Serviço não existe                        |
-| 404         | `SERVICE_REQUEST_NOT_FOUND`                 | Solicitação não existe                    |
-| 404         | `DOCUMENT_NOT_FOUND`                        | Documento não existe                      |
-| 409         | `DUPLICATE_KEYCLOAK_ID`                     | Usuário já cadastrado com esse keycloakId |
-| 409         | `PROVIDER_ALREADY_EXISTS`                   | Prestador já existe para esse usuário     |
-| 409         | `PROVIDER_SERVICE_ALREADY_LINKED`           | Serviço já vinculado ao prestador         |
-| 409         | `CATEGORY_DUPLICATE_SLUG`                   | Slug de categoria já em uso               |
-| 409         | `REVIEW_ALREADY_EXISTS`                     | Solicitação já foi avaliada               |
-| 422         | `SERVICE_REQUEST_PROVIDER_NOT_APPROVED`     | Prestador não está aprovado               |
-| 422         | `SERVICE_REQUEST_INVALID_STATUS_TRANSITION` | Transição de status inválida              |
-| 422         | `REVIEW_SERVICE_REQUEST_NOT_COMPLETED`      | Serviço ainda não concluído               |
-| 422         | `PROVIDER_INVALID_VERIFICATION_STATUS`      | Transição de verificação inválida         |
-| 422         | `DOCUMENT_INVALID_STATUS_TRANSITION`        | Transição de documento inválida           |
+| HTTP | Código | Causa |
+|---|---|---|
+| 401 | `UNAUTHORIZED_MISSING_TOKEN` | `X-Access-Token` ausente em rota protegida |
+| 401 | `UNAUTHORIZED_INACTIVE_TOKEN` | Token expirado ou inativo |
+| 403 | `FORBIDDEN_INSUFFICIENT_ROLES` | Usuário sem a role necessária |
+| 404 | `USER_NOT_FOUND` | Usuário não existe no banco |
+| 404 | `PROVIDER_NOT_FOUND` | Prestador não encontrado |
+| 409 | `DUPLICATE_KEYCLOAK_ID` | Keycloak ID já cadastrado |
+| 422 | — | DTO inválido (class-validator) |

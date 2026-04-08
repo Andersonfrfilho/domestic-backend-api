@@ -32,6 +32,7 @@ Usuário → token Keycloak → Kong (valida JWT + injeta X-User-Id + remove Aut
 | domestic-backend-worker    | backend-worker-client-secret| manage-requests, send-notifications                                   |
 | domestic-backend-cron      | backend-cron-client-secret  | manage-requests, manage-reviews, send-notifications                   |
 | domestic-api               | api-client-secret           | introspection (backend API)                                           |
+| domestic-backend-kong      | backend-kong-client-secret  | Kong service account — autentica chamadas upstream ao BFF e API       |
 
 ---
 

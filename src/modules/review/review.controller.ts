@@ -1,5 +1,5 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
-import { Body, Controller, Get, Headers, Inject, Param, Post, UseGuards } from '@nestjs/common';
+import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { Body, Controller, Get, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
@@ -30,14 +30,14 @@ export class ReviewController {
 
   @Post()
   @Roles(ROLES.REVIEW.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Criar avaliação de prestador (CUSTOMER)' })
-  @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do contratante' })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: Review })
   @ApiConflictResponse({ description: 'Review já existe para esta solicitação' })
   @ApiBadRequestResponse({ description: 'Solicitação não está COMPLETED' })
   async create(
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
     @Body() body: CreateReviewRequestDto,
   ): Promise<Review> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);

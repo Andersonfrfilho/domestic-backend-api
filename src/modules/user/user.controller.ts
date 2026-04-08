@@ -71,7 +71,7 @@ export class UserController {
     summary: 'Perfil do usuário autenticado',
     description: 'Retorna o usuário com base no X-User-Id injetado pelo Kong.',
   })
-  @ApiHeader({ name: 'X-User-Id', description: 'keycloak_id injetado pelo Kong', required: true })
+  @ApiHeader({ name: 'X-Access-Token', description: 'User JWT forwarded by Kong', required: true })
   @ApiOkResponse({ type: CreateUserResponseDto })
   @ApiNotFoundResponse()
   async getMe(@AuthUser() keycloakId: string): Promise<CreateUserResponseDto> {

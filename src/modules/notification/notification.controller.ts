@@ -1,8 +1,7 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import {
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Inject,
@@ -38,11 +37,11 @@ export class NotificationController {
 
   @Get()
   @Roles(ROLES.NOTIFICATION.SENDER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar notificações do usuário autenticado' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: [Notification] })
-  async list(@Headers('x-user-id') keycloakId: string): Promise<Notification[]> {
+  async list(@AuthUser() keycloakId: string): Promise<Notification[]> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.notificationService.list(user.id);
   }
@@ -50,7 +49,7 @@ export class NotificationController {
   @Put(':id/read')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Marcar notificação como lida' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiNoContentResponse()
   async markAsRead(@Param('id') id: string): Promise<void> {
     await this.notificationService.markAsRead(id);

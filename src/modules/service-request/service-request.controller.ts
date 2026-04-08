@@ -1,4 +1,4 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import {
   Body,
   Controller,
@@ -46,13 +46,13 @@ export class ServiceRequestController {
 
   @Post()
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Criar solicitação de serviço (CUSTOMER)' })
-  @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do contratante' })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse({ description: 'Prestador não aprovado ou dados inválidos' })
   async create(
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
     @Body() body: CreateServiceRequestRequestDto,
   ): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
@@ -61,13 +61,13 @@ export class ServiceRequestController {
 
   @Get()
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar solicitações do usuário autenticado' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiHeader({ name: 'X-User-Type', required: false, description: 'CUSTOMER | PROVIDER' })
   @ApiOkResponse({ type: [ServiceRequest] })
   async list(
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
     @Headers('x-user-type') userType: string,
   ): Promise<ServiceRequest[]> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
@@ -91,15 +91,15 @@ export class ServiceRequestController {
 
   @Put(':id/accept')
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Prestador aceita solicitação (PENDING → ACCEPTED)' })
-  @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloak_id do prestador' })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse({ description: 'Status inválido ou não autorizado' })
   @ApiNotFoundResponse()
   async accept(
     @Param('id') id: string,
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
   ): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const provider = await this.providerRepository.findByUserId(user.id);
@@ -108,16 +108,16 @@ export class ServiceRequestController {
 
   @Put(':id/reject')
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Prestador rejeita solicitação (PENDING → REJECTED)' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
   async reject(
     @Param('id') id: string,
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
   ): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const provider = await this.providerRepository.findByUserId(user.id);
@@ -126,15 +126,15 @@ export class ServiceRequestController {
 
   @Put(':id/complete')
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Contratante confirma conclusão (ACCEPTED → COMPLETED)' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
   async complete(
     @Param('id') id: string,
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
   ): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.serviceRequestService.complete(id, user.id);
@@ -142,15 +142,15 @@ export class ServiceRequestController {
 
   @Put(':id/cancel')
   @Roles(ROLES.REQUEST.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Contratante cancela solicitação (PENDING|ACCEPTED → CANCELLED)' })
-  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
   async cancel(
     @Param('id') id: string,
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
   ): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.serviceRequestService.cancel(id, user.id);
