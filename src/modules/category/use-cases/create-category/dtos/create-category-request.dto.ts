@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
+import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
 export class CreateCategoryRequestDto {
   @ApiProperty({ example: 'Limpeza', description: 'Nome da categoria' })
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Nome') })
   name: string;
 
   @ApiProperty({ example: 'limpeza', description: 'Slug único para URL' })
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Slug') })
   slug: string;
 
   @ApiProperty({
@@ -17,6 +18,6 @@ export class CreateCategoryRequestDto {
     required: false,
   })
   @IsOptional()
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Ícone') })
   iconUrl?: string;
 }

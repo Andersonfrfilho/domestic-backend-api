@@ -32,7 +32,6 @@ import {
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
 import { ROLES } from '@modules/shared/constants';
 
-
 import { AddUserAddressRequestDto } from './use-cases/add-user-address/dtos/add-user-address-request.dto';
 import { type UserServiceInterface } from './use-cases/create-users/create-user.interface';
 import { CreateUserRequestDto } from './use-cases/create-users/dtos/create-user-request.dto';

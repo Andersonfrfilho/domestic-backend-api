@@ -2,12 +2,14 @@ import { faker } from '@faker-js/faker';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
 
+import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
+
 export class CreateUserRequestDto {
   @ApiProperty({
     description: 'The full name of the user',
     example: faker.person.fullName(),
   })
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Nome Completo') })
   fullName: string;
 
   @ApiProperty({
@@ -16,7 +18,7 @@ export class CreateUserRequestDto {
     required: false,
   })
   @IsOptional()
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Keycloak ID') })
   keycloakId?: string;
 
   @ApiProperty({
@@ -27,6 +29,6 @@ export class CreateUserRequestDto {
     enum: ['PENDING', 'ACTIVE', 'INACTIVE', 'SUSPENDED'],
   })
   @IsOptional()
-  @IsString()
+  @IsString({ message: ErrorMessages['string.base']('Status') })
   status?: string;
 }

@@ -1,4 +1,15 @@
-import { Controller, Get, Headers, HttpCode, HttpStatus, Inject, Param, Put, UseGuards } from '@nestjs/common';
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import {
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiHeader,
   ApiNoContentResponse,
@@ -7,12 +18,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import { ROLES } from '@modules/shared/constants';
-
+import { Notification } from '@modules/shared/providers/database/entities/notification.entity';
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
-import { Notification } from '@modules/shared/providers/database/entities/notification.entity';
 
 import { type NotificationServiceInterface } from './notification.service';
 import { NOTIFICATION_SERVICE_PROVIDE } from './notification.token';

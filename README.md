@@ -127,7 +127,7 @@ Check out a few resources that may come in handy when working with NestJS:
 - [x] Singleton
 - [x] path alias
 - [x] Makefile - MacOs | Linux
-- [ ] Makefile - Windows
+- [x] Makefile - Windows
 - [ ] Tratamento erros globais
 - [x] Logger
 - [x] Logger Obfucator

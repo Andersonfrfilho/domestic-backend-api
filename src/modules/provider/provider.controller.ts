@@ -1,3 +1,4 @@
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import {
   Body,
   Controller,
@@ -23,21 +24,19 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { ROLES } from '@modules/shared/constants';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService as ProviderServiceEntity } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
-import { ROLES } from '@modules/shared/constants';
-
-import { CreateProviderRequestDto } from './use-cases/create-provider/dtos/create-provider-request.dto';
-import { UpdateProviderRequestDto } from './use-cases/update-provider/dtos/update-provider-request.dto';
-import { AddProviderServiceRequestDto } from './use-cases/add-provider-service/dtos/add-provider-service-request.dto';
-import { AddWorkLocationRequestDto } from './use-cases/add-work-location/dtos/add-work-location-request.dto';
-import { RejectProviderRequestDto } from './use-cases/reject-provider/dtos/reject-provider-request.dto';
 import { type ProviderServiceInterface } from './provider.service';
 import { PROVIDER_SERVICE_PROVIDE } from './provider.token';
+import { AddProviderServiceRequestDto } from './use-cases/add-provider-service/dtos/add-provider-service-request.dto';
+import { AddWorkLocationRequestDto } from './use-cases/add-work-location/dtos/add-work-location-request.dto';
+import { CreateProviderRequestDto } from './use-cases/create-provider/dtos/create-provider-request.dto';
+import { RejectProviderRequestDto } from './use-cases/reject-provider/dtos/reject-provider-request.dto';
+import { UpdateProviderRequestDto } from './use-cases/update-provider/dtos/update-provider-request.dto';
 
 @ApiTags('Providers')
 @Controller('/providers')

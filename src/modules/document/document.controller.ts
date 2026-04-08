@@ -1,14 +1,5 @@
-import {
-  Controller,
-  Get,
-  Headers,
-  Inject,
-  Param,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { Controller, Get, Headers, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiConsumes,
@@ -19,12 +10,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import { ROLES } from '@modules/shared/constants';
-
+import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
-import { Document } from '@modules/shared/providers/database/entities/document.entity';
 
 import { type DocumentServiceInterface } from './document.service';
 import { DOCUMENT_SERVICE_PROVIDE } from './document.token';
@@ -56,16 +45,13 @@ export class DocumentController {
     },
   })
   @ApiOkResponse({ type: Document })
-  async upload(
-    @Headers('x-user-id') keycloakId: string,
-    @Req() req: any,
-  ): Promise<Document> {
+  async upload(@Headers('x-user-id') keycloakId: string, @Req() req: any): Promise<Document> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
 
     const data = await req.file();
     if (!data) throw new Error('No file provided');
 
-    const documentType = (data.fields?.documentType as any)?.value ?? 'UNKNOWN';
+    const documentType = data.fields?.documentType?.value ?? 'UNKNOWN';
 
     return this.documentService.upload({
       userId: user.id,
@@ -80,7 +66,12 @@ export class DocumentController {
   @Get(':id/url')
   @ApiOperation({ summary: 'Obter URL assinada do documento (TTL 15min)' })
   @ApiHeader({ name: 'X-User-Id', required: true })
-  @ApiOkResponse({ schema: { type: 'object', properties: { url: { type: 'string' }, expiresIn: { type: 'number' } } } })
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: { url: { type: 'string' }, expiresIn: { type: 'number' } },
+    },
+  })
   @ApiNotFoundResponse()
   async getUrl(@Param('id') id: string): Promise<{ url: string; expiresIn: number }> {
     return this.documentService.getUrl(id);

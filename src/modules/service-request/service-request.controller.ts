@@ -1,3 +1,4 @@
+import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import {
   Body,
   Controller,
@@ -20,18 +21,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
-import { ROLES } from '@modules/shared/constants';
-
-import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
-import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 import { type ProviderRepositoryInterface } from '@modules/provider/provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '@modules/provider/provider.token';
+import { ROLES } from '@modules/shared/constants';
 import { ServiceRequest } from '@modules/shared/providers/database/entities/service-request.entity';
+import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
+import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
-import { CreateServiceRequestRequestDto } from './use-cases/create-service-request/dtos/create-service-request-request.dto';
 import { type ServiceRequestServiceInterface } from './service-request.service';
 import { SERVICE_REQUEST_SERVICE_PROVIDE } from './service-request.token';
+import { CreateServiceRequestRequestDto } from './use-cases/create-service-request/dtos/create-service-request-request.dto';
 
 @ApiTags('Service Requests')
 @Controller('/service-requests')
