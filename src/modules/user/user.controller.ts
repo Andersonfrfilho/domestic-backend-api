@@ -1,4 +1,4 @@
-import { BearerTokenGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ApiAuthGuard, AuthUser, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
 import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import {
@@ -6,7 +6,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Inject,
@@ -67,7 +66,7 @@ export class UserController {
 
   @Get('me')
   @Roles(ROLES.USER.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiOperation({
     summary: 'Perfil do usuário autenticado',
     description: 'Retorna o usuário com base no X-User-Id injetado pelo Kong.',
@@ -75,7 +74,7 @@ export class UserController {
   @ApiHeader({ name: 'X-User-Id', description: 'keycloak_id injetado pelo Kong', required: true })
   @ApiOkResponse({ type: CreateUserResponseDto })
   @ApiNotFoundResponse()
-  async getMe(@Headers('x-user-id') keycloakId: string): Promise<CreateUserResponseDto> {
+  async getMe(@AuthUser() keycloakId: string): Promise<CreateUserResponseDto> {
     return this.userService.getUserByKeycloakId(keycloakId);
   }
 
@@ -130,23 +129,23 @@ export class UserController {
 
   @Get('me/addresses')
   @Roles(ROLES.USER.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar endereços do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: [UserAddress] })
-  async listAddresses(@Headers('x-user-id') keycloakId: string): Promise<UserAddress[]> {
+  async listAddresses(@AuthUser() keycloakId: string): Promise<UserAddress[]> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.userService.listUserAddresses(user.id);
   }
 
   @Post('me/addresses')
   @Roles(ROLES.USER.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Adicionar endereço ao usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: UserAddress })
   async addAddress(
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
     @Body() body: AddUserAddressRequestDto,
   ): Promise<UserAddress> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
@@ -155,14 +154,14 @@ export class UserController {
 
   @Delete('me/addresses/:addressId')
   @Roles(ROLES.USER.MANAGER)
-  @UseGuards(BearerTokenGuard, RolesGuard)
+  @UseGuards(ApiAuthGuard, RolesGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remover endereço do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiParam({ name: 'addressId', type: String })
   @ApiNoContentResponse()
   async removeAddress(
-    @Headers('x-user-id') keycloakId: string,
+    @AuthUser() keycloakId: string,
     @Param('addressId') addressId: string,
   ): Promise<void> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);

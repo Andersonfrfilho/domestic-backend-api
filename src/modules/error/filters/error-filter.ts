@@ -41,9 +41,32 @@ export class HttpExceptionFilter implements ExceptionFilter {
         responseMessages = [responseMessageRaw];
       }
 
+      // try to extract origin (class.method) from stack trace when available
+      // prefer origin provided by AppError (set at factory time), fall back to parsing stack
+      let originLabel = '';
+      if (exception instanceof AppError && exception.origin) {
+        originLabel = exception.origin;
+      } else {
+        try {
+          if (exception instanceof Error && exception.stack) {
+            const stackLines = exception.stack
+              .split('\n')
+              .map((l) => l.trim())
+              .filter(Boolean);
+            // stackLines[0] is the error message, stackLines[1] usually contains the first frame
+            if (stackLines.length > 1) {
+              const m = /at\s+([^\s(]+)/.exec(stackLines[1]);
+              originLabel = m?.[1] ?? '';
+            }
+          }
+        } catch {
+          originLabel = '';
+        }
+      }
+
       this.logProvider.error({
         message: 'Exception caught in filter',
-        context: 'HttpExceptionFilter.logResponse',
+        context: `${originLabel ? originLabel + ' | ' : ''}HttpExceptionFilter.logResponse`,
         requestId: headerRequestId,
         meta: {
           request: {
@@ -66,6 +89,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             body: responseBody,
             details: exception instanceof AppError ? exception.details : undefined,
           },
+          origin: originLabel || undefined,
         },
       });
     } catch (logError) {
@@ -158,6 +182,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private getStatus(exception: unknown): number {
     if (exception instanceof HttpException) {
       return exception.getStatus();
+    }
+    // BaseAppError (from @adatechnology/shared) uses `.status` instead of `.statusCode`
+    if (exception instanceof Error) {
+      const maybeStatusHolder = exception as unknown as { status?: unknown };
+      if (typeof maybeStatusHolder.status === 'number') {
+        return maybeStatusHolder.status;
+      }
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }

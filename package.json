@@ -31,10 +31,11 @@
     "migration:run": "node scripts/migration.js run",
     "migration:revert": "node scripts/migration.js revert",
     "migration:generate": "node scripts/migration.js generate",
-    "test:e2e:ci": "USE_TEST_CONTAINERS=true DOTENV_CONFIG_PATH=.env.e2e.ci jest --config jest.config.e2e.ts --runInBand"
+    "test:e2e:ci": "USE_TEST_CONTAINERS=true DOTENV_CONFIG_PATH=.env.e2e.ci jest --config jest.config.e2e.ts --runInBand",
+    "run:api-curls": "node scripts/api-curl-tester.js"
   },
   "dependencies": {
-    "@adatechnology/auth-keycloak": "^0.1.0",
+    "@adatechnology/auth-keycloak": "^0.1.1",
     "@adatechnology/cache": "^0.0.8",
     "@adatechnology/http-client": "^0.0.9",
     "@adatechnology/logger": "^0.0.7",

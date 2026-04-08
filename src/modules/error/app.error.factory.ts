@@ -13,6 +13,28 @@ import type {
 import { DEFAULT_ERROR_MESSAGES } from '@modules/error/constants';
 
 export class AppErrorFactory {
+  private static computeOriginFromStack(): string | undefined {
+    try {
+      const st = new Error().stack;
+      if (!st) return undefined;
+      const lines = st
+        .split('\n')
+        .map((l) => l.trim())
+        .filter(Boolean);
+      // lines[0] = Error
+      // find first stack frame that is not inside AppErrorFactory or AppError
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (!/ErrorFactory|AppError|new Error\(\)/.test(line)) {
+          const m = /at\s+([^\s(]+)/.exec(line);
+          if (m && m[1]) return m[1];
+        }
+      }
+      return undefined;
+    } catch (e) {
+      return undefined;
+    }
+  }
   static validation(config: ErrorConfig): AppError {
     return new AppError({
       type: ErrorType.VALIDATION,
@@ -59,6 +81,7 @@ export class AppErrorFactory {
       statusCode: HttpStatus.CONFLICT,
       code: config.code,
       details: config.details,
+      origin: this.computeOriginFromStack(),
     });
   }
 
@@ -71,6 +94,7 @@ export class AppErrorFactory {
         code: config.code,
         ...config.details,
       },
+      origin: this.computeOriginFromStack(),
     });
   }
 
@@ -101,9 +125,37 @@ export class AppErrorFactory {
         }))
       : [];
 
+    // Extract missing fields (properties that failed presence/emptiness checks)
+    const missingConstraintKeys = new Set([
+      'isDefined',
+      'isNotEmpty',
+      'isNotEmptyObject',
+      'isNotEmptyArray',
+    ]);
+
+    const extractMissingFields = (errs: any[], parentPath = ''): string[] => {
+      const result: string[] = [];
+      for (const e of errs || []) {
+        const path = parentPath ? `${parentPath}.${e.property}` : e.property;
+        if (e.constraints) {
+          const keys = Object.keys(e.constraints);
+          if (keys.some((k) => missingConstraintKeys.has(k))) {
+            result.push(path);
+          }
+        }
+        if (e.children && e.children.length > 0) {
+          result.push(...extractMissingFields(e.children, path));
+        }
+      }
+      return result;
+    };
+
+    const missingFields = extractMissingFields(Array.isArray(errors) ? (errors as any[]) : []);
+
     const details = {
       validationErrors,
       count: validationErrors.length,
+      missingFields: Array.from(new Set(missingFields)),
     };
 
     return this.validation({

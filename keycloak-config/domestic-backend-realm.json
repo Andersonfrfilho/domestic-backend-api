@@ -203,6 +203,38 @@
         "configure": true,
         "manage": true
       }
+    },
+    {
+      "clientId": "domestic-backend-kong",
+      "name": "Domestic Backend Kong",
+      "description": "Kong API Gateway — service account para autenticar chamadas upstream ao BFF e API",
+      "enabled": true,
+      "directAccessGrantsEnabled": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${BACKEND_KONG_CLIENT_SECRET:backend-kong-client-secret}",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "tls.client.certificate.bound.access.tokens": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "display.on.consent.screen": "false",
+        "access.token.lifespan": "3600"
+      },
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "role_list",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
     }
   ],
   "roles": {
@@ -307,7 +339,7 @@
         {
           "type": "password",
           "value": "ChangeMeSecurePassword123!",
-          "temporary": true
+          "temporary": false
         }
       ],
       "realmRoles": [
@@ -331,7 +363,7 @@
         {
           "type": "password",
           "value": "ChangeMeSecurePassword123!",
-          "temporary": true
+          "temporary": false
         }
       ],
       "attributes": {
@@ -360,7 +392,7 @@
         {
           "type": "password",
           "value": "ChangeMeSecurePassword123!",
-          "temporary": true
+          "temporary": false
         }
       ],
       "attributes": {
@@ -389,7 +421,7 @@
         {
           "type": "password",
           "value": "ChangeMeSecurePassword123!",
-          "temporary": true
+          "temporary": false
         }
       ],
       "realmRoles": [
@@ -398,6 +430,18 @@
       ],
       "groups": [
         "support-team"
+      ]
+    },
+    {
+      "username": "service-account-domestic-backend-kong",
+      "enabled": true,
+      "serviceAccountClientId": "domestic-backend-kong",
+      "realmRoles": [
+        "user-manager",
+        "manage-requests",
+        "manage-reviews",
+        "send-notifications",
+        "manage-services"
       ]
     },
     {

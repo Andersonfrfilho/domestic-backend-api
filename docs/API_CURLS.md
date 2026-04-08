@@ -13,7 +13,7 @@
 BASE="http://localhost:3333/v1"
 
 # Keycloak (B2B)
-KEYCLOAK_BASE_URL="http://localhost:8081"
+KEYCLOAK_BASE_URL="http://localhost:8080"
 KEYCLOAK_REALM="domestic-backend"
 B2B_CLIENT_ID="domestic-backend-bff"
 B2B_CLIENT_SECRET="backend-bff-client-secret"
@@ -51,11 +51,13 @@ KEYCLOAK_ID="11111111-1111-4111-8111-111111111111"
 ### Novo passo obrigatório: autenticação B2B para obter token
 
 ```bash
-ACCESS_TOKEN=$(curl -s -X POST "$KEYCLOAK_BASE_URL/realms/$KEYCLOAK_REALM/protocol/openid-connect/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=client_credentials" \
-  -d "client_id=$B2B_CLIENT_ID" \
-  -d "client_secret=$B2B_CLIENT_SECRET" | jq -r '.access_token')
+curl -v -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password' \
+  -d 'client_id=domestic-backend-bff' \
+  -d 'client_secret=backend-bff-client-secret' \
+  -d 'username=admin@domestic.local' \
+  -d 'password=ChangeMeSecurePassword123!'
 
 echo "$ACCESS_TOKEN" | head -c 30 && echo "..."
 ```
@@ -133,8 +135,8 @@ curl -s -X POST "http://localhost:3333/v1/users" \
 
 ```bash
 curl -s "http://localhost:3333/v1/users/me" \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
-  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c92" | jq
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJsZW9VcDBERHk0SE1ralFCTWg2NHVSSDNDRWdsVERlU1pKcThfN2J4LUFnIn0.eyJleHAiOjE3NzU2MTk5NTcsImlhdCI6MTc3NTYxNjM1NywianRpIjoiNjRlODFhZmMtY2IxMy00MmFjLTg3NmYtNmJiYWQ3YjA4NTY1IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL3JlYWxtcy9kb21lc3RpYy1iYWNrZW5kIiwic3ViIjoiYzk4YzYxOWItYzVkMS00OWRlLTgxYzktZTM4NTZjN2MxYWI5IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZG9tZXN0aWMtYmFja2VuZC1iZmYiLCJzY29wZSI6InNlbmQtbm90aWZpY2F0aW9ucyBtYW5hZ2UtcmV2aWV3cyB1c2VyLXByb2ZpbGUgbWFuYWdlLXJlcXVlc3RzIG1hbmFnZS1zZXJ2aWNlcyIsImNsaWVudEhvc3QiOiIxOTIuMTY4LjY1LjEiLCJjbGllbnRBZGRyZXNzIjoiMTkyLjE2OC42NS4xIiwiY2xpZW50X2lkIjoiZG9tZXN0aWMtYmFja2VuZC1iZmYifQ.lkKreN175iNte5K5PiUL18lR3SnZOlWK6ch1OhXxj1RzpnKe-ewTNwEIZt-5UVMYgTQf2AmTIvwB_ohnYQeBu8HDwo3OYJbVXHp5lh0urwUeziDO_369xsvHgM71zJDiH6fllmt2mcjvTYIg15vs-bXcNV5U5JekeJa_ieF04EIzLBPOECbgyPHLp5FZIiol4pnIDesydoGyslVlhgpnC0zMmy8TXz_BDYnQ2tDauekRNsKkAx5PAkCG7TNIJ0LNCZjEG9dDFyTdq7oDu0g4lZ_k-llTliHC11gNrsRwyuJQBZ6Qh8ml4TYs00d9NIsJ8cWf3kwcDWkJK8S6t7OgEw" \
+  -H "X-User-Id: 7f3a9c21-5b6e-4d8a-9f2c-1e7b4a6d8c91" | jq
 ```
 
 **Resposta esperada — 200**
@@ -1394,7 +1396,7 @@ Script que exercita o fluxo end-to-end da plataforma do cadastro até a avaliaç
 #!/bin/bash
 set -e
 BASE="http://localhost:3333/v1"
-KEYCLOAK_BASE_URL="http://localhost:8081"
+KEYCLOAK_BASE_URL="http://localhost:8080"
 KEYCLOAK_REALM="domestic-backend"
 B2B_CLIENT_ID="domestic-backend-bff"
 B2B_CLIENT_SECRET="backend-bff-client-secret"

@@ -19,11 +19,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CategoryResponseDto } from './use-cases/list-categories/dtos/list-categories-response.dto';
-import { CreateCategoryRequestDto } from './use-cases/create-category/dtos/create-category-request.dto';
-import { UpdateCategoryRequestDto } from './use-cases/update-category/dtos/update-category-request.dto';
 import { type CategoryServiceInterface } from './category.service';
 import { CATEGORY_SERVICE_PROVIDE } from './category.token';
+import { CreateCategoryRequestDto } from './use-cases/create-category/dtos/create-category-request.dto';
+import { CategoryResponseDto } from './use-cases/list-categories/dtos/list-categories-response.dto';
+import { UpdateCategoryRequestDto } from './use-cases/update-category/dtos/update-category-request.dto';
 
 @ApiTags('Categories')
 @Controller('/categories')

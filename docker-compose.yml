@@ -115,6 +115,33 @@ services:
     volumes:
       - queue_rabbitmq_data:/var/lib/rabbitmq
 
+  kong:
+    image: kong:3.6
+    container_name: ${PROJECT_NAME}_kong
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - ./kong:/kong/declarative
+    depends_on:
+      - api
+      - keycloak
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
   keycloak:
     image: quay.io/keycloak/keycloak:25.0
     container_name: ${PROJECT_NAME}_keycloak

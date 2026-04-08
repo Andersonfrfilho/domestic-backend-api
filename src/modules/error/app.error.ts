@@ -16,6 +16,7 @@ export interface AppErrorPayload {
   details?: Record<string, unknown>;
   timestamp?: string;
   requestId?: string;
+  origin?: string;
 }
 
 export class AppError extends Error {
@@ -25,6 +26,7 @@ export class AppError extends Error {
   public readonly details?: Record<string, unknown>;
   public readonly timestamp: string;
   public requestId?: string;
+  public readonly origin?: string;
 
   constructor(payload: AppErrorPayload) {
     super(payload.message);
@@ -35,6 +37,7 @@ export class AppError extends Error {
     this.details = payload.details;
     this.timestamp = payload.timestamp || new Date().toISOString();
     this.requestId = payload.requestId;
+    this.origin = payload.origin;
 
     Object.setPrototypeOf(this, AppError.prototype);
   }
