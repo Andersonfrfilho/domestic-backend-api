@@ -31,8 +31,8 @@ USER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/prot
   -d 'grant_type=password' \
   -d 'client_id=domestic-backend-bff' \
   -d 'client_secret=backend-bff-client-secret' \
-  -d 'username=contractor-test@domestic.local' \
-  -d 'password=Test123!' | jq -r '.access_token')
+  -d 'username=contractor@domestic.local' \
+  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
 
 echo "USER_TOKEN: ${USER_TOKEN:0:50}..."
 ```
@@ -44,8 +44,8 @@ PROVIDER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/
   -d 'grant_type=password' \
   -d 'client_id=domestic-backend-bff' \
   -d 'client_secret=backend-bff-client-secret' \
-  -d 'username=provider-test@domestic.local' \
-  -d 'password=Test123!' | jq -r '.access_token')
+  -d 'username=provider@domestic.local' \
+  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
 
 echo "PROVIDER_TOKEN: ${PROVIDER_TOKEN:0:50}..."
 ```
@@ -744,11 +744,11 @@ SERVICE_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/p
 
 USER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=contractor-test@domestic.local&password=Test123!' | jq -r '.access_token')
+  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=contractor@domestic.local&password=ChangeMeSecurePassword123!' | jq -r '.access_token')
 
 PROVIDER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=provider-test@domestic.local&password=Test123!' | jq -r '.access_token')
+  -d 'grant_type=password&client_id=domestic-backend-bff&client_secret=backend-bff-client-secret&username=provider@domestic.local&password=ChangeMeSecurePassword123!' | jq -r '.access_token')
 
 USER_KEYCLOAK_ID=$(echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub')
 PROVIDER_KEYCLOAK_ID=$(echo $PROVIDER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub')
