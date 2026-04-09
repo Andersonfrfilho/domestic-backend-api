@@ -1,7 +1,12 @@
 import { CacheModule } from '@adatechnology/cache';
 import { HttpModule } from '@adatechnology/http-client';
-import { LoggerModule, RequestContextMiddleware } from '@adatechnology/logger';
+import {
+  HTTP_LOGGING_INTERCEPTOR,
+  LoggerModule,
+  RequestContextMiddleware,
+} from '@adatechnology/logger';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 
 import { ConfigModule } from '@config/config.module';
@@ -28,9 +33,18 @@ tsConfigPathsRegister({
 });
 
 @Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useExisting: HTTP_LOGGING_INTERCEPTOR,
+    },
+  ],
   imports: [
     ConfigModule,
-    LoggerModule.forRoot({ level: process.env.LOG_LEVEL || 'info' }),
+    LoggerModule.forRoot({
+      level: process.env.LOG_LEVEL || 'info',
+      interceptorExcludedPaths: ['/health'],
+    }),
     CacheModule.forRoot({ isGlobal: true }),
     HttpModule.forRoot({}, { provide: 'HTTP_PROVIDER' }),
     SharedModule,
