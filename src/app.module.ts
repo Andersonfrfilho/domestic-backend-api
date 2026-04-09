@@ -10,15 +10,15 @@ import { HealthModule } from '@modules/health/health.module';
 
 import * as tsConfig from '../tsconfig.json';
 
+import { CategoryModule } from './modules/category/category.module';
+import { DocumentModule } from './modules/document/document.module';
+import { NotificationModule } from './modules/notification/notification.module';
+import { ProviderModule } from './modules/provider/provider.module';
+import { ReviewModule } from './modules/review/review.module';
+import { ServiceModule } from './modules/service/service.module';
+import { ServiceRequestModule } from './modules/service-request/service-request.module';
 import { SharedModule } from './modules/shared/shared.module';
 import { UserModule } from './modules/user/user.module';
-import { CategoryModule } from './modules/category/category.module';
-import { ServiceModule } from './modules/service/service.module';
-import { ProviderModule } from './modules/provider/provider.module';
-import { ServiceRequestModule } from './modules/service-request/service-request.module';
-import { ReviewModule } from './modules/review/review.module';
-import { NotificationModule } from './modules/notification/notification.module';
-import { DocumentModule } from './modules/document/document.module';
 
 const compilerOptions = tsConfig.compilerOptions;
 

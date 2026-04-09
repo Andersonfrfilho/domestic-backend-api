@@ -44,6 +44,11 @@ if "%command%"=="keycloak-down" goto keycloak_down
 if "%command%"=="keycloak-stop" goto keycloak_stop
 if "%command%"=="keycloak-logs" goto keycloak_logs
 if "%command%"=="keycloak-admin" goto keycloak_admin
+if "%command%"=="kong" goto kong
+if "%command%"=="kong-down" goto kong_down
+if "%command%"=="kong-stop" goto kong_stop
+if "%command%"=="kong-logs" goto kong_logs
+if "%command%"=="rebuild-kong" goto rebuild_kong
 if "%command%"=="sonar-up" goto sonar_up
 if "%command%"=="sonar-down" goto sonar_down
 if "%command%"=="sonar-scan" goto sonar_scan
@@ -76,9 +81,11 @@ echo                 Comandos Disponiveis
 echo =======================================================
 echo  make.bat setup-env          - Cria o .env baseado no .env.example
 echo  make.bat app                - Sobe a api principal
-echo  make.bat [database_postgres^|database_mongo^|cache_redis^|queue_rabbitmq^|keycloak]
+echo  make.bat [database_postgres^|database_mongo^|cache_redis^|queue_rabbitmq^|keycloak^|kong]
 echo                              - Sobe apenas o servico especificado
 echo                              - (use sufixos -down ou -stop para parar/destruir o servico)
+echo  make.bat kong-logs           - Exibe logs do container Kong
+echo  make.bat rebuild-kong       - Rebuilda a imagem do Kong (se houver Dockerfile) ou reinicia declarativo
 echo  make.bat all                - Inicia todos os servicos e roda as migrations
 echo  make.bat setup              - Faz o setup inicial completo do projeto
 echo  make.bat down               - Para e remove containers e redes
@@ -210,6 +217,32 @@ call :setup_env
 call npm run sonar
 goto end
 
+:kong
+call :setup_env
+docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% up -d kong
+goto end
+
+:kong_down
+call :setup_env
+docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% down kong
+goto end
+
+:kong_stop
+call :setup_env
+docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% stop kong
+goto end
+
+:kong_logs
+call :setup_env
+docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% logs -f kong
+goto end
+
+:rebuild_kong
+call :setup_env
+echo [REBUILD] Reiniciando Kong para carregar nova configuracao declarativa...
+docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% up -d --force-recreate kong
+goto end
+
 :stop
 call :setup_env
 docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% stop
@@ -255,9 +288,13 @@ goto end
 
 :all
 call :setup_env
+echo [INFO] Subindo todos os servicos...
 docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% up -d --remove-orphans
-echo [INFO] Rodando migrations...
-docker exec -i %PROJECT_NAME%_api npm run migration:run
+echo [INFO] Aguardando migrador finalizar...
+:wait_migrator
+timeout /t 5 /nobreak > nul
+for /f "tokens=*" %%s in ('docker inspect --format={{.State.Status}} %PROJECT_NAME%-migrator-1 2^>nul') do set MIGRATOR_STATUS=%%s
+if "%MIGRATOR_STATUS%"=="running" goto wait_migrator
 echo [OK] Projeto iniciado com sucesso!
 goto end
 
@@ -294,8 +331,11 @@ goto end
 call :setup_env
 echo [SETUP] Iniciando setup completo do projeto...
 docker-compose -p %PROJECT_NAME% -f %COMPOSE_FILE% up -d --remove-orphans
-echo [INFO] Rodando migrations...
-docker exec -i %PROJECT_NAME%_api npm run migration:run
+echo [INFO] Aguardando migrador finalizar...
+:wait_migrator_setup
+timeout /t 5 /nobreak > nul
+for /f "tokens=*" %%s in ('docker inspect --format={{.State.Status}} %PROJECT_NAME%-migrator-1 2^>nul') do set MIGRATOR_STATUS=%%s
+if "%MIGRATOR_STATUS%"=="running" goto wait_migrator_setup
 echo [OK] Setup completo! Projeto pronto para usar.
 goto end
 

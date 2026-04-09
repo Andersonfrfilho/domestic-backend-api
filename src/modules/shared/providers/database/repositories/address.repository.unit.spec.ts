@@ -34,6 +34,7 @@ describe('AddressRepository - Unit Tests', () => {
       }),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       softDelete: jest.fn().mockResolvedValue({ affected: 1 }),
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
     mockDataSource = {
@@ -257,7 +258,7 @@ describe('AddressRepository - Unit Tests', () => {
 
       await repository.deleteAddress(addressId);
 
-      expect(mockTypeormRepo.softDelete).toHaveBeenCalledWith(addressId);
+      expect(mockTypeormRepo.delete).toHaveBeenCalledWith(addressId);
     });
 
     it('should not throw error when deleting address', async () => {
@@ -267,7 +268,7 @@ describe('AddressRepository - Unit Tests', () => {
     });
 
     it('should handle delete errors', async () => {
-      (mockTypeormRepo.softDelete as jest.Mock).mockRejectedValueOnce(new Error('Delete failed'));
+      (mockTypeormRepo.delete as jest.Mock).mockRejectedValueOnce(new Error('Delete failed'));
 
       await expect(repository.deleteAddress('mock-address-id')).rejects.toThrow('Delete failed');
     });
