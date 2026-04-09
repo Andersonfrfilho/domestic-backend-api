@@ -7,10 +7,10 @@
 
 ## Contrato de headers
 
-| Header | Tipo | Quem injeta | Descrição |
-|---|---|---|---|
-| `Authorization` | `Bearer <service_token>` | Kong / serviço | Identidade do chamador (B2B). Kong usa seu próprio `client_credentials`. |
-| `X-Access-Token` | `<user_jwt>` | Kong | Token original do usuário (B2C). Claims (`sub`, `email`, roles) decodificados localmente. |
+| Header           | Tipo                     | Quem injeta    | Descrição                                                                                 |
+| ---------------- | ------------------------ | -------------- | ----------------------------------------------------------------------------------------- |
+| `Authorization`  | `Bearer <service_token>` | Kong / serviço | Identidade do chamador (B2B). Kong usa seu próprio `client_credentials`.                  |
+| `X-Access-Token` | `<user_jwt>`             | Kong           | Token original do usuário (B2C). Claims (`sub`, `email`, roles) decodificados localmente. |
 
 > **Não existem mais `X-User-Id` nem `X-User-Roles`.**
 > Todos os dados do usuário vêm do JWT em `X-Access-Token`.
@@ -19,53 +19,90 @@
 
 ## Passo 1 — Obter tokens para testes
 
-### Token do usuário (B2C) — `password` grant
+### Fluxo B2C — Authorization Code + PKCE (S256)
 
-Use para simular o token que o frontend envia ao Kong.
-Kong valida e injeta em `X-Access-Token`.
+> Este é o fluxo de produção. O frontend nunca vê o `client_secret` — Kong injeta server-side.
 
-```bash
-# contractor-test (roles: user-manager, manage-requests, manage-reviews, send-notifications)
-USER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=password' \
-  -d 'client_id=domestic-backend-bff' \
-  -d 'client_secret=backend-bff-client-secret' \
-  -d 'username=contractor@domestic.local' \
-  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
-
-echo "USER_TOKEN: ${USER_TOKEN:0:50}..."
+```
+Frontend                Kong                  Keycloak
+   │                      │                      │
+   │ GET /auth/authorize   │                      │
+   │ ?code_challenge=...   │                      │
+   │──────────────────────>│ GET /realms/.../auth │
+   │                       │ ?client_id=bff&...   │
+   │                       │─────────────────────>│
+   │<──────────────────────────────────────────────│ redirect → login page
+   │ (usuário loga no Keycloak)                    │
+   │<──────────────────────────────────────────────│ redirect → callback?code=AUTH_CODE
+   │                      │                        │
+   │ POST /auth/token      │                        │
+   │ { code, code_verifier │                        │
+   │   redirect_uri }      │                        │
+   │──────────────────────>│ POST /realms/.../token │
+   │                       │ + client_secret (Kong) │
+   │                       │────────────────────────>
+   │<──────────────────────│ { access_token, refresh_token }
 ```
 
-```bash
-# provider-test (roles: user-manager, manage-requests, manage-services)
-PROVIDER_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=password' \
-  -d 'client_id=domestic-backend-bff' \
-  -d 'client_secret=backend-bff-client-secret' \
-  -d 'username=provider@domestic.local' \
-  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
+#### Script de teste PKCE via curl
 
-echo "PROVIDER_TOKEN: ${PROVIDER_TOKEN:0:50}..."
+```bash
+KEYCLOAK='http://localhost:8080/realms/domestic-backend/protocol/openid-connect'
+CLIENT_ID='domestic-backend-bff'
+CLIENT_SECRET='backend-bff-client-secret'
+REDIRECT_URI='http://localhost:3001/callback'
+
+# 1. Gerar code_verifier (43 chars, URL-safe base64)
+CODE_VERIFIER=$(openssl rand -base64 32 | tr -d '=\n' | tr '+/' '-_' | cut -c1-43)
+
+# 2. Gerar code_challenge = BASE64URL(SHA256(code_verifier))
+CODE_CHALLENGE=$(printf '%s' "$CODE_VERIFIER" | openssl dgst -sha256 -binary | base64 | tr -d '=' | tr '+/' '-_')
+
+echo "code_verifier:  $CODE_VERIFIER"
+echo "code_challenge: $CODE_CHALLENGE"
+
+# 3. Abrir no browser (ou curl com -L para seguir redirects)
+echo ""
+echo "Abra no browser e logue:"
+echo "$KEYCLOAK/auth?response_type=code&client_id=$CLIENT_ID&redirect_uri=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$REDIRECT_URI'))")&scope=openid&code_challenge=$CODE_CHALLENGE&code_challenge_method=S256"
+echo ""
+echo "Após login, copie o 'code' da URL de redirect e cole abaixo:"
+read -r AUTH_CODE
+
+# 4. Trocar code por tokens (Kong injeta client_secret em produção; aqui chamamos direto)
+TOKENS=$(curl -s -X POST "$KEYCLOAK/token" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d "grant_type=authorization_code" \
+  -d "code=$AUTH_CODE" \
+  -d "redirect_uri=$REDIRECT_URI" \
+  -d "code_verifier=$CODE_VERIFIER" \
+  -d "client_id=$CLIENT_ID" \
+  -d "client_secret=$CLIENT_SECRET")
+
+USER_TOKEN=$(echo "$TOKENS" | jq -r '.access_token')
+REFRESH_TOKEN=$(echo "$TOKENS" | jq -r '.refresh_token')
+
+echo "USER_TOKEN:    ${USER_TOKEN:0:60}..."
+echo "REFRESH_TOKEN: ${REFRESH_TOKEN:0:60}..."
 ```
 
-```bash
-# admin (roles: user-manager, manage-services, manage-requests, manage-reviews, send-notifications)
-ADMIN_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=password' \
-  -d 'client_id=domestic-backend-bff' \
-  -d 'client_secret=backend-bff-client-secret' \
-  -d 'username=admin@domestic.local' \
-  -d 'password=ChangeMeSecurePassword123!' | jq -r '.access_token')
+#### Renovar token (refresh)
 
-echo "ADMIN_TOKEN: ${ADMIN_TOKEN:0:50}..."
+```bash
+NEW_TOKENS=$(curl -s -X POST "$KEYCLOAK/token" \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d "grant_type=refresh_token" \
+  -d "refresh_token=$REFRESH_TOKEN" \
+  -d "client_id=$CLIENT_ID" \
+  -d "client_secret=$CLIENT_SECRET")
+
+USER_TOKEN=$(echo "$NEW_TOKENS" | jq -r '.access_token')
+echo "USER_TOKEN renovado: ${USER_TOKEN:0:60}..."
 ```
 
 ### Token do serviço (B2B) — `client_credentials` grant
 
-Simula o token que o Kong ou o BFF envia em `Authorization`.
+Kong usa internamente. Para testes manuais:
 
 ```bash
 SERVICE_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token' \
@@ -74,26 +111,32 @@ SERVICE_TOKEN=$(curl -s -X POST 'http://localhost:8080/realms/domestic-backend/p
   -d 'client_id=domestic-backend-bff' \
   -d 'client_secret=backend-bff-client-secret' | jq -r '.access_token')
 
-echo "SERVICE_TOKEN: ${SERVICE_TOKEN:0:50}..."
+echo "SERVICE_TOKEN: ${SERVICE_TOKEN:0:60}..."
 ```
 
 ---
 
 ## Passo 2 — Variáveis de referência
 
+> Execute o script PKCE do Passo 1 **uma vez por usuário** trocando as credenciais (`username`/`password`) para obter cada token.
+
 ```bash
 BASE='http://localhost:3333/v1'
+BASE_KONG='http://localhost:8000'
 
-# Tokens (preencha após o Passo 1)
-USER_TOKEN=''
-PROVIDER_TOKEN=''
-ADMIN_TOKEN=''
+# Tokens B2C — obtidos via PKCE (Passo 1, um fluxo por usuário)
+USER_TOKEN=''       # contractor@domestic.local
+PROVIDER_TOKEN=''   # provider@domestic.local
+ADMIN_TOKEN=''      # admin@domestic.local
+
+# Token B2B — client_credentials (Passo 1, seção SERVICE_TOKEN)
 SERVICE_TOKEN=''
 
-# IDs — substitua pelos reais após criar os recursos
-USER_KEYCLOAK_ID=''        # sub do JWT do usuário (jq -r '.sub' <<< $(echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null))
-PROVIDER_KEYCLOAK_ID=''
-ADMIN_KEYCLOAK_ID=''
+# Keycloak subs (fixos neste ambiente local — gerados no import do realm)
+USER_KEYCLOAK_ID='877f4dec-89e4-465d-9325-b6598578fb79'      # contractor@domestic.local
+PROVIDER_KEYCLOAK_ID='58d2d94b-7a0c-4ac9-8edc-3c76df66765d'  # provider@domestic.local
+ADMIN_KEYCLOAK_ID='e27c7a73-ea17-437b-870c-ca74087fa8f1'      # admin@domestic.local
+
 USER_ID=''
 PROVIDER_ID=''
 CATEGORY_ID=''
@@ -107,31 +150,46 @@ NOTIFICATION_ID=''
 
 ### Extrair o `sub` (keycloak_id) de um token
 
+#### Opção B — Keycloak Admin API (lista todos os usuários com sub)
+
 ```bash
-# Decodifica o payload do JWT e extrai o sub
-echo $USER_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq -r '.sub'
+# 1. Obter token de admin do realm master
+KEYCLOAK_ADMIN_TOKEN=$(curl -s -X POST \
+  'http://localhost:8080/realms/master/protocol/openid-connect/token' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -d 'grant_type=password' \
+  -d 'client_id=admin-cli' \
+  -d 'username=admin' \
+  -d 'password=admin' | jq -r '.access_token')
+
+# 2. Listar usuários do realm e ver sub (= id no Keycloak)
+curl -s 'http://localhost:8080/admin/realms/domestic-backend/users' \
+  -H "Authorization: Bearer $KEYCLOAK_ADMIN_TOKEN" \
+  | jq '[.[] | {id, username, email}]'
+```
+
+#### Opção C — `/userinfo` endpoint (token válido, sem admin)
+
+```bash
+# Retorna sub + perfil do usuário dono do token
+curl -s 'http://localhost:8080/realms/domestic-backend/protocol/openid-connect/userinfo' \
+  -H "Authorization: Bearer $USER_TOKEN" | jq '{sub, email, preferred_username}'
 ```
 
 ---
 
-## Modo de teste local (sem Kong)
+## Modo de teste local (direto no backend — sem Kong, sem BFF)
 
-Localmente você simula o que o Kong faria: envia `Authorization` com o service token e `X-Access-Token` com o user token.
+Simula o que o Kong/BFF faria: envia `Authorization` com o service token e `X-Access-Token` com o user token diretamente na porta 3333.
 
 ```bash
-# Atalhos para testes locais — simula Kong
+# Atalhos — simula o que Kong injetaria nos headers upstream
 AUTH_CONTRACTOR="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $USER_TOKEN'"
 AUTH_PROVIDER="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $PROVIDER_TOKEN'"
 AUTH_ADMIN="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $ADMIN_TOKEN'"
 ```
 
-Via Kong (porta 8000) você envia só o token do usuário — Kong faz o resto:
-
-```bash
-# Via Kong — envia só o Bearer do usuário
-curl -s "$BASE_KONG/v1/users/me" \
-  -H "Authorization: Bearer $USER_TOKEN" | jq
-```
+> **Via Kong (porta 8000):** apenas as rotas `/auth/authorize` e `/auth/token` estão expostas enquanto o BFF não sobe. Todas as rotas de negócio são testadas diretamente em `http://localhost:3333`.
 
 ---
 
@@ -816,12 +874,12 @@ echo "Fluxo completo!"
 
 ## Referência de erros comuns
 
-| HTTP | Código | Causa |
-|---|---|---|
-| 401 | `UNAUTHORIZED_MISSING_TOKEN` | `X-Access-Token` ausente em rota protegida |
-| 401 | `UNAUTHORIZED_INACTIVE_TOKEN` | Token expirado ou inativo |
-| 403 | `FORBIDDEN_INSUFFICIENT_ROLES` | Usuário sem a role necessária |
-| 404 | `USER_NOT_FOUND` | Usuário não existe no banco |
-| 404 | `PROVIDER_NOT_FOUND` | Prestador não encontrado |
-| 409 | `DUPLICATE_KEYCLOAK_ID` | Keycloak ID já cadastrado |
-| 422 | — | DTO inválido (class-validator) |
+| HTTP | Código                         | Causa                                      |
+| ---- | ------------------------------ | ------------------------------------------ |
+| 401  | `UNAUTHORIZED_MISSING_TOKEN`   | `X-Access-Token` ausente em rota protegida |
+| 401  | `UNAUTHORIZED_INACTIVE_TOKEN`  | Token expirado ou inativo                  |
+| 403  | `FORBIDDEN_INSUFFICIENT_ROLES` | Usuário sem a role necessária              |
+| 404  | `USER_NOT_FOUND`               | Usuário não existe no banco                |
+| 404  | `PROVIDER_NOT_FOUND`           | Prestador não encontrado                   |
+| 409  | `DUPLICATE_KEYCLOAK_ID`        | Keycloak ID já cadastrado                  |
+| 422  | —                              | DTO inválido (class-validator)             |

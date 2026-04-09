@@ -1,3 +1,4 @@
+import { ApiAuthGuard } from '@adatechnology/auth-keycloak';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -45,6 +46,7 @@ import {
   ],
   controllers: [UserController],
   providers: [
+    ApiAuthGuard,
     { provide: USER_REPOSITORY_PROVIDE, useClass: UserRepository },
     { provide: ADDRESS_REPOSITORY_PROVIDE, useClass: AddressRepository },
     { provide: USER_ADDRESS_REPOSITORY_PROVIDE, useClass: UserAddressRepository },

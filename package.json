@@ -35,7 +35,7 @@
     "run:api-curls": "node scripts/api-curl-tester.js"
   },
   "dependencies": {
-    "@adatechnology/auth-keycloak": "^0.1.2",
+    "@adatechnology/auth-keycloak": "^0.1.3",
     "@adatechnology/cache": "^0.0.8",
     "@adatechnology/http-client": "^0.0.9",
     "@adatechnology/logger": "^0.0.7",

@@ -2,272 +2,125 @@ _format_version: "3.0"
 _transform: true
 
 # ---------------------------------------------------------------------------
-# Auth strategy: JWKS local validation + Kong service account (zero-trust)
+# Kong API Gateway — Domestic Backend
 #
-# User token validation (JWKS — zero Keycloak call per request):
-#   1. Extract Bearer token from Authorization header
-#   2. Decode JWT header → get kid
-#   3. Find matching JWK in cached JWKS (fetch if needed, TTL 1h)
-#   4. Verify RS256 signature via resty.openssl
-#   5. Check exp + iss claims
-#   6. Inject X-User-Id (sub) and X-User-Roles (realm_access.roles CSV)
+# Upstreams expostos:
+#   1. Keycloak — Authorization Code + PKCE (S256)
+#      POST /auth/token     → troca code por tokens (BFF injeta client_secret)
+#      GET  /auth/authorize → inicia fluxo PKCE (redireciona ao login Keycloak)
 #
-# Kong service account (zero-trust upstream auth):
-#   7. Fetch Kong's own client_credentials token from Keycloak (cached TTL 55min)
-#   8. Add it as Authorization header on the upstream request
-#   → BFF/API use B2BGuard to validate that the caller is Kong
-#   → Original user token is never forwarded
+#   2. BFF — todas as rotas de negócio (pendente — serviço não subido)
+#
+# Fluxo PKCE:
+#   Frontend gera code_verifier + code_challenge(S256)
+#   → GET /auth/authorize?code_challenge=...  → Keycloak login page
+#   → Keycloak redireciona para redirect_uri?code=AUTH_CODE
+#   → BFF POST /auth/token { code, code_verifier } → Kong injeta client_secret
+#   → BFF recebe access_token + refresh_token, guarda server-side
+#
+# O domestic-backend-api NÃO é exposto diretamente pelo Kong.
 # ---------------------------------------------------------------------------
 
 services:
-  - name: backend-api
-    url: http://api:3333
+
+  # ── 1. Keycloak — PKCE ───────────────────────────────────────────────────
+  - name: keycloak-auth
+    url: http://keycloak:8080
     connect_timeout: 10000
-    read_timeout: 30000
-    write_timeout: 30000
+    read_timeout: 15000
+    write_timeout: 10000
+
     routes:
 
-      # ── Public: user registration ─────────────────────────────────────────
-      - name: api-users-register
+      # ── Troca code → tokens (BFF chama isso com code_verifier) ───────────
+      - name: auth-token
         paths:
-          - /api/v1/users
+          - /auth/token
         methods:
           - POST
-        strip_path: false
-
-      # ── Public: health check ──────────────────────────────────────────────
-      - name: api-health
-        paths:
-          - /api/v1/health
-        methods:
-          - GET
-        strip_path: false
-
-      # ── Protected: all other routes ───────────────────────────────────────
-      - name: api-protected
-        paths:
-          - /api/v1
-        strip_path: false
+        strip_path: true
         plugins:
-
-          # ── JWKS validation + header injection ───────────────────────────
-          - name: pre-function
+          - name: request-transformer
             config:
-              access:
-                - |
-                  local http    = require "resty.http"
-                  local cjson   = require "cjson.safe"
-                  local pkey    = require "resty.openssl.pkey"
-                  local digest  = require "resty.openssl.digest"
-
-                  local SHARED         = ngx.shared.kong
-                  local JWKS_CACHE_KEY = "kc:jwks"
-                  local JWKS_TTL       = 3600  -- 1 hour
-
-                  -- Accept tokens issued by both Docker-internal and external hostnames
-                  local VALID_ISSUERS = {
-                    ["http://keycloak:8080/realms/domestic-backend"]  = true,
-                    ["http://localhost:8080/realms/domestic-backend"]  = true,
-                  }
-
-                  local JWKS_URL =
-                    "http://keycloak:8080/realms/domestic-backend/protocol/openid-connect/certs"
-
-                  -- ── Helpers ──────────────────────────────────────────────
-
-                  local function b64url_decode(s)
-                    s = s:gsub("%-", "+"):gsub("_", "/")
-                    local pad = (4 - #s % 4) % 4
-                    return ngx.decode_base64(s .. string.rep("=", pad))
-                  end
-
-                  local function get_jwks()
-                    local cached = SHARED:get(JWKS_CACHE_KEY)
-                    if cached then
-                      return cjson.decode(cached)
-                    end
-
-                    local httpc = http.new()
-                    httpc:set_timeout(5000)
-                    local res, err = httpc:request_uri(JWKS_URL, { method = "GET" })
-
-                    if err or not res or res.status ~= 200 then
-                      kong.log.err("JWKS fetch failed: ", err or res.status)
-                      return nil
-                    end
-
-                    local data = cjson.decode(res.body)
-                    if not data or not data.keys then
-                      kong.log.err("Invalid JWKS response")
-                      return nil
-                    end
-
-                    -- Index keys by kid
-                    local keys = {}
-                    for _, k in ipairs(data.keys) do
-                      if k.kty == "RSA" and (k.use == "sig" or not k.use) then
-                        keys[k.kid] = k
-                      end
-                    end
-
-                    SHARED:set(JWKS_CACHE_KEY, cjson.encode(keys), JWKS_TTL)
-                    return keys
-                  end
-
-                  local function verify_signature(header_b64, payload_b64, sig_b64, jwk)
-                    local sig = b64url_decode(sig_b64)
-                    if not sig then return false, "bad signature encoding" end
-
-                    -- Load RSA public key from JWK
-                    local pk, err = pkey.new(cjson.encode(jwk), { format = "JWK" })
-                    if not pk then return false, "load key: " .. (err or "unknown") end
-
-                    -- Verify RS256 signature
-                    local signing_input = header_b64 .. "." .. payload_b64
-                    local d = digest.new("sha256")
-                    if not d then return false, "digest init failed" end
-
-                    local ok, verify_err = pk:verify(sig, signing_input, "sha256", nil)
-                    if not ok then return false, "bad signature: " .. (verify_err or "unknown") end
-
-                    return true
-                  end
-
-                  -- ── Main ─────────────────────────────────────────────────
-
-                  local auth_header = kong.request.get_header("authorization")
-                  if not auth_header then
-                    return kong.response.exit(401, { message = "Missing Authorization header" })
-                  end
-
-                  local token = auth_header:match("^[Bb]earer%s+(.+)$")
-                  if not token then
-                    return kong.response.exit(401, { message = "Invalid Authorization header" })
-                  end
-
-                  -- Split JWT
-                  local header_b64, payload_b64, sig_b64 =
-                    token:match("^([^.]+)%.([^.]+)%.([^.]+)$")
-                  if not header_b64 then
-                    return kong.response.exit(401, { message = "Malformed token" })
-                  end
-
-                  -- Decode header → kid
-                  local header = cjson.decode(b64url_decode(header_b64))
-                  if not header or not header.kid then
-                    return kong.response.exit(401, { message = "Missing kid in token header" })
-                  end
-
-                  -- Get JWKS
-                  local keys = get_jwks()
-                  if not keys then
-                    return kong.response.exit(401, { message = "Token validation unavailable" })
-                  end
-
-                  -- Find key — on miss, force refresh once (key rotation)
-                  local jwk = keys[header.kid]
-                  if not jwk then
-                    SHARED:delete(JWKS_CACHE_KEY)
-                    keys = get_jwks()
-                    jwk = keys and keys[header.kid]
-                    if not jwk then
-                      return kong.response.exit(401, { message = "Unknown token key" })
-                    end
-                  end
-
-                  -- Verify signature
-                  local ok, sig_err = verify_signature(header_b64, payload_b64, sig_b64, jwk)
-                  if not ok then
-                    kong.log.err("Signature verification failed: ", sig_err)
-                    return kong.response.exit(401, { message = "Invalid token signature" })
-                  end
-
-                  -- Decode payload
-                  local payload = cjson.decode(b64url_decode(payload_b64))
-                  if not payload then
-                    return kong.response.exit(401, { message = "Invalid token payload" })
-                  end
-
-                  -- Verify expiry
-                  if payload.exp and payload.exp < ngx.now() then
-                    return kong.response.exit(401, { message = "Token expired" })
-                  end
-
-                  -- Verify issuer
-                  if not VALID_ISSUERS[payload.iss] then
-                    kong.log.warn("Rejected token with iss: ", tostring(payload.iss))
-                    return kong.response.exit(401, { message = "Invalid token issuer" })
-                  end
-
-                  -- ── Zero-trust: replace user token with Kong service token ──
-                  -- Fetch (or use cached) Kong's own client_credentials token.
-                  -- The upstream service uses B2BGuard to verify this token,
-                  -- ensuring only Kong can call it — not arbitrary clients.
-                  local KONG_TOKEN_KEY = "kc:kong_token"
-                  local KONG_TOKEN_TTL = 55 * 60  -- 55 min (token lifetime is 60 min)
-
-                  local TOKEN_URL =
-                    "http://keycloak:8080/realms/domestic-backend/protocol/openid-connect/token"
-
-                  local kong_token = SHARED:get(KONG_TOKEN_KEY)
-
-                  if not kong_token then
-                    local tc = http.new()
-                    tc:set_timeout(5000)
-                    local tr, te = tc:request_uri(TOKEN_URL, {
-                      method = "POST",
-                      body   = ngx.encode_args({
-                        grant_type    = "client_credentials",
-                        client_id     = "domestic-backend-kong",
-                        client_secret = "backend-kong-client-secret",
-                      }),
-                      headers = { ["Content-Type"] = "application/x-www-form-urlencoded" }
-                    })
-
-                    if te or not tr or tr.status ~= 200 then
-                      kong.log.err("Failed to fetch Kong service token: ", te or tr and tr.status)
-                      return kong.response.exit(503, { message = "Gateway auth unavailable" })
-                    end
-
-                    local td = cjson.decode(tr.body)
-                    if not td or not td.access_token then
-                      kong.log.err("Invalid token response from Keycloak")
-                      return kong.response.exit(503, { message = "Gateway auth unavailable" })
-                    end
-
-                    kong_token = td.access_token
-                    SHARED:set(KONG_TOKEN_KEY, kong_token, KONG_TOKEN_TTL)
-                  end
-
-                  -- Forward the original user token as X-Access-Token (B2C context)
-                  -- so downstream services can access full user claims if needed.
-                  kong.service.request.set_header("X-Access-Token", token)
-
-                  -- Set Kong service token as Authorization (B2B caller identity).
-                  -- Downstream services use B2BGuard to validate this.
-                  kong.service.request.set_header("Authorization", "Bearer " .. kong_token)
-
-          # ── Rate limiting ─────────────────────────────────────────────────
-          - name: rate-limiting
-            config:
-              minute: 120
-              policy: local
-
-          # ── CORS ──────────────────────────────────────────────────────────
+              replace:
+                uri: /realms/domestic-backend/protocol/openid-connect/token
+              add:
+                body:
+                  - "client_id:domestic-backend-bff"
+                  - "client_secret:backend-bff-client-secret"
           - name: cors
             config:
               origins:
-                - "http://localhost:3001"
                 - "http://localhost:3000"
+                - "http://localhost:3001"
               methods:
-                - GET
                 - POST
-                - PUT
-                - DELETE
                 - OPTIONS
               headers:
-                - Authorization
                 - Content-Type
-                - X-Request-Id
-              credentials: true
+              credentials: false
               max_age: 3600
+
+      # ── Inicia fluxo PKCE (frontend redireciona para cá) ─────────────────
+      - name: auth-authorize
+        paths:
+          - /auth/authorize
+        methods:
+          - GET
+        strip_path: true
+        plugins:
+          - name: request-transformer
+            config:
+              replace:
+                uri: /realms/domestic-backend/protocol/openid-connect/auth
+              add:
+                querystring:
+                  - "client_id:domestic-backend-bff"
+          - name: cors
+            config:
+              origins:
+                - "http://localhost:3000"
+                - "http://localhost:3001"
+              methods:
+                - GET
+                - OPTIONS
+              headers:
+                - Content-Type
+              credentials: false
+              max_age: 3600
+
+  # ── 2. BFF — rotas de negócio (pendente) ────────────────────────────────
+  # Descomente quando o BFF estiver disponível.
+  #
+  # - name: bff
+  #   url: http://bff:3000
+  #   connect_timeout: 10000
+  #   read_timeout: 30000
+  #   write_timeout: 30000
+  #   routes:
+  #     - name: bff-all
+  #       paths:
+  #         - /api/v1
+  #       strip_path: false
+  #       plugins:
+  #         - name: rate-limiting
+  #           config:
+  #             minute: 120
+  #             policy: local
+  #         - name: cors
+  #           config:
+  #             origins:
+  #               - "http://localhost:3000"
+  #               - "http://localhost:3001"
+  #             methods:
+  #               - GET
+  #               - POST
+  #               - PUT
+  #               - DELETE
+  #               - OPTIONS
+  #             headers:
+  #               - Authorization
+  #               - Content-Type
+  #               - X-Request-Id
+  #             credentials: true
+  #             max_age: 3600
