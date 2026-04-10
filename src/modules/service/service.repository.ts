@@ -32,6 +32,10 @@ export class ServiceRepository implements ServiceRepositoryInterface {
     return updated;
   }
 
+  async softDelete(id: string): Promise<void> {
+    await this.typeormRepo.softDelete(id);
+  }
+
   async findById(id: string): Promise<Service | null> {
     return this.typeormRepo.findOne({
       where: { id },

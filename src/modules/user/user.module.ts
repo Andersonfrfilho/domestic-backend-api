@@ -19,6 +19,7 @@ import { GetUserByKeycloakIdUseCase } from './use-cases/get-user-by-keycloak-id/
 import { GetUserStatsUseCase } from './use-cases/get-user-stats/get-user-stats.use-case';
 import { ListUserAddressesUseCase } from './use-cases/list-user-addresses/list-user-addresses.use-case';
 import { RemoveUserAddressUseCase } from './use-cases/remove-user-address/remove-user-address.use-case';
+import { RestoreUserUseCase } from './use-cases/restore-user/restore-user.use-case';
 import { UpdateUserUseCase } from './use-cases/update-user/update-user.use-case';
 import { UserController } from './user.controller';
 import { UserRepository } from './user.repository';
@@ -35,6 +36,7 @@ import {
   USER_GET_BY_KEYCLOAK_ID_USE_CASE_PROVIDE,
   USER_GET_STATS_USE_CASE_PROVIDE,
   USER_REPOSITORY_PROVIDE,
+  USER_RESTORE_USE_CASE_PROVIDE,
   USER_SERVICE_PROVIDE,
   USER_UPDATE_USE_CASE_PROVIDE,
 } from './user.token';
@@ -59,6 +61,7 @@ import {
     { provide: ADD_USER_ADDRESS_USE_CASE_PROVIDE, useClass: AddUserAddressUseCase },
     { provide: REMOVE_USER_ADDRESS_USE_CASE_PROVIDE, useClass: RemoveUserAddressUseCase },
     { provide: LIST_USER_ADDRESSES_USE_CASE_PROVIDE, useClass: ListUserAddressesUseCase },
+    { provide: USER_RESTORE_USE_CASE_PROVIDE, useClass: RestoreUserUseCase },
     { provide: USER_SERVICE_PROVIDE, useClass: UserService },
   ],
   exports: [USER_REPOSITORY_PROVIDE, USER_SERVICE_PROVIDE],

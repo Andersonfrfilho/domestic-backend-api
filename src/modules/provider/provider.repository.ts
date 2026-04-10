@@ -74,6 +74,10 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     return updated;
   }
 
+  async softDelete(id: string): Promise<void> {
+    await this.profileRepo.softDelete(id);
+  }
+
   async addService(params: AddProviderServiceParams): Promise<ProviderService> {
     const providerService = this.serviceRepo.create(params);
     return this.serviceRepo.save(providerService);

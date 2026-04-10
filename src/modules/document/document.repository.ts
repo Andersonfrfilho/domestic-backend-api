@@ -30,4 +30,8 @@ export class DocumentRepository implements DocumentRepositoryInterface {
     if (!updated) throw DocumentErrorFactory.notFound(id);
     return updated;
   }
+
+  async softDelete(id: string): Promise<void> {
+    await this.repo.softDelete(id);
+  }
 }

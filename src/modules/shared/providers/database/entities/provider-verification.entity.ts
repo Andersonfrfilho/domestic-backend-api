@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { ProviderProfile } from './provider-profile.entity';
 
@@ -17,8 +17,7 @@ export class ProviderVerification {
   @Column({ comment: 'PENDING, UNDER_REVIEW, APPROVED, REJECTED' })
   status: string;
 
-  @ApiProperty({ example: '2026-04-04T10:00:00Z' })
-  @Column({ name: 'submitted_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'submitted_at', type: 'timestamp' })
   submittedAt: Date;
 
   @ApiPropertyOptional({ example: '2026-04-05T14:00:00Z', nullable: true })
@@ -32,6 +31,9 @@ export class ProviderVerification {
   @ApiPropertyOptional({ example: 'Documentos incompletos', nullable: true })
   @Column({ type: 'text', nullable: true })
   notes: string;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
 
   @ManyToOne(() => ProviderProfile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'provider_id' })

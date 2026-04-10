@@ -15,6 +15,7 @@ export interface UpdateServiceParams {
 export interface ServiceRepositoryInterface {
   create(params: CreateServiceParams): Promise<Service>;
   update(id: string, params: UpdateServiceParams): Promise<Service>;
+  softDelete(id: string): Promise<void>;
   findById(id: string): Promise<Service | null>;
   findByCategory(categoryId: string): Promise<Service[]>;
   list(): Promise<Service[]>;

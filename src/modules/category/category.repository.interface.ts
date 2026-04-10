@@ -15,6 +15,7 @@ export interface UpdateCategoryParams {
 export interface CategoryRepositoryInterface {
   create(params: CreateCategoryParams): Promise<Category>;
   update(id: string, params: UpdateCategoryParams): Promise<Category>;
+  softDelete(id: string): Promise<void>;
   delete(id: string): Promise<void>;
   deactivate(id: string): Promise<void>;
   listActive(): Promise<Category[]>;
@@ -22,4 +23,3 @@ export interface CategoryRepositoryInterface {
   findById(id: string): Promise<Category | null>;
   findBySlug(slug: string): Promise<Category | null>;
 }
-

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { ProviderProfile } from './provider-profile.entity';
 import { ServiceRequest } from './service-request.entity';
@@ -31,8 +31,7 @@ export class Review {
   @Column({ type: 'text', nullable: true })
   comment: string;
 
-  @ApiProperty({ example: '2026-04-04T10:00:00Z' })
-  @Column({ name: 'created_at', type: 'timestamp', nullable: true })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @OneToOne(() => ServiceRequest, { onDelete: 'CASCADE' })

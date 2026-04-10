@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Address } from './address.entity';
 import { ProviderProfile } from './provider-profile.entity';
@@ -30,9 +30,14 @@ export class ProviderWorkLocation {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @ApiProperty({ example: '2026-04-04T10:00:00Z' })
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   @ManyToOne(() => ProviderProfile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'provider_id' })

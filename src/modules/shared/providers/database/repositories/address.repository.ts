@@ -15,7 +15,7 @@ export class AddressRepository implements AddressRepositoryInterface {
   }
 
   async createAddress(
-    address: Omit<Address, 'id' | 'createdAt' | 'userAddresses'>,
+    address: Omit<Address, 'id' | 'createdAt' | 'updatedAt' | 'userAddresses'>,
   ): Promise<Address> {
     const newAddress = this.typeormRepo.create(address);
     return this.typeormRepo.save(newAddress);

@@ -1,82 +1,63 @@
-import { faker } from '@faker-js/faker';
 import { HttpStatus } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class InternalServerErrorDto {
-  @ApiProperty({
-    description: 'Error code',
-    example: HttpStatus.BAD_REQUEST,
-    default: HttpStatus.BAD_REQUEST,
-  })
+export class AppErrorDto {
+  @ApiProperty({ description: 'HTTP status code', example: 409 })
   statusCode: number;
 
-  @ApiProperty({
-    description: 'Timestamp of the error',
-    example: '2025-11-01T17:16:42.226Z',
-  })
+  @ApiProperty({ description: 'ISO timestamp of the error', example: '2025-11-01T17:16:42.226Z' })
   timestamp: string;
 
-  @ApiProperty({
-    description: 'Path of the request that caused the error',
-    example: '/v1/auth/login-session',
-  })
+  @ApiProperty({ description: 'Request path', example: '/v1/users/abc-123' })
   path: string;
 
-  @ApiProperty({
-    description: 'Error message indicating internal server error',
-    example: 'Internal server error',
-  })
+  @ApiProperty({ description: 'Human-readable error message', example: 'User not found' })
   message: string;
 
   @ApiProperty({
-    description: 'Internal Mapped error code',
-    example: HttpStatus.BAD_REQUEST,
-    default: faker.number.int({ min: 1000, max: 9999 }),
+    description: 'Machine-readable domain error code — use this in the BFF for routing to specific screens',
+    example: 'ACCOUNT_DELETED',
   })
-  code?: number;
+  code: string;
+
+  @ApiProperty({
+    description: 'Error category',
+    example: 'CONFLICT',
+    enum: ['VALIDATION', 'AUTHENTICATION', 'AUTHORIZATION', 'NOT_FOUND', 'CONFLICT', 'BUSINESS_LOGIC', 'INTERNAL_SERVER'],
+  })
+  type: string;
+
+  @ApiPropertyOptional({
+    description: 'Additional context (present on VALIDATION errors)',
+    example: { validationErrors: [] },
+  })
+  details?: Record<string, unknown>;
 }
 
-export class BadRequestErrorValidationRequestDto {
-  @ApiProperty({
-    description: 'Error code',
-    example: HttpStatus.BAD_REQUEST,
-    default: HttpStatus.BAD_REQUEST,
-  })
-  statusCode: number;
+export class InternalServerErrorDto extends AppErrorDto {
+  @ApiProperty({ example: HttpStatus.INTERNAL_SERVER_ERROR })
+  declare statusCode: number;
+
+  @ApiProperty({ example: 'Internal server error' })
+  declare message: string;
+
+  @ApiProperty({ example: 'INTERNAL_SERVER' })
+  declare type: string;
+}
+
+export class BadRequestErrorValidationRequestDto extends AppErrorDto {
+  @ApiProperty({ example: HttpStatus.BAD_REQUEST })
+  declare statusCode: number;
+
+  @ApiProperty({ example: 'Validation failed' })
+  declare message: string;
+
+  @ApiProperty({ example: 'VALIDATION' })
+  declare type: string;
 
   @ApiProperty({
-    description: 'Timestamp of the error',
-    example: '2025-11-01T17:16:42.226Z',
+    description: 'Validation error details',
+    example: [{ field: 'email', constraints: { isEmail: 'email must be an email' } }],
   })
-  timestamp: string;
-
-  @ApiProperty({
-    description: 'Path of the request that caused the error',
-    example: '/v1/auth/login-session',
-  })
-  path: string;
-
-  @ApiProperty({
-    description: 'Error message indicating validation failure',
-    example: 'Validation failed',
-  })
-  message: string;
-
-  @ApiProperty({
-    description: 'Internal Mapped error code',
-    example: HttpStatus.BAD_REQUEST,
-    default: faker.number.int({ min: 1000, max: 9999 }),
-  })
-  code?: number;
-
-  @ApiProperty({
-    description: 'Details of the validation errors',
-    example: [
-      {
-        field: 'email',
-        errors: ['email must be an email'],
-      },
-    ],
-  })
-  details: Record<string, unknown>[];
+  declare details: Record<string, unknown>;
 }

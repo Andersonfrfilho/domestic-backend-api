@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiCreatedResponse,
   ApiHeader,
   ApiInternalServerErrorResponse,
@@ -57,11 +58,25 @@ export class UserController {
   })
   @ApiCreatedResponse({ type: CreateUserResponseDto })
   @ApiBadRequestResponse({ description: 'Dados inválidos' })
+  @ApiConflictResponse({ description: 'keycloakId já existe. Se a conta foi deletada, use POST /users/:id/restore' })
   @ApiInternalServerErrorResponse()
   async create(@Body() params: CreateUserRequestDto): Promise<CreateUserResponseDto> {
     const user = await this.userService.createUser(params);
     await this.cacheProvider.del('users:list').catch(() => null);
     return user;
+  }
+
+  @Post(':id/restore')
+  @ApiOperation({
+    summary: 'Restaurar usuário deletado',
+    description: 'Reativa uma conta que foi removida via soft delete.',
+  })
+  @ApiParam({ name: 'id', type: String, description: 'ID interno do usuário' })
+  @ApiOkResponse({ type: CreateUserResponseDto })
+  @ApiNotFoundResponse({ description: 'Usuário não encontrado' })
+  @ApiConflictResponse({ description: 'Usuário não está deletado' })
+  async restore(@Param('id') id: string): Promise<CreateUserResponseDto> {
+    return this.userService.restoreUser(id);
   }
 
   @Get('me')

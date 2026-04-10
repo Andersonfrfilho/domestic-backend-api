@@ -18,6 +18,14 @@ export class UserErrorFactory extends BaseErrorFactory {
     return this.createConflict(USER_ERROR_CONFIGS.duplicateKeycloakId(keycloakId));
   }
 
+  static accountDeleted(userId: string) {
+    return this.createConflict(USER_ERROR_CONFIGS.accountDeleted(userId));
+  }
+
+  static userNotDeleted(userId: string) {
+    return this.createBusinessLogic(USER_ERROR_CONFIGS.userNotDeleted(userId));
+  }
+
   static notFound(userId?: string) {
     return this.createNotFound(USER_ERROR_CONFIGS.notFound(userId));
   }
