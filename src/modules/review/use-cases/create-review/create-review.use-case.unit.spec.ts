@@ -1,12 +1,23 @@
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Test } from '@nestjs/testing';
 
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '@modules/service-request/service-request.token';
 
 import { REVIEW_REPOSITORY_PROVIDE } from '../../review.token';
+import {
+  CREATE_REVIEW_LOG_CONTEXT,
+  CREATE_REVIEW_LOG_MESSAGES,
+} from './create-review.constants';
 import { CreateReviewUseCase } from './create-review.use-case';
 
 const mockReviewRepo = { findByServiceRequestId: jest.fn(), create: jest.fn() };
 const mockSrRepo = { findById: jest.fn() };
+const mockLogProvider = {
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn(),
+};
 
 const completedSr = { id: 'sr-1', contractorId: 'user-1', providerId: 'prov-1', status: 'COMPLETED' };
 
@@ -19,6 +30,7 @@ describe('CreateReviewUseCase', () => {
         CreateReviewUseCase,
         { provide: REVIEW_REPOSITORY_PROVIDE, useValue: mockReviewRepo },
         { provide: SERVICE_REQUEST_REPOSITORY_PROVIDE, useValue: mockSrRepo },
+        { provide: LOGGER_PROVIDER, useValue: mockLogProvider },
       ],
     }).compile();
     useCase = module.get(CreateReviewUseCase);
@@ -48,6 +60,18 @@ describe('CreateReviewUseCase', () => {
     expect(mockReviewRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ providerId: 'prov-1', rating: 5 }),
     );
+    expect(mockLogProvider.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: CREATE_REVIEW_LOG_MESSAGES.START_FLOW,
+        context: CREATE_REVIEW_LOG_CONTEXT,
+      }),
+    );
+    expect(mockLogProvider.info).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: CREATE_REVIEW_LOG_MESSAGES.SUCCESS,
+        context: CREATE_REVIEW_LOG_CONTEXT,
+      }),
+    );
   });
 
   it('throws when service request is not COMPLETED', async () => {
@@ -55,6 +79,12 @@ describe('CreateReviewUseCase', () => {
     await expect(
       useCase.execute({ serviceRequestId: 'sr-1', contractorId: 'user-1', rating: 5 }),
     ).rejects.toThrow();
+    expect(mockLogProvider.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: CREATE_REVIEW_LOG_MESSAGES.SERVICE_REQUEST_NOT_COMPLETED,
+        context: CREATE_REVIEW_LOG_CONTEXT,
+      }),
+    );
   });
 
   it('throws when service request not found', async () => {
@@ -62,6 +92,12 @@ describe('CreateReviewUseCase', () => {
     await expect(
       useCase.execute({ serviceRequestId: 'sr-1', contractorId: 'user-1', rating: 5 }),
     ).rejects.toThrow();
+    expect(mockLogProvider.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: CREATE_REVIEW_LOG_MESSAGES.SERVICE_REQUEST_NOT_COMPLETED,
+        context: CREATE_REVIEW_LOG_CONTEXT,
+      }),
+    );
   });
 
   it('throws when review already exists', async () => {
@@ -70,5 +106,11 @@ describe('CreateReviewUseCase', () => {
     await expect(
       useCase.execute({ serviceRequestId: 'sr-1', contractorId: 'user-1', rating: 4 }),
     ).rejects.toThrow();
+    expect(mockLogProvider.warn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: CREATE_REVIEW_LOG_MESSAGES.ALREADY_EXISTS,
+        context: CREATE_REVIEW_LOG_CONTEXT,
+      }),
+    );
   });
 });

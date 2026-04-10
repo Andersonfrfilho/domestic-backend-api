@@ -1,8 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+
+import type { LogProviderInterface } from '@app/modules/shared';
 
 import { type NotificationRepositoryInterface } from '../../notification.repository.interface';
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 
+import {
+  LIST_NOTIFICATIONS_LOG_CONTEXT,
+  LIST_NOTIFICATIONS_LOG_MESSAGES,
+} from './list-notifications-constants';
 import {
   ListNotificationsUseCaseInterface,
   ListNotificationsUseCaseParams,
@@ -11,12 +18,43 @@ import {
 
 @Injectable()
 export class ListNotificationsUseCase implements ListNotificationsUseCaseInterface {
+  private readonly logContext = LIST_NOTIFICATIONS_LOG_CONTEXT;
+
   constructor(
     @Inject(NOTIFICATION_REPOSITORY_PROVIDE)
     private readonly notificationRepository: NotificationRepositoryInterface,
+    @Inject(LOGGER_PROVIDER)
+    private readonly logProvider: LogProviderInterface,
   ) {}
 
   async execute(params: ListNotificationsUseCaseParams): Promise<ListNotificationsUseCaseResponse> {
-    return this.notificationRepository.listByUser(params.userId);
+    this.logProvider.info({
+      message: LIST_NOTIFICATIONS_LOG_MESSAGES.START_FLOW,
+      context: this.logContext,
+      meta: {
+        userId: params.userId,
+      },
+    });
+    const notifications = await this.notificationRepository.listByUser(params.userId);
+
+    if (!notifications) {
+      this.logProvider.warn({
+        message: LIST_NOTIFICATIONS_LOG_MESSAGES.NOT_FOUND_NOTIFICATION,
+        context: this.logContext,
+        meta: { userId: params.userId },
+      });
+
+      throw new NotFoundException(LIST_NOTIFICATIONS_LOG_MESSAGES.NOT_FOUND_NOTIFICATION);
+    }
+
+    this.logProvider.info({
+      message: LIST_NOTIFICATIONS_LOG_MESSAGES.LISTED_SUCCESS,
+      context: this.logContext,
+      meta: {
+        userId: params.userId,
+      },
+    });
+
+    return notifications;
   }
 }

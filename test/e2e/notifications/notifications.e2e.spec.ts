@@ -1,61 +1,119 @@
 import { faker } from '@faker-js/faker';
-import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { Test } from '@nestjs/testing';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { AppModule } from '../../../src/app.module';
+import { ApiAuthGuard, RolesGuard } from '@adatechnology/auth-keycloak';
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 
-import { closeApp, createApp } from '../helpers/create-app.helper';
-
-describe('Notifications Controller (e2e)', () => {
+describe('NotificationController (e2e)', () => {
   let app: NestFastifyApplication;
-  const NON_EXISTENT_UUID = faker.string.uuid();
+    let mockLogProvider: any;
+
   let userKeycloakId: string;
+  const NON_EXISTENT_UUID = faker.string.uuid();
 
   beforeAll(async () => {
-    app = await createApp();
+    mockLogProvider = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+    };
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(LOGGER_PROVIDER)
+      .useValue(mockLogProvider)
+      .overrideGuard(ApiAuthGuard)
+      .useValue({
+        canActivate: () => true,
+      })
+      .overrideGuard(RolesGuard)
+      .useValue({
+        canActivate: () => true,
+      })
+      .overrideProvider(AmqpConnection)
+      .useValue({
+        publish: jest.fn(),
+        request: jest.fn(),
+        send: jest.fn(),
+      })
+      .compile();
+
+    app = moduleRef.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
 
     userKeycloakId = faker.string.uuid();
+
     await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { fullName: faker.person.fullName(), keycloakId: userKeycloakId },
+      payload: {
+        fullName: faker.person.fullName(),
+        keycloakId: userKeycloakId,
+      },
     });
   }, 60000);
 
   afterAll(async () => {
-    await closeApp(app);
+    await app.close();
   });
 
-  // ── GET /notifications ────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // GET /notifications
+  // ─────────────────────────────────────────────
 
   describe('GET /notifications', () => {
-    it('should return 404 when X-User-Id does not match any user', async () => {
+    it('should return 404 when user does not exist', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/notifications',
-        headers: { 'x-user-id': faker.string.uuid() },
+        headers: {
+          'x-user-id': faker.string.uuid(),
+        },
       });
+
       expect(response.statusCode).toBe(404);
     });
 
-    it('should return 200 and empty array for existing user', async () => {
+    it('should return 200 and empty array when user exists but has no notifications', async () => {
       const response = await app.inject({
         method: 'GET',
         url: '/notifications',
-        headers: { 'x-user-id': userKeycloakId },
+        headers: {
+          'x-user-id': userKeycloakId,
+        },
       });
+
       expect(response.statusCode).toBe(200);
-      expect(JSON.parse(response.body)).toBeInstanceOf(Array);
+
+      const body = JSON.parse(response.body);
+      expect(Array.isArray(body)).toBe(true);
+      expect(body).toEqual([]);
     });
   });
 
-  // ── PUT /notifications/:id/read ───────────────────────────────────────────
+  // ─────────────────────────────────────────────
+  // PUT /notifications/:id/read
+  // ─────────────────────────────────────────────
 
   describe('PUT /notifications/:id/read', () => {
-    it('should return 404 or 500 for non-existent notification', async () => {
+    it('should return 404 when notification does not exist', async () => {
       const response = await app.inject({
         method: 'PUT',
         url: `/notifications/${NON_EXISTENT_UUID}/read`,
-        headers: { 'x-user-id': userKeycloakId },
+        headers: {
+          'x-user-id': userKeycloakId, // 🔥 importante manter consistência
+        },
       });
-      expect([404, 500]).toContain(response.statusCode);
+
+      expect(response.statusCode).toBe(404);
     });
   });
 });

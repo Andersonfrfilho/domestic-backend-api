@@ -1,8 +1,15 @@
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+
+import { type LogProviderInterface } from '@modules/shared';
 
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
+import {
+  LIST_SERVICE_REQUESTS_BY_USER_LOG_CONTEXT,
+  LIST_SERVICE_REQUESTS_BY_USER_LOG_MESSAGES,
+} from './list-service-requests-by-user.constants';
 import {
   ListServiceRequestsByUserUseCaseInterface,
   ListServiceRequestsByUserUseCaseParams,
@@ -11,12 +18,37 @@ import {
 
 @Injectable()
 export class ListServiceRequestsByUserUseCase implements ListServiceRequestsByUserUseCaseInterface {
+  private readonly logContext = LIST_SERVICE_REQUESTS_BY_USER_LOG_CONTEXT;
+
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)
     private readonly serviceRequestRepository: ServiceRequestRepositoryInterface,
+    @Inject(LOGGER_PROVIDER)
+    private readonly logProvider: LogProviderInterface,
   ) {}
 
-  async execute(params: ListServiceRequestsByUserUseCaseParams): Promise<ListServiceRequestsByUserUseCaseResponse> {
-    return this.serviceRequestRepository.listByContractor(params.contractorId);
+  async execute(
+    params: ListServiceRequestsByUserUseCaseParams,
+  ): Promise<ListServiceRequestsByUserUseCaseResponse> {
+    this.logProvider.info({
+      message: LIST_SERVICE_REQUESTS_BY_USER_LOG_MESSAGES.START_FLOW,
+      context: this.logContext,
+      meta: { ...params },
+    });
+
+    const serviceRequests = await this.serviceRequestRepository.listByContractor(
+      params.contractorId,
+    );
+
+    this.logProvider.info({
+      message: LIST_SERVICE_REQUESTS_BY_USER_LOG_MESSAGES.SUCCESS,
+      context: this.logContext,
+      meta: {
+        contractorId: params.contractorId,
+        count: serviceRequests.length,
+      },
+    });
+
+    return serviceRequests;
   }
 }

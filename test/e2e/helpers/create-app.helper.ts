@@ -1,9 +1,8 @@
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import multipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
-
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
 
 import { AppModule } from '../../../src/app.module';
 
@@ -15,25 +14,31 @@ export const mockLogProvider = {
 };
 
 export async function createApp(): Promise<NestFastifyApplication> {
-  const moduleFixture = await Test.createTestingModule({ imports: [AppModule] })
-    .overrideProvider(LOGGER_PROVIDER)
-    .useValue(mockLogProvider)
-    .compile();
+  try {
+    const moduleFixture = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(LOGGER_PROVIDER)
+      .useValue(mockLogProvider)
+      .compile();
 
-  const app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
-  await app.register(multipart, { limits: { fileSize: 52428800 } });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      forbidUnknownValues: false,
-      forbidNonWhitelisted: false,
-      transform: true,
-      whitelist: true,
-      skipMissingProperties: false,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
-  await app.init();
-  return app;
+    const app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    await app.register(multipart, { limits: { fileSize: 52428800 } });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        forbidUnknownValues: false,
+        forbidNonWhitelisted: false,
+        transform: true,
+        whitelist: true,
+        skipMissingProperties: false,
+        transformOptions: { enableImplicitConversion: true },
+      }),
+    );
+    await app.init();
+    console.log('✅ App criado com sucesso');
+    return app;
+  } catch (error) {
+    console.error('❌ Erro ao criar app:', error);
+    throw error;
+  }
 }
 
 export async function closeApp(app: NestFastifyApplication): Promise<void> {

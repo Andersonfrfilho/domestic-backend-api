@@ -1,12 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { type LogProviderInterface } from '@modules/shared';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
 import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/producer/producer.token';
 
+import { ServiceRequestErrorFactory } from '../../factories/service-request.error.factory';
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
-import { ServiceRequestErrorFactory } from '../../factories/service-request.error.factory';
 
+import {
+  COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
+  COMPLETE_SERVICE_REQUEST_LOG_MESSAGES,
+} from './complete-service-request.constants';
 import {
   CompleteServiceRequestUseCaseInterface,
   CompleteServiceRequestUseCaseParams,
@@ -18,39 +24,82 @@ const ROUTING_KEY = 'service_request.completed';
 
 @Injectable()
 export class CompleteServiceRequestUseCase implements CompleteServiceRequestUseCaseInterface {
+  private readonly logContext = COMPLETE_SERVICE_REQUEST_LOG_CONTEXT;
+
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)
     private readonly serviceRequestRepository: ServiceRequestRepositoryInterface,
     @Inject(QUEUE_PRODUCER_PROVIDER)
     private readonly producer: QueueProducerMessageProviderInterface,
+    @Inject(LOGGER_PROVIDER)
+    private readonly logProvider: LogProviderInterface,
   ) {}
 
-  async execute(params: CompleteServiceRequestUseCaseParams): Promise<CompleteServiceRequestUseCaseResponse> {
+  async execute(
+    params: CompleteServiceRequestUseCaseParams,
+  ): Promise<CompleteServiceRequestUseCaseResponse> {
+    this.logProvider.info({
+      message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.START_FLOW,
+      context: this.logContext,
+      meta: { ...params },
+    });
+
     const serviceRequest = await this.serviceRequestRepository.findById(params.id);
-    if (!serviceRequest) throw ServiceRequestErrorFactory.notFound(params.id);
+    if (!serviceRequest) {
+      this.logProvider.warn({
+        message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.NOT_FOUND,
+        context: this.logContext,
+        meta: { id: params.id },
+      });
+      throw new NotFoundException(COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.NOT_FOUND);
+    }
 
     if (serviceRequest.contractorId !== params.contractorId) {
+      this.logProvider.warn({
+        message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.NOT_AUTHORIZED,
+        context: this.logContext,
+        meta: { id: params.id, contractorId: params.contractorId },
+      });
       throw ServiceRequestErrorFactory.notAuthorized();
     }
 
     if (serviceRequest.status !== 'ACCEPTED') {
+      this.logProvider.warn({
+        message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.INVALID_STATUS,
+        context: this.logContext,
+        meta: { id: params.id, currentStatus: serviceRequest.status },
+      });
       throw ServiceRequestErrorFactory.invalidStatusTransition(serviceRequest.status, 'COMPLETED');
     }
 
     const completed = await this.serviceRequestRepository.updateStatus(params.id, 'COMPLETED');
 
-    await this.producer.send(
-      ROUTING_KEY,
-      {
-        body: {
-          service_request_id: completed.id,
-          contractor_id: completed.contractorId,
-          provider_id: completed.providerId,
-          service_id: completed.serviceId,
+    await this.producer
+      .send(
+        ROUTING_KEY,
+        {
+          body: {
+            service_request_id: completed.id,
+            contractor_id: completed.contractorId,
+            provider_id: completed.providerId,
+            service_id: completed.serviceId,
+          },
         },
-      },
-      { exchange: EXCHANGE, routingKey: ROUTING_KEY },
-    ).catch(() => null);
+        { exchange: EXCHANGE, routingKey: ROUTING_KEY },
+      )
+      .catch((error) => {
+        this.logProvider.error({
+          message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.QUEUE_ERROR,
+          context: this.logContext,
+          meta: { id: completed.id, error },
+        });
+      });
+
+    this.logProvider.info({
+      message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
+      context: this.logContext,
+      meta: { id: params.id },
+    });
 
     return completed;
   }
