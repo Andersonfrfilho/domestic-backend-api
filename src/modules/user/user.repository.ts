@@ -33,6 +33,20 @@ export class UserRepository implements UserRepositoryInterface {
     });
   }
 
+  async findByKeycloakIdWithDeleted(keycloakId: string): Promise<User | null> {
+    return this.typeormRepo.findOne({
+      where: { keycloakId },
+      withDeleted: true,
+    });
+  }
+
+  async findByIdWithDeleted(id: string): Promise<User | null> {
+    return this.typeormRepo.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+  }
+
   async update(id: string, user: UpdateUserParams): Promise<User> {
     await this.typeormRepo.update(id, user);
     const updatedUser = await this.typeormRepo.findOne({
@@ -42,6 +56,17 @@ export class UserRepository implements UserRepositoryInterface {
       throw UserErrorFactory.notFound(id);
     }
     return updatedUser;
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.typeormRepo.softDelete(id);
+  }
+
+  async restore(id: string): Promise<User> {
+    await this.typeormRepo.restore(id);
+    const user = await this.typeormRepo.findOne({ where: { id } });
+    if (!user) throw UserErrorFactory.notFound(id);
+    return user;
   }
 
   async delete(id: string): Promise<void> {

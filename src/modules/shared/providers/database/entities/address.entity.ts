@@ -1,4 +1,12 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+} from 'typeorm';
 
 import { UserAddress } from './user-address.entity';
 
@@ -37,8 +45,14 @@ export class Address {
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;
 
-  @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   @OneToMany(() => UserAddress, (userAddress) => userAddress.address)
   userAddresses?: UserAddress[];

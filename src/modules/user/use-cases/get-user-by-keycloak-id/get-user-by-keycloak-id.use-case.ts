@@ -39,16 +39,23 @@ export class GetUserByKeycloakIdUseCase implements GetUserByKeycloakIdUseCaseInt
       },
     });
 
-    const user = await this.userRepository.findByKeycloakId(params.keycloakId);
+    const user = await this.userRepository.findByKeycloakIdWithDeleted(params.keycloakId);
     if (!user) {
       this.logProvider.warn({
         message: GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES.USER_NOT_FOUND,
         context: this.logContext,
-        meta: {
-          keycloakId: params.keycloakId,
-        },
+        meta: { keycloakId: params.keycloakId },
       });
       throw UserErrorFactory.notFound(params.keycloakId);
+    }
+
+    if (user.deletedAt) {
+      this.logProvider.warn({
+        message: GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES.USER_IS_DELETED,
+        context: this.logContext,
+        meta: { userId: user.id, keycloakId: params.keycloakId },
+      });
+      throw UserErrorFactory.accountDeleted(user.id);
     }
 
     this.logProvider.info({

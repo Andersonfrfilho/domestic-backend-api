@@ -43,6 +43,7 @@ export interface UserServiceInterface {
   getUserByKeycloakId(keycloakId: string): Promise<UserServiceResponse>;
   updateUser(id: string, params: { fullName?: string; status?: string }): Promise<UserServiceResponse>;
   deleteUser(id: string): Promise<void>;
+  restoreUser(id: string): Promise<UserServiceResponse>;
   getUserStats(): Promise<UserStats>;
   addUserAddress(params: AddUserAddressParams): Promise<UserAddress>;
   removeUserAddress(userId: string, addressId: string): Promise<void>;

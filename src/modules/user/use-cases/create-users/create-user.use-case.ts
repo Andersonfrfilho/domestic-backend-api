@@ -37,17 +37,24 @@ export class UserApplicationCreateUseCase implements UserCreateUseCaseInterface 
       },
     });
 
-    // Validate keycloak_id uniqueness if provided
+    // Validate keycloak_id uniqueness if provided (including soft-deleted records)
     if (params.keycloakId) {
-      const existingUser = await this.userRepository.findByKeycloakId(params.keycloakId);
+      const existingUser = await this.userRepository.findByKeycloakIdWithDeleted(params.keycloakId);
+
+      if (existingUser?.deletedAt) {
+        this.logProvider.warn({
+          message: CREATE_USER_LOG_MESSAGES.KEYCLOAK_ID_BELONGS_TO_DELETED_USER,
+          context: this.logContext,
+          meta: { keycloakId: params.keycloakId, userId: existingUser.id },
+        });
+        throw UserErrorFactory.accountDeleted(existingUser.id);
+      }
+
       if (existingUser) {
         this.logProvider.warn({
           message: CREATE_USER_LOG_MESSAGES.DUPLICATE_KEYCLOAK_ID,
           context: this.logContext,
-          meta: {
-            keycloakId: params.keycloakId,
-            existingUserId: existingUser.id,
-          },
+          meta: { keycloakId: params.keycloakId, existingUserId: existingUser.id },
         });
         throw UserErrorFactory.duplicateKeycloakId(params.keycloakId);
       }

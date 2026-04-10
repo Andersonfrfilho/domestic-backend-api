@@ -59,6 +59,8 @@ export interface ProviderRepositoryInterface {
   listWorkLocations(providerId: string): Promise<ProviderWorkLocation[]>;
   findWorkLocation(providerId: string, locationId: string): Promise<ProviderWorkLocation | null>;
 
+  softDelete(id: string): Promise<void>;
+
   getLatestVerification(providerId: string): Promise<ProviderVerification | null>;
   createVerification(params: CreateVerificationParams): Promise<ProviderVerification>;
   updateVerification(id: string, params: UpdateVerificationParams): Promise<ProviderVerification>;

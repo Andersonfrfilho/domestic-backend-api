@@ -29,6 +29,10 @@ export class CategoryRepository implements CategoryRepositoryInterface {
     return updated;
   }
 
+  async softDelete(id: string): Promise<void> {
+    await this.typeormRepo.softDelete(id);
+  }
+
   async delete(id: string): Promise<void> {
     await this.typeormRepo.delete(id);
   }
@@ -53,4 +57,3 @@ export class CategoryRepository implements CategoryRepositoryInterface {
     return this.typeormRepo.findOne({ where: { slug } });
   }
 }
-

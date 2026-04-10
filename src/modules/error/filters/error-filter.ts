@@ -136,10 +136,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
           timestamp: new Date().toISOString(),
           path: request.url,
           message,
+          code: exception.code,
+          type: exception.type,
         };
 
         if (details) {
           responseBody.details = details;
+        }
+
+        if (exception.details && !details) {
+          responseBody.details = exception.details;
         }
 
         this.logResponse({

@@ -16,6 +16,7 @@ import { type GetUserByKeycloakIdUseCaseInterface } from './use-cases/get-user-b
 import { type GetUserStatsUseCaseInterface } from './use-cases/get-user-stats/get-user-stats.interface';
 import { type ListUserAddressesUseCaseInterface } from './use-cases/list-user-addresses/list-user-addresses.interface';
 import { type RemoveUserAddressUseCaseInterface } from './use-cases/remove-user-address/remove-user-address.interface';
+import { type RestoreUserUseCaseInterface } from './use-cases/restore-user/restore-user.interface';
 import { type UpdateUserUseCaseInterface } from './use-cases/update-user/update-user.interface';
 import { UserStats } from './user.repository.interface';
 import {
@@ -27,6 +28,7 @@ import {
   USER_GET_BY_ID_USE_CASE_PROVIDE,
   USER_GET_BY_KEYCLOAK_ID_USE_CASE_PROVIDE,
   USER_GET_STATS_USE_CASE_PROVIDE,
+  USER_RESTORE_USE_CASE_PROVIDE,
   USER_UPDATE_USE_CASE_PROVIDE,
 } from './user.token';
 
@@ -51,6 +53,8 @@ export class UserService implements UserServiceInterface {
     private readonly removeUserAddressUseCase: RemoveUserAddressUseCaseInterface,
     @Inject(LIST_USER_ADDRESSES_USE_CASE_PROVIDE)
     private readonly listUserAddressesUseCase: ListUserAddressesUseCaseInterface,
+    @Inject(USER_RESTORE_USE_CASE_PROVIDE)
+    private readonly restoreUserUseCase: RestoreUserUseCaseInterface,
   ) {}
 
   async createUser(params: UserServiceParams): Promise<UserServiceResponse> {
@@ -71,6 +75,10 @@ export class UserService implements UserServiceInterface {
 
   async deleteUser(id: string): Promise<void> {
     return this.deleteUserUseCase.execute({ id });
+  }
+
+  async restoreUser(id: string): Promise<UserServiceResponse> {
+    return this.restoreUserUseCase.execute({ id });
   }
 
   async getUserStats(): Promise<UserStats> {

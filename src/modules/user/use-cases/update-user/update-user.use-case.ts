@@ -36,16 +36,23 @@ export class UpdateUserUseCase implements UpdateUserUseCaseInterface {
       },
     });
 
-    const user = await this.userRepository.findById(params.id);
+    const user = await this.userRepository.findByIdWithDeleted(params.id);
     if (!user) {
       this.logProvider.warn({
         message: UPDATE_USER_LOG_MESSAGES.USER_NOT_FOUND,
         context: this.logContext,
-        meta: {
-          userId: params.id,
-        },
+        meta: { userId: params.id },
       });
       throw UserErrorFactory.notFound(params.id);
+    }
+
+    if (user.deletedAt) {
+      this.logProvider.warn({
+        message: UPDATE_USER_LOG_MESSAGES.USER_IS_DELETED,
+        context: this.logContext,
+        meta: { userId: params.id },
+      });
+      throw UserErrorFactory.accountDeleted(params.id);
     }
 
     const updatedUser = await this.userRepository.update(params.id, {

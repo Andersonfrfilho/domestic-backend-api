@@ -11,4 +11,5 @@ export interface DocumentRepositoryInterface {
   create(params: CreateDocumentParams): Promise<Document>;
   findById(id: string): Promise<Document | null>;
   updateStatus(id: string, status: string, verifiedAt?: Date): Promise<Document>;
+  softDelete(id: string): Promise<void>;
 }

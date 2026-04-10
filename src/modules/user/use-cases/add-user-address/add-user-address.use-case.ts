@@ -8,8 +8,9 @@ import {
   USER_REPOSITORY_PROVIDE,
 } from '@modules/user/user.token';
 
-import { type UserRepositoryInterface } from '../../user.repository.interface';
 import { type UserAddressRepositoryInterface } from '../../user-address.repository.interface';
+import { type UserRepositoryInterface } from '../../user.repository.interface';
+
 import {
   AddUserAddressUseCaseInterface,
   AddUserAddressUseCaseParams,

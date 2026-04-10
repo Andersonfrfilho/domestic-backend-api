@@ -67,10 +67,9 @@ export class AppErrorFactory {
       type: ErrorType.NOT_FOUND,
       message: config.message,
       statusCode: HttpStatus.NOT_FOUND,
-      details: {
-        code: config.code,
-        ...config.details,
-      },
+      code: config.code,
+      details: config.details,
+      origin: this.computeOriginFromStack(),
     });
   }
 
@@ -90,10 +89,8 @@ export class AppErrorFactory {
       type: ErrorType.BUSINESS_LOGIC,
       message: config.message,
       statusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      details: {
-        code: config.code,
-        ...config.details,
-      },
+      code: config.code,
+      details: config.details,
       origin: this.computeOriginFromStack(),
     });
   }

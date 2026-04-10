@@ -58,4 +58,16 @@ export const USER_ERROR_CONFIGS = {
     code: UserErrorCode.DUPLICATE_KEYCLOAK_ID,
     details: { keycloakId },
   }),
+
+  accountDeleted: (userId: string): ConflictErrorConfig => ({
+    message: 'This account has been deleted. Use POST /users/:id/restore to reactivate it.',
+    code: UserErrorCode.ACCOUNT_DELETED,
+    details: { userId },
+  }),
+
+  userNotDeleted: (userId: string): BusinessLogicErrorConfig => ({
+    message: 'User is not deleted and cannot be restored.',
+    code: UserErrorCode.USER_NOT_DELETED,
+    details: { userId },
+  }),
 } as const;
