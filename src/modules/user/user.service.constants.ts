@@ -1,5 +1,3 @@
-export const USER_SERVICE_LOG_CONTEXT = 'UserService';
-
 export const USER_SERVICE_LOG_MESSAGES = {
   INVALIDATE_CACHE_ATTEMPT: 'Invalidating users:list cache',
   INVALIDATE_CACHE_SUCCESS: 'Cache invalidated',

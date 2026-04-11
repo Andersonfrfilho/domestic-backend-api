@@ -23,7 +23,7 @@ import { type RemoveUserAddressUseCaseInterface } from './use-cases/remove-user-
 import { type RestoreUserUseCaseInterface } from './use-cases/restore-user/restore-user.interface';
 import { type UpdateUserUseCaseInterface } from './use-cases/update-user/update-user.interface';
 import { UserStats } from './user.repository.interface';
-import { USER_SERVICE_LOG_CONTEXT, USER_SERVICE_LOG_MESSAGES } from './user.service.constants';
+import { USER_SERVICE_LOG_MESSAGES } from './user.service.constants';
 import {
   ADD_USER_ADDRESS_USE_CASE_PROVIDE,
   LIST_USER_ADDRESSES_USE_CASE_PROVIDE,
@@ -39,6 +39,7 @@ import {
 
 @Injectable()
 export class UserService implements UserServiceInterface {
+  private readonly logContext = this.constructor.name;
   constructor(
     @Inject(USER_CREATE_USE_CASE_PROVIDE)
     private readonly userCreateUseCase: UserCreateUseCaseInterface,
@@ -72,19 +73,19 @@ export class UserService implements UserServiceInterface {
     try {
       this.logProvider.info({
         message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_ATTEMPT,
-        context: USER_SERVICE_LOG_CONTEXT,
+        context: `${this.logContext}.createUser`,
         meta: { userId: user?.id ?? null, cacheKey: 'users:list' },
       });
       await this.cacheProvider.del('users:list');
       this.logProvider.info({
         message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_SUCCESS,
-        context: USER_SERVICE_LOG_CONTEXT,
+        context: `${this.logContext}.createUser`,
         meta: { cacheKey: 'users:list' },
       });
     } catch (err) {
       this.logProvider.warn({
         message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_FAILED,
-        context: USER_SERVICE_LOG_CONTEXT,
+        context: `${this.logContext}.createUser`,
         meta: { error: err?.message ?? String(err), cacheKey: 'users:list' },
       });
     }
@@ -134,7 +135,7 @@ export class UserService implements UserServiceInterface {
   async listUserAddressesByKeycloakId(keycloakId: string): Promise<UserAddress[]> {
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.LIST_ADDRESSES_BY_KEYCLOAK_START,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.listUserAddressesByKeycloakId`,
       meta: { keycloakId },
     });
 
@@ -143,7 +144,7 @@ export class UserService implements UserServiceInterface {
 
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.LIST_ADDRESSES_BY_KEYCLOAK_SUCCESS,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.listUserAddressesByKeycloakId`,
       meta: { keycloakId, userId: user.id, addressesCount: addresses.length },
     });
 
@@ -156,7 +157,7 @@ export class UserService implements UserServiceInterface {
   ): Promise<UserAddress> {
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.ADD_ADDRESS_BY_KEYCLOAK_START,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.addUserAddressByKeycloakId`,
       meta: { keycloakId },
     });
 
@@ -165,7 +166,7 @@ export class UserService implements UserServiceInterface {
 
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.ADD_ADDRESS_BY_KEYCLOAK_SUCCESS,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.addUserAddressByKeycloakId`,
       meta: { keycloakId, userId: user.id, userAddressId: userAddress.id },
     });
 
@@ -175,7 +176,7 @@ export class UserService implements UserServiceInterface {
   async removeUserAddressByKeycloakId(keycloakId: string, addressId: string): Promise<void> {
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.REMOVE_ADDRESS_BY_KEYCLOAK_START,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.removeUserAddressByKeycloakId`,
       meta: { keycloakId, addressId },
     });
 
@@ -184,7 +185,7 @@ export class UserService implements UserServiceInterface {
 
     this.logProvider.info({
       message: USER_SERVICE_LOG_MESSAGES.REMOVE_ADDRESS_BY_KEYCLOAK_SUCCESS,
-      context: USER_SERVICE_LOG_CONTEXT,
+      context: `${this.logContext}.removeUserAddressByKeycloakId`,
       meta: { keycloakId, userId: user.id, addressId },
     });
   }

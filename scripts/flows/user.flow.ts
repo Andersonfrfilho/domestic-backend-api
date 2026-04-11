@@ -252,3 +252,12 @@ const userStatsFlow: Flow = {
 };
 
 export default [userCrudFlow, userStatsFlow];
+
+// permite rodar direto: node scripts/flows/user.flow.ts [crud|stats]
+if (process.argv[1]?.endsWith('user.flow.ts')) {
+  const { runAll } = await import('./lib/runner.ts');
+  const target = process.argv[2];
+  const all = [userCrudFlow, userStatsFlow];
+  const map: Record<string, Flow[]> = { crud: [userCrudFlow], stats: [userStatsFlow] };
+  await runAll(target ? (map[target] ?? all) : all);
+}
