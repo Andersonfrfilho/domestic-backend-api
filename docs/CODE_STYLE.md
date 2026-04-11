@@ -87,3 +87,40 @@ async checkDatabase(params: CheckDatabaseParams): Promise<CheckDatabaseResult> {
 - Linting is configured; please run `npm run lint` before opening PRs.
 - CI runs lint + unit tests. If you want stricter enforcement (custom ESLint rule for object-param pattern), we'll add it in a follow-up.
 - PRs must complete the checklist in `.github/pull_request_template.md`, including logger/constants conventions.
+
+## Layer responsibilities
+
+- Controllers should be thin: perform request validation, translate DTOs, and delegate orchestration to Services. Avoid performing business logic or side-effects in controllers.
+- Services are the orchestration layer: they call UseCases, coordinate third-party providers (cache, queue, external APIs), and perform side-effects such as cache invalidation or emitting events.
+- UseCases should encapsulate single business operations (pure domain logic) and be reusable by Services. Keep UseCases focused and side-effect free when possible; orchestration and integration belong to Services.
+
+Example (good):
+
+```
+// Controller
+const user = await this.userService.createUser(params);
+
+// Service
+const user = await this.userCreateUseCase.execute(params);
+await this.cacheProvider.del('users:list').catch(() => null);
+return user;
+```
+
+This keeps controllers simple and makes testing and reuse easier.
+
+Rule: Do not perform domain lookups in controllers
+
+- Controllers must not call `getUserByKeycloakId` or other domain lookups directly when the flow involves multiple steps. Instead, add a descriptive orchestration method on the Service (e.g. `listUserAddressesByKeycloakId`, `addUserAddressByKeycloakId`) and call that from the controller. This centralizes lookup logic, reduces duplication, and keeps controllers thin.
+
+Example (addresses):
+
+```ts
+// Controller
+return this.userService.listUserAddressesByKeycloakId(keycloakId);
+
+// Service
+async listUserAddressesByKeycloakId(keycloakId: string) {
+  const user = await this.getUserByKeycloakId(keycloakId);
+  return this.listUserAddresses(user.id);
+}
+```

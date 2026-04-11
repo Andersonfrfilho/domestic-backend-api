@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, IsNotEmpty } from 'class-validator';
 import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
 export class AddUserAddressRequestDto {
@@ -38,15 +38,15 @@ export class AddUserAddressRequestDto {
   @IsNotEmpty({ message: ErrorMessages.empty('CEP') })
   zipCode: string;
 
-  @ApiProperty({ example: -3.7319, required: false })
+  @ApiProperty({ example: '-3.7319', required: false })
   @IsOptional()
-  @IsNumber({}, { message: ErrorMessages['number.base']('Latitude') })
-  latitude?: number;
+  @IsString({ message: ErrorMessages['string.base']('Latitude') })
+  latitude?: string;
 
-  @ApiProperty({ example: -38.5267, required: false })
+  @ApiProperty({ example: '-38.5267', required: false })
   @IsOptional()
-  @IsNumber({}, { message: ErrorMessages['number.base']('Longitude') })
-  longitude?: number;
+  @IsString({ message: ErrorMessages['string.base']('Longitude') })
+  longitude?: string;
 
   @ApiProperty({ example: 'Casa', required: false })
   @IsOptional()

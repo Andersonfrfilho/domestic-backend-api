@@ -1,36 +1,25 @@
-import { CATEGORY_REPOSITORY_PROVIDE } from '@modules/category/category.token';
-import { Test } from '@nestjs/testing';
-
-import { SERVICE_REPOSITORY_PROVIDE } from '../../service.token';
 import { UpdateServiceUseCase } from './update-service.use-case';
-
-const mockServiceRepo = { findById: jest.fn(), update: jest.fn() };
-const mockCategoryRepo = { findById: jest.fn() };
 
 const service = { id: 'svc-1', categoryId: 'cat-1', name: 'Faxina' };
 const category = { id: 'cat-1', name: 'Limpeza' };
 
 describe('UpdateServiceUseCase', () => {
   let useCase: UpdateServiceUseCase;
+  let mockServiceRepo: any;
+  let mockCategoryRepo: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        UpdateServiceUseCase,
-        { provide: SERVICE_REPOSITORY_PROVIDE, useValue: mockServiceRepo },
-        { provide: CATEGORY_REPOSITORY_PROVIDE, useValue: mockCategoryRepo },
-      ],
-    }).compile();
-    useCase = module.get(UpdateServiceUseCase);
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockServiceRepo = { findById: jest.fn(), update: jest.fn() };
+    mockCategoryRepo = { findById: jest.fn() };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    useCase = new UpdateServiceUseCase(mockServiceRepo, mockCategoryRepo, mockLogProvider);
   });
 
   it('updates service name without category change', async () => {
     mockServiceRepo.findById.mockResolvedValue(service);
     mockServiceRepo.update.mockResolvedValue({ ...service, name: 'Faxina Completa' });
-
     const result = await useCase.execute({ id: 'svc-1', name: 'Faxina Completa' });
-
     expect(result.name).toBe('Faxina Completa');
     expect(mockCategoryRepo.findById).not.toHaveBeenCalled();
   });
@@ -39,9 +28,7 @@ describe('UpdateServiceUseCase', () => {
     mockServiceRepo.findById.mockResolvedValue(service);
     mockCategoryRepo.findById.mockResolvedValue(category);
     mockServiceRepo.update.mockResolvedValue({ ...service, categoryId: 'cat-2' });
-
     await useCase.execute({ id: 'svc-1', categoryId: 'cat-2' });
-
     expect(mockCategoryRepo.findById).toHaveBeenCalledWith('cat-2');
   });
 

@@ -4,7 +4,6 @@ import { Test } from '@nestjs/testing';
 
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 import {
-  LIST_NOTIFICATIONS_LOG_CONTEXT,
   LIST_NOTIFICATIONS_LOG_MESSAGES,
 } from './list-notifications-constants';
 import { ListNotificationsUseCase } from './list-notifications.use-case';
@@ -55,13 +54,13 @@ describe('ListNotificationsUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: LIST_NOTIFICATIONS_LOG_MESSAGES.START_FLOW,
-        context: LIST_NOTIFICATIONS_LOG_CONTEXT,
+        context: 'ListNotificationsUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: LIST_NOTIFICATIONS_LOG_MESSAGES.LISTED_SUCCESS,
-        context: LIST_NOTIFICATIONS_LOG_CONTEXT,
+        context: 'ListNotificationsUseCase.execute',
       }),
     );
   });
@@ -73,7 +72,7 @@ describe('ListNotificationsUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: LIST_NOTIFICATIONS_LOG_MESSAGES.NOT_FOUND_NOTIFICATION,
-        context: LIST_NOTIFICATIONS_LOG_CONTEXT,
+        context: 'ListNotificationsUseCase.execute',
       }),
     );
   });

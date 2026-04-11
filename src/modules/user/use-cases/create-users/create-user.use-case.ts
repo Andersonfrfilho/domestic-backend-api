@@ -7,7 +7,7 @@ import { UserErrorFactory } from '@modules/user/factories';
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 import { USER_REPOSITORY_PROVIDE } from '../../user.token';
 
-import { CREATE_USER_LOG_CONTEXT, CREATE_USER_LOG_MESSAGES } from './create-user.constants';
+import { CREATE_USER_LOG_MESSAGES } from './create-user.constants';
 import {
   UserCreateUseCaseInterface,
   UserCreateUseCaseParams,
@@ -16,7 +16,7 @@ import {
 
 @Injectable()
 export class UserApplicationCreateUseCase implements UserCreateUseCaseInterface {
-  private readonly logContext = CREATE_USER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

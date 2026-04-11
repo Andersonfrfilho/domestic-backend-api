@@ -9,8 +9,8 @@ export interface AddUserAddressUseCaseParams {
   city: string;
   state: string;
   zipCode: string;
-  latitude?: number;
-  longitude?: number;
+  latitude?: string;
+  longitude?: string;
   label?: string;
   isPrimary?: boolean;
 }

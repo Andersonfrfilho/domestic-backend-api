@@ -1,4 +1,3 @@
-export const CREATE_REVIEW_LOG_CONTEXT = 'CreateReviewUseCase.execute';
 export const CREATE_REVIEW_LOG_MESSAGES = {
   START_FLOW: 'Starting create review flow',
   SUCCESS: 'Review created successfully',

@@ -8,12 +8,12 @@ import { UserErrorFactory } from '@modules/user/factories';
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 import { USER_REPOSITORY_PROVIDE } from '../../user.token';
 
-import { RESTORE_USER_LOG_CONTEXT, RESTORE_USER_LOG_MESSAGES } from './restore-user.constants';
+import { RESTORE_USER_LOG_MESSAGES } from './restore-user.constants';
 import { RestoreUserUseCaseInterface, RestoreUserUseCaseParams } from './restore-user.interface';
 
 @Injectable()
 export class RestoreUserUseCase implements RestoreUserUseCaseInterface {
-  private readonly logContext = RESTORE_USER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)
@@ -42,7 +42,8 @@ export class RestoreUserUseCase implements RestoreUserUseCaseInterface {
       throw UserErrorFactory.userNotDeleted(params.id);
     }
 
-    const restored = await this.userRepository.restore(user.id);
+    await this.userRepository.restore(user.id);
+    const restored = await this.userRepository.update(user.id, { status: 'ACTIVE' });
 
     this.logProvider.info({
       message: RESTORE_USER_LOG_MESSAGES.RESTORED_SUCCESS,

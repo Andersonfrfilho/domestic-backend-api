@@ -1,23 +1,16 @@
-import { Test } from '@nestjs/testing';
-
-import { SERVICE_REPOSITORY_PROVIDE } from '../../service.token';
 import { GetServiceByIdUseCase } from './get-service-by-id.use-case';
 
-const mockRepo = { findById: jest.fn() };
 const service = { id: 'svc-1', categoryId: 'cat-1', name: 'Faxina' };
 
 describe('GetServiceByIdUseCase', () => {
   let useCase: GetServiceByIdUseCase;
+  let mockRepo: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        GetServiceByIdUseCase,
-        { provide: SERVICE_REPOSITORY_PROVIDE, useValue: mockRepo },
-      ],
-    }).compile();
-    useCase = module.get(GetServiceByIdUseCase);
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockRepo = { findById: jest.fn() };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    useCase = new GetServiceByIdUseCase(mockRepo, mockLogProvider);
   });
 
   it('returns service when found', async () => {

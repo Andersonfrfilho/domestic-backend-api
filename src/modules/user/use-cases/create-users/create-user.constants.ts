@@ -1,4 +1,3 @@
-export const CREATE_USER_LOG_CONTEXT = 'UserApplicationCreateUseCase.execute';
 
 export const CREATE_USER_LOG_MESSAGES = {
   START_FLOW: 'Starting user creation flow',

@@ -4,12 +4,30 @@ import { UserService } from './user.service';
 describe('UserService - Unit Tests', () => {
   let service: UserService;
   let mockUserCreateUseCase: any;
+  let mockCacheProvider: any;
+  let mockLogProvider: any;
+
+  const noop = { execute: jest.fn() };
 
   beforeEach(() => {
-    mockUserCreateUseCase = {
-      execute: jest.fn(),
-    };
-    service = new UserService(mockUserCreateUseCase);
+    mockUserCreateUseCase = { execute: jest.fn() };
+    mockCacheProvider = { del: jest.fn().mockResolvedValue(undefined) };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+
+    service = new UserService(
+      mockUserCreateUseCase, // userCreateUseCase
+      noop,                  // getUserByIdUseCase
+      noop,                  // getUserByKeycloakIdUseCase
+      noop,                  // updateUserUseCase
+      noop,                  // deleteUserUseCase
+      noop,                  // getUserStatsUseCase
+      noop,                  // addUserAddressUseCase
+      noop,                  // removeUserAddressUseCase
+      noop,                  // listUserAddressesUseCase
+      noop,                  // restoreUserUseCase
+      mockCacheProvider,
+      mockLogProvider,
+    );
   });
 
   describe('createUser', () => {

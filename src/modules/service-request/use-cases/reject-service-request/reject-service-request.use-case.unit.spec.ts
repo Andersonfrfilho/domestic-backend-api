@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 import {
-  REJECT_SERVICE_REQUEST_LOG_CONTEXT,
   REJECT_SERVICE_REQUEST_LOG_MESSAGES,
 } from './reject-service-request.constants';
 import { RejectServiceRequestUseCase } from './reject-service-request.use-case';
@@ -44,13 +43,13 @@ describe('RejectServiceRequestUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_SERVICE_REQUEST_LOG_MESSAGES.START_FLOW,
-        context: REJECT_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'RejectServiceRequestUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
-        context: REJECT_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'RejectServiceRequestUseCase.execute',
       }),
     );
   });
@@ -61,7 +60,7 @@ describe('RejectServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_SERVICE_REQUEST_LOG_MESSAGES.NOT_AUTHORIZED,
-        context: REJECT_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'RejectServiceRequestUseCase.execute',
       }),
     );
   });
@@ -72,7 +71,7 @@ describe('RejectServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_SERVICE_REQUEST_LOG_MESSAGES.INVALID_STATUS,
-        context: REJECT_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'RejectServiceRequestUseCase.execute',
       }),
     );
   });
@@ -83,7 +82,7 @@ describe('RejectServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_SERVICE_REQUEST_LOG_MESSAGES.NOT_FOUND,
-        context: REJECT_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'RejectServiceRequestUseCase.execute',
       }),
     );
   });

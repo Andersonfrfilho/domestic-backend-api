@@ -16,17 +16,12 @@ const mockUserService = {
   deleteUser: jest.fn(),
 };
 
-const mockCacheProvider = {
-  del: jest.fn().mockResolvedValue(undefined),
-};
-
 describe('UserController', () => {
   let controller: UserController;
 
   beforeEach(() => {
-    controller = new UserController(mockUserService as any, mockCacheProvider as any);
+    controller = new UserController(mockUserService as any);
     jest.clearAllMocks();
-    mockCacheProvider.del.mockResolvedValue(undefined);
   });
 
   describe('POST /users — create', () => {
@@ -36,14 +31,11 @@ describe('UserController', () => {
       const result = await controller.create({ fullName: 'Anderson Silva' } as any);
 
       expect(mockUserService.createUser).toHaveBeenCalledWith({ fullName: 'Anderson Silva' });
-      expect(mockCacheProvider.del).toHaveBeenCalledWith('users:list');
       expect(result).toEqual(mockUser);
     });
 
     it('still returns user even if cache invalidation fails', async () => {
       mockUserService.createUser.mockResolvedValue(mockUser);
-      mockCacheProvider.del.mockRejectedValue(new Error('redis down'));
-
       const result = await controller.create({ fullName: 'Test' } as any);
 
       expect(result).toEqual(mockUser);
@@ -91,7 +83,9 @@ describe('UserController', () => {
 
       const result = await controller.update('user-1', { fullName: 'Updated Name' } as any);
 
-      expect(mockUserService.updateUser).toHaveBeenCalledWith('user-1', { fullName: 'Updated Name' });
+      expect(mockUserService.updateUser).toHaveBeenCalledWith('user-1', {
+        fullName: 'Updated Name',
+      });
       expect(result).toEqual(updated);
     });
   });

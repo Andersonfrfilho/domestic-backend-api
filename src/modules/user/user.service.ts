@@ -1,6 +1,10 @@
+import type { CacheProviderInterface } from '@adatechnology/cache';
+import { CACHE_PROVIDER } from '@adatechnology/cache';
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
+import type { LogProviderInterface } from '@modules/shared';
 
 import { type AddUserAddressUseCaseInterface } from './use-cases/add-user-address/add-user-address.interface';
 import {
@@ -19,6 +23,7 @@ import { type RemoveUserAddressUseCaseInterface } from './use-cases/remove-user-
 import { type RestoreUserUseCaseInterface } from './use-cases/restore-user/restore-user.interface';
 import { type UpdateUserUseCaseInterface } from './use-cases/update-user/update-user.interface';
 import { UserStats } from './user.repository.interface';
+import { USER_SERVICE_LOG_CONTEXT, USER_SERVICE_LOG_MESSAGES } from './user.service.constants';
 import {
   ADD_USER_ADDRESS_USE_CASE_PROVIDE,
   LIST_USER_ADDRESSES_USE_CASE_PROVIDE,
@@ -55,10 +60,36 @@ export class UserService implements UserServiceInterface {
     private readonly listUserAddressesUseCase: ListUserAddressesUseCaseInterface,
     @Inject(USER_RESTORE_USE_CASE_PROVIDE)
     private readonly restoreUserUseCase: RestoreUserUseCaseInterface,
+    @Inject(CACHE_PROVIDER)
+    private readonly cacheProvider: CacheProviderInterface,
+    @Inject(LOGGER_PROVIDER)
+    private readonly logProvider: LogProviderInterface,
   ) {}
 
   async createUser(params: UserServiceParams): Promise<UserServiceResponse> {
-    return this.userCreateUseCase.execute(params);
+    const user = await this.userCreateUseCase.execute(params);
+    // invalidate users:list cache and log the operation
+    try {
+      this.logProvider.info({
+        message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_ATTEMPT,
+        context: USER_SERVICE_LOG_CONTEXT,
+        meta: { userId: user?.id ?? null, cacheKey: 'users:list' },
+      });
+      await this.cacheProvider.del('users:list');
+      this.logProvider.info({
+        message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_SUCCESS,
+        context: USER_SERVICE_LOG_CONTEXT,
+        meta: { cacheKey: 'users:list' },
+      });
+    } catch (err) {
+      this.logProvider.warn({
+        message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_FAILED,
+        context: USER_SERVICE_LOG_CONTEXT,
+        meta: { error: err?.message ?? String(err), cacheKey: 'users:list' },
+      });
+    }
+
+    return user;
   }
 
   async getUserById(id: string): Promise<UserServiceResponse> {
@@ -69,7 +100,10 @@ export class UserService implements UserServiceInterface {
     return this.getUserByKeycloakIdUseCase.execute({ keycloakId });
   }
 
-  async updateUser(id: string, params: { fullName?: string; status?: string }): Promise<UserServiceResponse> {
+  async updateUser(
+    id: string,
+    params: { fullName?: string; status?: string },
+  ): Promise<UserServiceResponse> {
     return this.updateUserUseCase.execute({ id, ...params });
   }
 
@@ -93,8 +127,65 @@ export class UserService implements UserServiceInterface {
     return this.removeUserAddressUseCase.execute({ userId, userAddressId: addressId });
   }
 
-
   async listUserAddresses(userId: string): Promise<UserAddress[]> {
     return this.listUserAddressesUseCase.execute({ userId });
+  }
+
+  async listUserAddressesByKeycloakId(keycloakId: string): Promise<UserAddress[]> {
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.LIST_ADDRESSES_BY_KEYCLOAK_START,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId },
+    });
+
+    const user = await this.getUserByKeycloakId(keycloakId);
+    const addresses = await this.listUserAddresses(user.id);
+
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.LIST_ADDRESSES_BY_KEYCLOAK_SUCCESS,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId, userId: user.id, addressesCount: addresses.length },
+    });
+
+    return addresses;
+  }
+
+  async addUserAddressByKeycloakId(
+    keycloakId: string,
+    params: Omit<AddUserAddressParams, 'userId'>,
+  ): Promise<UserAddress> {
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.ADD_ADDRESS_BY_KEYCLOAK_START,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId },
+    });
+
+    const user = await this.getUserByKeycloakId(keycloakId);
+    const userAddress = await this.addUserAddress({ ...params, userId: user.id });
+
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.ADD_ADDRESS_BY_KEYCLOAK_SUCCESS,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId, userId: user.id, userAddressId: userAddress.id },
+    });
+
+    return userAddress;
+  }
+
+  async removeUserAddressByKeycloakId(keycloakId: string, addressId: string): Promise<void> {
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.REMOVE_ADDRESS_BY_KEYCLOAK_START,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId, addressId },
+    });
+
+    const user = await this.getUserByKeycloakId(keycloakId);
+    await this.removeUserAddress(user.id, addressId);
+
+    this.logProvider.info({
+      message: USER_SERVICE_LOG_MESSAGES.REMOVE_ADDRESS_BY_KEYCLOAK_SUCCESS,
+      context: USER_SERVICE_LOG_CONTEXT,
+      meta: { keycloakId, userId: user.id, addressId },
+    });
   }
 }

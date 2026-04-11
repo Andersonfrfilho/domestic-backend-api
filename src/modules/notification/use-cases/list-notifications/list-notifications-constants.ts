@@ -1,4 +1,3 @@
-export const LIST_NOTIFICATIONS_LOG_CONTEXT = 'ListNotificationsUseCase.execute';
 export const LIST_NOTIFICATIONS_LOG_MESSAGES = {
   START_FLOW: 'Starting list notifications flow',
   LISTED_SUCCESS: 'Notifications listed successfully',

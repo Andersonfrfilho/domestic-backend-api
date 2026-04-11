@@ -12,7 +12,6 @@ import { type DocumentRepositoryInterface } from '../../document.repository.inte
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 
 import {
-  UPLOAD_DOCUMENT_LOG_CONTEXT,
   UPLOAD_DOCUMENT_LOG_MESSAGES,
 } from './upload-document.constants';
 import {
@@ -23,7 +22,7 @@ import {
 
 @Injectable()
 export class UploadDocumentUseCase implements UploadDocumentUseCaseInterface {
-  private readonly logContext = UPLOAD_DOCUMENT_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(DOCUMENT_REPOSITORY_PROVIDE)

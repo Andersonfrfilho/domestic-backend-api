@@ -1,4 +1,3 @@
-export const ACCEPT_SERVICE_REQUEST_LOG_CONTEXT = 'AcceptServiceRequestUseCase.execute';
 export const ACCEPT_SERVICE_REQUEST_LOG_MESSAGES = {
   START_FLOW: 'Starting accept service request flow',
   SUCCESS: 'Service request accepted successfully',

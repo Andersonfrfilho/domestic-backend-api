@@ -8,7 +8,6 @@ import { type NotificationRepositoryInterface } from '../../notification.reposit
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 
 import {
-  MARK_NOTIFICATION_READ_LOG_CONTEXT,
   MARK_NOTIFICATION_READ_LOG_MESSAGES,
 } from './mark-notification-read-constants.interface';
 import {
@@ -18,7 +17,7 @@ import {
 
 @Injectable()
 export class MarkNotificationReadUseCase implements MarkNotificationReadUseCaseInterface {
-  private readonly logContext = MARK_NOTIFICATION_READ_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(NOTIFICATION_REPOSITORY_PROVIDE)

@@ -1,6 +1,4 @@
 import { ApiAuthGuard, AuthUser, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
-import type { CacheProviderInterface } from '@adatechnology/cache';
-import { CACHE_PROVIDER } from '@adatechnology/cache';
 import {
   Body,
   Controller,
@@ -47,8 +45,6 @@ export class UserController {
   constructor(
     @Inject(USER_SERVICE_PROVIDE)
     private readonly userService: UserServiceInterface,
-    @Inject(CACHE_PROVIDER)
-    private readonly cacheProvider: CacheProviderInterface,
   ) {}
 
   @Post()
@@ -58,12 +54,12 @@ export class UserController {
   })
   @ApiCreatedResponse({ type: CreateUserResponseDto })
   @ApiBadRequestResponse({ description: 'Dados inválidos' })
-  @ApiConflictResponse({ description: 'keycloakId já existe. Se a conta foi deletada, use POST /users/:id/restore' })
+  @ApiConflictResponse({
+    description: 'keycloakId já existe. Se a conta foi deletada, use POST /users/:id/restore',
+  })
   @ApiInternalServerErrorResponse()
   async create(@Body() params: CreateUserRequestDto): Promise<CreateUserResponseDto> {
-    const user = await this.userService.createUser(params);
-    await this.cacheProvider.del('users:list').catch(() => null);
-    return user;
+    return this.userService.createUser(params);
   }
 
   @Post(':id/restore')
@@ -149,8 +145,7 @@ export class UserController {
   @ApiHeader({ name: 'X-User-Id', required: true })
   @ApiOkResponse({ type: [UserAddress] })
   async listAddresses(@AuthUser() keycloakId: string): Promise<UserAddress[]> {
-    const user = await this.userService.getUserByKeycloakId(keycloakId);
-    return this.userService.listUserAddresses(user.id);
+    return this.userService.listUserAddressesByKeycloakId(keycloakId);
   }
 
   @Post('me/addresses')
@@ -163,8 +158,7 @@ export class UserController {
     @AuthUser() keycloakId: string,
     @Body() body: AddUserAddressRequestDto,
   ): Promise<UserAddress> {
-    const user = await this.userService.getUserByKeycloakId(keycloakId);
-    return this.userService.addUserAddress({ ...body, userId: user.id });
+    return this.userService.addUserAddressByKeycloakId(keycloakId, body as any);
   }
 
   @Delete('me/addresses/:addressId')
@@ -179,7 +173,6 @@ export class UserController {
     @AuthUser() keycloakId: string,
     @Param('addressId') addressId: string,
   ): Promise<void> {
-    const user = await this.userService.getUserByKeycloakId(keycloakId);
-    await this.userService.removeUserAddress(user.id, addressId);
+    await this.userService.removeUserAddressByKeycloakId(keycloakId, addressId);
   }
 }

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { CREATE_USER_LOG_CONTEXT, CREATE_USER_LOG_MESSAGES } from './create-user.constants';
+import { CREATE_USER_LOG_MESSAGES } from './create-user.constants';
 import { UserApplicationCreateUseCase } from './create-user.use-case';
 
 describe('UserApplicationCreateUseCase - Unit Tests', () => {
@@ -10,7 +10,7 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
 
   beforeEach(() => {
     mockUserRepository = {
-      findByKeycloakId: jest.fn(),
+      findByKeycloakIdWithDeleted: jest.fn(),
       create: jest.fn(),
     };
 
@@ -37,17 +37,17 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
         status: 'PENDING',
       };
 
-      mockUserRepository.findByKeycloakId.mockResolvedValue({
+      mockUserRepository.findByKeycloakIdWithDeleted.mockResolvedValue({
         id: 'user-1',
         keycloakId: params.keycloakId,
       });
 
       await expect(useCase.execute(params)).rejects.toThrow();
-      expect(mockUserRepository.findByKeycloakId).toHaveBeenCalledWith(params.keycloakId);
+      expect(mockUserRepository.findByKeycloakIdWithDeleted).toHaveBeenCalledWith(params.keycloakId);
       expect(mockLogProvider.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           message: CREATE_USER_LOG_MESSAGES.DUPLICATE_KEYCLOAK_ID,
-          context: CREATE_USER_LOG_CONTEXT,
+          context: 'UserApplicationCreateUseCase.execute',
         }),
       );
     });
@@ -61,7 +61,7 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
 
       const userId = faker.string.uuid();
 
-      mockUserRepository.findByKeycloakId.mockResolvedValue(null);
+      mockUserRepository.findByKeycloakIdWithDeleted.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         id: userId,
         ...params,
@@ -75,7 +75,7 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       expect(mockLogProvider.info).toHaveBeenCalledWith(
         expect.objectContaining({
           message: CREATE_USER_LOG_MESSAGES.CREATED_SUCCESS,
-          context: CREATE_USER_LOG_CONTEXT,
+          context: 'UserApplicationCreateUseCase.execute',
         }),
       );
     });
@@ -96,7 +96,7 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       const result = await useCase.execute(params);
 
       expect((result as any).id).toBe(userId);
-      expect(mockUserRepository.findByKeycloakId).not.toHaveBeenCalled();
+      expect(mockUserRepository.findByKeycloakIdWithDeleted).not.toHaveBeenCalled();
       expect(mockUserRepository.create).toHaveBeenCalledWith({
         fullName: params.fullName,
         keycloakId: undefined,
@@ -105,7 +105,7 @@ describe('UserApplicationCreateUseCase - Unit Tests', () => {
       expect(mockLogProvider.info).toHaveBeenCalledWith(
         expect.objectContaining({
           message: CREATE_USER_LOG_MESSAGES.START_FLOW,
-          context: CREATE_USER_LOG_CONTEXT,
+          context: 'UserApplicationCreateUseCase.execute',
         }),
       );
     });

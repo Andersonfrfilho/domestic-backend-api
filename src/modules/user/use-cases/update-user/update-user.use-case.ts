@@ -7,7 +7,7 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
-import { UPDATE_USER_LOG_CONTEXT, UPDATE_USER_LOG_MESSAGES } from './update-user.constants';
+import { UPDATE_USER_LOG_MESSAGES } from './update-user.constants';
 import {
   UpdateUserUseCaseInterface,
   UpdateUserUseCaseParams,
@@ -16,7 +16,7 @@ import {
 
 @Injectable()
 export class UpdateUserUseCase implements UpdateUserUseCaseInterface {
-  private readonly logContext = UPDATE_USER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

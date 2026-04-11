@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 import {
-  REJECT_DOCUMENT_LOG_CONTEXT,
   REJECT_DOCUMENT_LOG_MESSAGES,
 } from './reject-document.constants';
 import { RejectDocumentUseCase } from './reject-document.use-case';
@@ -44,13 +43,13 @@ describe('RejectDocumentUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_DOCUMENT_LOG_MESSAGES.START_FLOW,
-        context: REJECT_DOCUMENT_LOG_CONTEXT,
+        context: 'RejectDocumentUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_DOCUMENT_LOG_MESSAGES.SUCCESS,
-        context: REJECT_DOCUMENT_LOG_CONTEXT,
+        context: 'RejectDocumentUseCase.execute',
       }),
     );
   });
@@ -61,7 +60,7 @@ describe('RejectDocumentUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_DOCUMENT_LOG_MESSAGES.NOT_FOUND,
-        context: REJECT_DOCUMENT_LOG_CONTEXT,
+        context: 'RejectDocumentUseCase.execute',
       }),
     );
   });
@@ -72,7 +71,7 @@ describe('RejectDocumentUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: REJECT_DOCUMENT_LOG_MESSAGES.INVALID_STATUS,
-        context: REJECT_DOCUMENT_LOG_CONTEXT,
+        context: 'RejectDocumentUseCase.execute',
       }),
     );
   });

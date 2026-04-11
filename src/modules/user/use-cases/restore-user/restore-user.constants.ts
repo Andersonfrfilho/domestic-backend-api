@@ -1,4 +1,3 @@
-export const RESTORE_USER_LOG_CONTEXT = 'RestoreUserUseCase.execute';
 
 export const RESTORE_USER_LOG_MESSAGES = {
   START_FLOW: 'Starting user restore flow',

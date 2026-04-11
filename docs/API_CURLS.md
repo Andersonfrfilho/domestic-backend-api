@@ -10,31 +10,31 @@
 
 ## Clientes Keycloak disponíveis
 
-| Client ID | Secret | Grant types | Quem usa |
-|-----------|--------|-------------|----------|
-| `domestic-api` | `api-client-secret` | `client_credentials`, `password` | API backend (service account) |
-| `domestic-backend-bff` | `backend-bff-client-secret` | `client_credentials`, `password` | BFF / testes manuais |
-| `domestic-backend-kong` | `backend-kong-client-secret` | `client_credentials` | Kong gateway |
-| `domestic-backend-worker` | `backend-worker-client-secret` | `client_credentials` | Worker assíncrono |
-| `domestic-backend-cron` | `backend-cron-client-secret` | `client_credentials` | Jobs agendados |
+| Client ID                 | Secret                         | Grant types                      | Quem usa                      |
+| ------------------------- | ------------------------------ | -------------------------------- | ----------------------------- |
+| `domestic-api`            | `api-client-secret`            | `client_credentials`, `password` | API backend (service account) |
+| `domestic-backend-bff`    | `backend-bff-client-secret`    | `client_credentials`, `password` | BFF / testes manuais          |
+| `domestic-backend-kong`   | `backend-kong-client-secret`   | `client_credentials`             | Kong gateway                  |
+| `domestic-backend-worker` | `backend-worker-client-secret` | `client_credentials`             | Worker assíncrono             |
+| `domestic-backend-cron`   | `backend-cron-client-secret`   | `client_credentials`             | Jobs agendados                |
 
 ## Usuários de teste
 
-| Username | Email | Senha | Roles |
-|----------|-------|-------|-------|
-| `admin` | `admin@domestic.local` | `ChangeMeSecurePassword123!` | `admin`, `user-manager`, `service-manager`, `document-verifier` |
+| Username          | Email                       | Senha                        | Roles                                                                     |
+| ----------------- | --------------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| `admin`           | `admin@domestic.local`      | `ChangeMeSecurePassword123!` | `admin`, `user-manager`, `service-manager`, `document-verifier`           |
 | `contractor-test` | `contractor@domestic.local` | `ChangeMeSecurePassword123!` | `user-manager`, `manage-requests`, `manage-reviews`, `send-notifications` |
-| `provider-test` | `provider@domestic.local` | `ChangeMeSecurePassword123!` | `user-manager`, `manage-requests`, `manage-services`, `manage-reviews` |
-| `support-test` | `support@domestic.local` | `ChangeMeSecurePassword123!` | `user-manager`, `document-verifier`, `send-notifications` |
+| `provider-test`   | `provider@domestic.local`   | `ChangeMeSecurePassword123!` | `user-manager`, `manage-requests`, `manage-services`, `manage-reviews`    |
+| `support-test`    | `support@domestic.local`    | `ChangeMeSecurePassword123!` | `user-manager`, `document-verifier`, `send-notifications`                 |
 
 ---
 
 ## Contrato de headers
 
-| Header | Tipo | Quem injeta | Descrição |
-|--------|------|-------------|-----------|
-| `Authorization` | `Bearer <service_token>` | Kong / serviço | Identidade do chamador (B2B). Token do client `domestic-api` via `client_credentials`. |
-| `X-Access-Token` | `<user_jwt>` | Kong | Token original do usuário (B2C). Claims (`sub`, `email`, roles) decodificados localmente. |
+| Header           | Tipo                     | Quem injeta    | Descrição                                                                                 |
+| ---------------- | ------------------------ | -------------- | ----------------------------------------------------------------------------------------- |
+| `Authorization`  | `Bearer <service_token>` | Kong / serviço | Identidade do chamador (B2B). Token do client `domestic-api` via `client_credentials`.    |
+| `X-Access-Token` | `<user_jwt>`             | Kong           | Token original do usuário (B2C). Claims (`sub`, `email`, roles) decodificados localmente. |
 
 > **Não existem `X-User-Id` nem `X-User-Roles`.**
 > Todos os dados do usuário vêm do JWT em `X-Access-Token`.
@@ -355,10 +355,10 @@ AUTH_SUPPORT="-H 'Authorization: Bearer $SERVICE_TOKEN' -H 'X-Access-Token: $SUP
 
 ### Kong (porta 8000) — rotas expostas
 
-| Método | Kong | Upstream |
-|--------|------|----------|
-| `GET` | `http://localhost:8000/auth/authorize` | `http://localhost:8080/realms/domestic-backend/protocol/openid-connect/auth` |
-| `POST` | `http://localhost:8000/auth/token` | `http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token` |
+| Método | Kong                                   | Upstream                                                                      |
+| ------ | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `GET`  | `http://localhost:8000/auth/authorize` | `http://localhost:8080/realms/domestic-backend/protocol/openid-connect/auth`  |
+| `POST` | `http://localhost:8000/auth/token`     | `http://localhost:8080/realms/domestic-backend/protocol/openid-connect/token` |
 
 > Kong injeta automaticamente `client_id=domestic-backend-bff` e `client_secret=backend-bff-client-secret`.
 
@@ -466,6 +466,75 @@ curl -s -X DELETE "http://localhost:3333/v1/users/$USER_ID" \
 
 ---
 
+### POST `http://localhost:3333/v1/users/:id/restore` — Restaurar usuário deletado
+
+> Reativa uma conta removida via soft delete. O `:id` é o **UUID interno** da tabela `users` (não o `keycloakId`).
+>
+> Obtenha o ID interno com:
+>
+> ```bash
+> USER_DB_ID=$(curl -s 'http://localhost:3333/v1/users/me' -H "X-Access-Token: $USER_TOKEN" | jq -r '.id')
+> ```
+
+```bash
+curl -s -X POST "http://localhost:3333/v1/users/$USER_DB_ID/restore" | jq
+```
+
+**Resposta esperada — 200**
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440001",
+  "keycloakId": "38bc8bb0-df40-4603-8ccc-2486c5fba80e",
+  "fullName": "João Silva",
+  "status": "PENDING",
+  "createdAt": "2026-04-09T10:00:00.000Z",
+  "updatedAt": "2026-04-11T14:00:00.000Z",
+  "deletedAt": null
+}
+```
+
+**Erro — usuário não encontrado — 404**
+
+```json
+{
+  "statusCode": 404,
+  "message": "User not found",
+  "code": "USER_NOT_FOUND",
+  "type": "NOT_FOUND"
+}
+```
+
+**Erro — usuário não está deletado — 422**
+
+```json
+{
+  "statusCode": 422,
+  "message": "User is not deleted and cannot be restored.",
+  "code": "USER_NOT_DELETED",
+  "type": "BUSINESS_LOGIC",
+  "details": { "userId": "550e8400-e29b-41d4-a716-446655440001" }
+}
+```
+
+**Fluxo completo delete → restore**
+
+```bash
+# 1. Obter ID interno
+USER_DB_ID=$(curl -s 'http://localhost:3333/v1/users/me' -H "X-Access-Token: $USER_TOKEN" | jq -r '.id')
+
+# 2. Deletar
+curl -s -X DELETE "http://localhost:3333/v1/users/$USER_DB_ID" -o /dev/null -w "%{http_code}\n"
+
+# 3. Confirmar que está deletado (409 ACCOUNT_DELETED)
+curl -s "http://localhost:3333/v1/users/$USER_DB_ID" | jq '.code'
+
+# 4. Restaurar
+curl -s -X POST "http://localhost:3333/v1/users/$USER_DB_ID/restore" | jq
+```
+
+---
+
 ### GET `http://localhost:3333/v1/users/admin/stats` — Estatísticas (admin)
 
 > `X-Access-Token`: token do **admin** (`admin@domestic.local`). Exige role `admin`.
@@ -489,9 +558,29 @@ curl -s 'http://localhost:3333/v1/users/admin/stats' \
 > `X-Access-Token`: token do **contratante** (`contractor@domestic.local`).
 
 ```bash
-curl -s 'http://localhost:3333/v1/users/me/addresses' \
-  -H "Authorization: Bearer $SERVICE_TOKEN" \
-  -H "X-Access-Token: $USER_TOKEN" | jq
+curl -s 'http://localhost:3333/v1/users/me/addresses' $AUTH_CONTRACTOR | jq
+```
+
+**Resposta esperada — 200**
+
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440010",
+    "street": "Rua das Flores",
+    "number": "123",
+    "complement": "Apto 4B",
+    "neighborhood": "Centro",
+    "city": "São Paulo",
+    "state": "SP",
+    "zipCode": "01310-100",
+    "latitude": -23.5505,
+    "longitude": -46.6333,
+    "label": "Casa",
+    "isPrimary": true,
+    "createdAt": "2026-04-09T10:00:00.000Z"
+  }
+]
 ```
 
 ---
@@ -1128,12 +1217,12 @@ echo "Fluxo completo!"
 
 ## Referência de erros comuns
 
-| HTTP | Código | Causa |
-|------|--------|-------|
-| 401 | `UNAUTHORIZED_MISSING_TOKEN` | `X-Access-Token` ausente em rota protegida |
-| 401 | `UNAUTHORIZED_INACTIVE_TOKEN` | Token expirado ou inativo |
-| 403 | `FORBIDDEN_INSUFFICIENT_ROLES` | Usuário sem a role necessária |
-| 404 | `USER_NOT_FOUND` | Usuário não existe no banco |
-| 404 | `PROVIDER_NOT_FOUND` | Prestador não encontrado |
-| 409 | `DUPLICATE_KEYCLOAK_ID` | Keycloak ID já cadastrado |
-| 422 | — | DTO inválido (class-validator) |
+| HTTP | Código                         | Causa                                      |
+| ---- | ------------------------------ | ------------------------------------------ |
+| 401  | `UNAUTHORIZED_MISSING_TOKEN`   | `X-Access-Token` ausente em rota protegida |
+| 401  | `UNAUTHORIZED_INACTIVE_TOKEN`  | Token expirado ou inativo                  |
+| 403  | `FORBIDDEN_INSUFFICIENT_ROLES` | Usuário sem a role necessária              |
+| 404  | `USER_NOT_FOUND`               | Usuário não existe no banco                |
+| 404  | `PROVIDER_NOT_FOUND`           | Prestador não encontrado                   |
+| 409  | `DUPLICATE_KEYCLOAK_ID`        | Keycloak ID já cadastrado                  |
+| 422  | —                              | DTO inválido (class-validator)             |

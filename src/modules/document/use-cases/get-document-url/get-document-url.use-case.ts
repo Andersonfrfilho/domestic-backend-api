@@ -10,7 +10,6 @@ import { type DocumentRepositoryInterface } from '../../document.repository.inte
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 
 import {
-  GET_DOCUMENT_URL_LOG_CONTEXT,
   GET_DOCUMENT_URL_LOG_MESSAGES,
 } from './get-document-url.constants';
 import {
@@ -23,7 +22,7 @@ const TTL_SECONDS = 15 * 60; // 15 minutes
 
 @Injectable()
 export class GetDocumentUrlUseCase implements GetDocumentUrlUseCaseInterface {
-  private readonly logContext = GET_DOCUMENT_URL_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(DOCUMENT_REPOSITORY_PROVIDE)

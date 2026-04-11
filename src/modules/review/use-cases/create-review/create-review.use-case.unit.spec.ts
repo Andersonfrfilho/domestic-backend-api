@@ -5,7 +5,6 @@ import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '@modules/service-request/ser
 
 import { REVIEW_REPOSITORY_PROVIDE } from '../../review.token';
 import {
-  CREATE_REVIEW_LOG_CONTEXT,
   CREATE_REVIEW_LOG_MESSAGES,
 } from './create-review.constants';
 import { CreateReviewUseCase } from './create-review.use-case';
@@ -63,13 +62,13 @@ describe('CreateReviewUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_REVIEW_LOG_MESSAGES.START_FLOW,
-        context: CREATE_REVIEW_LOG_CONTEXT,
+        context: 'CreateReviewUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_REVIEW_LOG_MESSAGES.SUCCESS,
-        context: CREATE_REVIEW_LOG_CONTEXT,
+        context: 'CreateReviewUseCase.execute',
       }),
     );
   });
@@ -82,7 +81,7 @@ describe('CreateReviewUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_REVIEW_LOG_MESSAGES.SERVICE_REQUEST_NOT_COMPLETED,
-        context: CREATE_REVIEW_LOG_CONTEXT,
+        context: 'CreateReviewUseCase.execute',
       }),
     );
   });
@@ -95,7 +94,7 @@ describe('CreateReviewUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_REVIEW_LOG_MESSAGES.SERVICE_REQUEST_NOT_COMPLETED,
-        context: CREATE_REVIEW_LOG_CONTEXT,
+        context: 'CreateReviewUseCase.execute',
       }),
     );
   });
@@ -109,7 +108,7 @@ describe('CreateReviewUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_REVIEW_LOG_MESSAGES.ALREADY_EXISTS,
-        context: CREATE_REVIEW_LOG_CONTEXT,
+        context: 'CreateReviewUseCase.execute',
       }),
     );
   });

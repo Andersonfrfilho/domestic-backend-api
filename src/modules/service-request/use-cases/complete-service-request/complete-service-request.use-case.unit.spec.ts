@@ -5,7 +5,6 @@ import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/produce
 
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 import {
-  COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
   COMPLETE_SERVICE_REQUEST_LOG_MESSAGES,
 } from './complete-service-request.constants';
 import { CompleteServiceRequestUseCase } from './complete-service-request.use-case';
@@ -49,13 +48,13 @@ describe('CompleteServiceRequestUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.START_FLOW,
-        context: COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CompleteServiceRequestUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
-        context: COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CompleteServiceRequestUseCase.execute',
       }),
     );
   });
@@ -66,7 +65,7 @@ describe('CompleteServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.NOT_AUTHORIZED,
-        context: COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CompleteServiceRequestUseCase.execute',
       }),
     );
   });
@@ -77,7 +76,7 @@ describe('CompleteServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: COMPLETE_SERVICE_REQUEST_LOG_MESSAGES.INVALID_STATUS,
-        context: COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CompleteServiceRequestUseCase.execute',
       }),
     );
   });

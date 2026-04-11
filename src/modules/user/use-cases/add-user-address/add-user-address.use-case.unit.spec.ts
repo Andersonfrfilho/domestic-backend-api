@@ -1,31 +1,28 @@
-import { Test } from '@nestjs/testing';
-
-import { ADDRESS_REPOSITORY_PROVIDE, USER_ADDRESS_REPOSITORY_PROVIDE, USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
-
 import { AddUserAddressUseCase } from './add-user-address.use-case';
 
 const mockUser = { id: 'user-1', fullName: 'Anderson', status: 'ACTIVE' };
 const mockAddress = { id: 'addr-1', street: 'Rua das Flores', city: 'Fortaleza', state: 'CE', zipCode: '60010-000' };
 const mockUserAddress = { id: 'ua-1', userId: 'user-1', addressId: 'addr-1', isPrimary: false, label: null };
 
-const mockUserRepository = { findById: jest.fn() };
-const mockAddressRepository = { createAddress: jest.fn() };
-const mockUserAddressRepository = { linkUserToAddress: jest.fn() };
-
 describe('AddUserAddressUseCase', () => {
   let useCase: AddUserAddressUseCase;
+  let mockUserRepository: any;
+  let mockAddressRepository: any;
+  let mockUserAddressRepository: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        AddUserAddressUseCase,
-        { provide: USER_REPOSITORY_PROVIDE, useValue: mockUserRepository },
-        { provide: ADDRESS_REPOSITORY_PROVIDE, useValue: mockAddressRepository },
-        { provide: USER_ADDRESS_REPOSITORY_PROVIDE, useValue: mockUserAddressRepository },
-      ],
-    }).compile();
-    useCase = module.get(AddUserAddressUseCase);
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockUserRepository = { findById: jest.fn() };
+    mockAddressRepository = { createAddress: jest.fn() };
+    mockUserAddressRepository = { linkUserToAddress: jest.fn() };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+
+    useCase = new AddUserAddressUseCase(
+      mockUserRepository,
+      mockAddressRepository,
+      mockUserAddressRepository,
+      mockLogProvider,
+    );
   });
 
   const baseParams = {

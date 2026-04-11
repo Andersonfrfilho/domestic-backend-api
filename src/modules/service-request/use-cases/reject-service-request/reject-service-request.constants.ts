@@ -1,4 +1,3 @@
-export const REJECT_SERVICE_REQUEST_LOG_CONTEXT = 'RejectServiceRequestUseCase.execute';
 export const REJECT_SERVICE_REQUEST_LOG_MESSAGES = {
   START_FLOW: 'Starting reject service request flow',
   SUCCESS: 'Service request rejected successfully',

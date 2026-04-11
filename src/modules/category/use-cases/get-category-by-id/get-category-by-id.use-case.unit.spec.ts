@@ -1,23 +1,16 @@
-import { Test } from '@nestjs/testing';
-
-import { CATEGORY_REPOSITORY_PROVIDE } from '../../category.token';
 import { GetCategoryByIdUseCase } from './get-category-by-id.use-case';
 
-const mockRepo = { findById: jest.fn() };
 const category = { id: 'cat-1', name: 'Limpeza', slug: 'limpeza', isActive: true };
 
 describe('GetCategoryByIdUseCase', () => {
   let useCase: GetCategoryByIdUseCase;
+  let mockRepo: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        GetCategoryByIdUseCase,
-        { provide: CATEGORY_REPOSITORY_PROVIDE, useValue: mockRepo },
-      ],
-    }).compile();
-    useCase = module.get(GetCategoryByIdUseCase);
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockRepo = { findById: jest.fn() };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    useCase = new GetCategoryByIdUseCase(mockRepo, mockLogProvider);
   });
 
   it('returns category when found', async () => {

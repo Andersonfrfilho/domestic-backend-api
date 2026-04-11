@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 import {
-  CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
   CANCEL_SERVICE_REQUEST_LOG_MESSAGES,
 } from './cancel-service-request.constants';
 import { CancelServiceRequestUseCase } from './cancel-service-request.use-case';
@@ -44,13 +43,13 @@ describe('CancelServiceRequestUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.START_FLOW,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
   });
@@ -65,7 +64,7 @@ describe('CancelServiceRequestUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
   });
@@ -76,7 +75,7 @@ describe('CancelServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.NOT_AUTHORIZED,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
   });
@@ -87,7 +86,7 @@ describe('CancelServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.INVALID_STATUS,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
   });
@@ -98,7 +97,7 @@ describe('CancelServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CANCEL_SERVICE_REQUEST_LOG_MESSAGES.NOT_FOUND,
-        context: CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CancelServiceRequestUseCase.execute',
       }),
     );
   });

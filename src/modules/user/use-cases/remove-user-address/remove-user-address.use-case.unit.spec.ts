@@ -1,24 +1,17 @@
-import { Test } from '@nestjs/testing';
-
-import { USER_ADDRESS_REPOSITORY_PROVIDE } from '@modules/user/user.token';
-
 import { RemoveUserAddressUseCase } from './remove-user-address.use-case';
 
 const mockUserAddress = { id: 'ua-1', userId: 'user-1', addressId: 'addr-1', isPrimary: false };
-const mockUserAddressRepository = { findById: jest.fn(), delete: jest.fn() };
 
 describe('RemoveUserAddressUseCase', () => {
   let useCase: RemoveUserAddressUseCase;
+  let mockUserAddressRepository: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        RemoveUserAddressUseCase,
-        { provide: USER_ADDRESS_REPOSITORY_PROVIDE, useValue: mockUserAddressRepository },
-      ],
-    }).compile();
-    useCase = module.get(RemoveUserAddressUseCase);
-    jest.clearAllMocks();
+  beforeEach(() => {
+    mockUserAddressRepository = { findById: jest.fn(), delete: jest.fn() };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+
+    useCase = new RemoveUserAddressUseCase(mockUserAddressRepository, mockLogProvider);
   });
 
   it('removes user address when found and owned by user', async () => {

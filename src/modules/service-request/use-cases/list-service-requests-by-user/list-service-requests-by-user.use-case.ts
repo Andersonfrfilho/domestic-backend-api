@@ -7,7 +7,6 @@ import { type ServiceRequestRepositoryInterface } from '../../service-request.re
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
 import {
-  LIST_SERVICE_REQUESTS_BY_USER_LOG_CONTEXT,
   LIST_SERVICE_REQUESTS_BY_USER_LOG_MESSAGES,
 } from './list-service-requests-by-user.constants';
 import {
@@ -18,7 +17,7 @@ import {
 
 @Injectable()
 export class ListServiceRequestsByUserUseCase implements ListServiceRequestsByUserUseCaseInterface {
-  private readonly logContext = LIST_SERVICE_REQUESTS_BY_USER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)

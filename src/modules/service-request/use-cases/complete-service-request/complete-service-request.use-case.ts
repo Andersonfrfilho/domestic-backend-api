@@ -10,7 +10,6 @@ import { type ServiceRequestRepositoryInterface } from '../../service-request.re
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
 import {
-  COMPLETE_SERVICE_REQUEST_LOG_CONTEXT,
   COMPLETE_SERVICE_REQUEST_LOG_MESSAGES,
 } from './complete-service-request.constants';
 import {
@@ -24,7 +23,7 @@ const ROUTING_KEY = 'service_request.completed';
 
 @Injectable()
 export class CompleteServiceRequestUseCase implements CompleteServiceRequestUseCaseInterface {
-  private readonly logContext = COMPLETE_SERVICE_REQUEST_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)

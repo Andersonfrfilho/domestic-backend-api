@@ -7,7 +7,6 @@ import { type NotificationRepositoryInterface } from '../../notification.reposit
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 
 import {
-  LIST_NOTIFICATIONS_LOG_CONTEXT,
   LIST_NOTIFICATIONS_LOG_MESSAGES,
 } from './list-notifications-constants';
 import {
@@ -18,7 +17,7 @@ import {
 
 @Injectable()
 export class ListNotificationsUseCase implements ListNotificationsUseCaseInterface {
-  private readonly logContext = LIST_NOTIFICATIONS_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(NOTIFICATION_REPOSITORY_PROVIDE)

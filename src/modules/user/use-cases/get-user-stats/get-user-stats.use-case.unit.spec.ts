@@ -44,14 +44,14 @@ describe('GetUserStatsUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: GET_USER_STATS_LOG_MESSAGES.START_FLOW,
-        context: GET_USER_STATS_LOG_CONTEXT,
+        context: 'GetUserStatsUseCase.execute',
       }),
     );
 
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: GET_USER_STATS_LOG_MESSAGES.STATS_RETRIEVED,
-        context: GET_USER_STATS_LOG_CONTEXT,
+        context: 'GetUserStatsUseCase.execute',
       }),
     );
   });

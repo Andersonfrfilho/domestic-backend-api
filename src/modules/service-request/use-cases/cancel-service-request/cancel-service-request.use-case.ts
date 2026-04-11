@@ -8,7 +8,6 @@ import { type ServiceRequestRepositoryInterface } from '../../service-request.re
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
 import {
-  CANCEL_SERVICE_REQUEST_LOG_CONTEXT,
   CANCEL_SERVICE_REQUEST_LOG_MESSAGES,
 } from './cancel-service-request.constants';
 import {
@@ -21,7 +20,7 @@ const CANCELLABLE_STATUSES = new Set(['PENDING', 'ACCEPTED']);
 
 @Injectable()
 export class CancelServiceRequestUseCase implements CancelServiceRequestUseCaseInterface {
-  private readonly logContext = CANCEL_SERVICE_REQUEST_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)

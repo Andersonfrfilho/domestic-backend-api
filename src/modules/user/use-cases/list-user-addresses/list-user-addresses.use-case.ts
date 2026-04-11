@@ -13,13 +13,12 @@ import {
   ListUserAddressesUseCaseResponse,
 } from './list-user-addresses.interface';
 import {
-  LIST_USER_ADDRESSES_LOG_CONTEXT,
   LIST_USER_ADDRESSES_LOG_MESSAGES,
 } from './list-user-addresses.constants';
 
 @Injectable()
 export class ListUserAddressesUseCase implements ListUserAddressesUseCaseInterface {
-  private readonly logContext = LIST_USER_ADDRESSES_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

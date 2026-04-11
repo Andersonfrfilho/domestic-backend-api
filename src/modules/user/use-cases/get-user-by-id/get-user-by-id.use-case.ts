@@ -8,7 +8,6 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
 import {
-  GET_USER_BY_ID_LOG_CONTEXT,
   GET_USER_BY_ID_LOG_MESSAGES,
 } from './get-user-by-id.constants';
 import {
@@ -19,7 +18,7 @@ import {
 
 @Injectable()
 export class GetUserByIdUseCase implements GetUserByIdUseCaseInterface {
-  private readonly logContext = GET_USER_BY_ID_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

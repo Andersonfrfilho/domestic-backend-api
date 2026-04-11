@@ -8,7 +8,6 @@ import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 import { DocumentErrorFactory } from '../../factories/document.error.factory';
 
 import {
-  REJECT_DOCUMENT_LOG_CONTEXT,
   REJECT_DOCUMENT_LOG_MESSAGES,
 } from './reject-document.constants';
 import {
@@ -19,7 +18,7 @@ import {
 
 @Injectable()
 export class RejectDocumentUseCase implements RejectDocumentUseCaseInterface {
-  private readonly logContext = REJECT_DOCUMENT_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(DOCUMENT_REPOSITORY_PROVIDE)

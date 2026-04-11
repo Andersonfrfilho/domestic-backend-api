@@ -11,13 +11,12 @@ import {
   GetUserStatsUseCaseResponse,
 } from './get-user-stats.interface';
 import {
-  GET_USER_STATS_LOG_CONTEXT,
   GET_USER_STATS_LOG_MESSAGES,
 } from './get-user-stats.constants';
 
 @Injectable()
 export class GetUserStatsUseCase implements GetUserStatsUseCaseInterface {
-  private readonly logContext = GET_USER_STATS_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

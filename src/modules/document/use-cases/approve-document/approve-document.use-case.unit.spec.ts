@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 import {
-  APPROVE_DOCUMENT_LOG_CONTEXT,
   APPROVE_DOCUMENT_LOG_MESSAGES,
 } from './approve-document.constants';
 import { ApproveDocumentUseCase } from './approve-document.use-case';
@@ -44,13 +43,13 @@ describe('ApproveDocumentUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: APPROVE_DOCUMENT_LOG_MESSAGES.START_FLOW,
-        context: APPROVE_DOCUMENT_LOG_CONTEXT,
+        context: 'ApproveDocumentUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: APPROVE_DOCUMENT_LOG_MESSAGES.SUCCESS,
-        context: APPROVE_DOCUMENT_LOG_CONTEXT,
+        context: 'ApproveDocumentUseCase.execute',
       }),
     );
   });
@@ -61,7 +60,7 @@ describe('ApproveDocumentUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: APPROVE_DOCUMENT_LOG_MESSAGES.NOT_FOUND,
-        context: APPROVE_DOCUMENT_LOG_CONTEXT,
+        context: 'ApproveDocumentUseCase.execute',
       }),
     );
   });
@@ -72,7 +71,7 @@ describe('ApproveDocumentUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: APPROVE_DOCUMENT_LOG_MESSAGES.INVALID_STATUS,
-        context: APPROVE_DOCUMENT_LOG_CONTEXT,
+        context: 'ApproveDocumentUseCase.execute',
       }),
     );
   });

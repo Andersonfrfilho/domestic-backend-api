@@ -8,7 +8,6 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
 import {
-  GET_USER_BY_KEYCLOAK_ID_LOG_CONTEXT,
   GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES,
 } from './get-user-by-keycloak-id.constants';
 import {
@@ -19,7 +18,7 @@ import {
 
 @Injectable()
 export class GetUserByKeycloakIdUseCase implements GetUserByKeycloakIdUseCaseInterface {
-  private readonly logContext = GET_USER_BY_KEYCLOAK_ID_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

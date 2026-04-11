@@ -1,4 +1,3 @@
-export const CREATE_SERVICE_REQUEST_LOG_CONTEXT = 'CreateServiceRequestUseCase.execute';
 export const CREATE_SERVICE_REQUEST_LOG_MESSAGES = {
   START_FLOW: 'Starting create service request flow',
   SUCCESS: 'Service request created successfully',

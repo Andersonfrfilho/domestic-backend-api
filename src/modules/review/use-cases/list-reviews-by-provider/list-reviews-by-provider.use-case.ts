@@ -7,7 +7,6 @@ import { type ReviewRepositoryInterface } from '../../review.repository.interfac
 import { REVIEW_REPOSITORY_PROVIDE } from '../../review.token';
 
 import {
-  LIST_REVIEWS_BY_PROVIDER_LOG_CONTEXT,
   LIST_REVIEWS_BY_PROVIDER_LOG_MESSAGES,
 } from './list-reviews-by-provider.constants';
 import {
@@ -18,7 +17,7 @@ import {
 
 @Injectable()
 export class ListReviewsByProviderUseCase implements ListReviewsByProviderUseCaseInterface {
-  private readonly logContext = LIST_REVIEWS_BY_PROVIDER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(REVIEW_REPOSITORY_PROVIDE)

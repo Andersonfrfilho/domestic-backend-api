@@ -1,4 +1,3 @@
-export const GET_SERVICE_REQUEST_BY_ID_LOG_CONTEXT = 'GetServiceRequestByIdUseCase.execute';
 export const GET_SERVICE_REQUEST_BY_ID_LOG_MESSAGES = {
   START_FLOW: 'Starting get service request by ID flow',
   SUCCESS: 'Service request retrieved successfully',

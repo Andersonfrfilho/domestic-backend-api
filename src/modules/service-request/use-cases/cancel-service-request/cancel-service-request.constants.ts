@@ -1,4 +1,3 @@
-export const CANCEL_SERVICE_REQUEST_LOG_CONTEXT = 'CancelServiceRequestUseCase.execute';
 export const CANCEL_SERVICE_REQUEST_LOG_MESSAGES = {
   START_FLOW: 'Starting cancel service request flow',
   SUCCESS: 'Service request cancelled successfully',

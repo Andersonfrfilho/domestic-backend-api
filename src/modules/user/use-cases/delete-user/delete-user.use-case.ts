@@ -7,12 +7,12 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
-import { DELETE_USER_LOG_CONTEXT, DELETE_USER_LOG_MESSAGES } from './delete-user.constants';
+import { DELETE_USER_LOG_MESSAGES } from './delete-user.constants';
 import { DeleteUserUseCaseInterface, DeleteUserUseCaseParams } from './delete-user.interface';
 
 @Injectable()
 export class DeleteUserUseCase implements DeleteUserUseCaseInterface {
-  private readonly logContext = DELETE_USER_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(USER_REPOSITORY_PROVIDE)

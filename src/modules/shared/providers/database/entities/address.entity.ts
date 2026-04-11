@@ -36,11 +36,11 @@ export class Address {
   @Column({ name: 'zipcode' })
   zipCode: string;
 
-  @Column({ type: 'decimal', nullable: true, precision: 10, scale: 8 })
-  latitude: number | null;
+  @Column({ type: 'varchar', nullable: true })
+  latitude: string | null;
 
-  @Column({ type: 'decimal', nullable: true, precision: 11, scale: 8 })
-  longitude: number | null;
+  @Column({ type: 'varchar', nullable: true })
+  longitude: string | null;
 
   @Column({ name: 'is_verified', default: false })
   isVerified: boolean;

@@ -1,4 +1,3 @@
-export const COMPLETE_SERVICE_REQUEST_LOG_CONTEXT = 'CompleteServiceRequestUseCase.execute';
 export const COMPLETE_SERVICE_REQUEST_LOG_MESSAGES = {
   START_FLOW: 'Starting complete service request flow',
   SUCCESS: 'Service request completed successfully',

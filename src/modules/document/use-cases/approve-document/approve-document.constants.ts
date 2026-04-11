@@ -1,4 +1,3 @@
-export const APPROVE_DOCUMENT_LOG_CONTEXT = 'ApproveDocumentUseCase.execute';
 export const APPROVE_DOCUMENT_LOG_MESSAGES = {
   START_FLOW: 'Starting approve document flow',
   SUCCESS: 'Document approved successfully',

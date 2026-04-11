@@ -1,4 +1,3 @@
-export const LIST_USER_ADDRESSES_LOG_CONTEXT = 'user:list-user-addresses';
 
 export const LIST_USER_ADDRESSES_LOG_MESSAGES = {
   START_FLOW: 'Start listing user addresses flow',

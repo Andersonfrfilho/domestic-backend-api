@@ -6,7 +6,6 @@ import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/produce
 
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 import {
-  CREATE_SERVICE_REQUEST_LOG_CONTEXT,
   CREATE_SERVICE_REQUEST_LOG_MESSAGES,
 } from './create-service-request.constants';
 import { CreateServiceRequestUseCase } from './create-service-request.use-case';
@@ -54,13 +53,13 @@ describe('CreateServiceRequestUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.START_FLOW,
-        context: CREATE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CreateServiceRequestUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,
-        context: CREATE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CreateServiceRequestUseCase.execute',
       }),
     );
   });
@@ -73,7 +72,7 @@ describe('CreateServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
       expect.objectContaining({
         message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.PROVIDER_NOT_APPROVED,
-        context: CREATE_SERVICE_REQUEST_LOG_CONTEXT,
+        context: 'CreateServiceRequestUseCase.execute',
       }),
     );
   });
@@ -85,7 +84,7 @@ describe('CreateServiceRequestUseCase', () => {
     expect(mockLogProvider.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.PROVIDER_NOT_APPROVED,
-          context: CREATE_SERVICE_REQUEST_LOG_CONTEXT,
+          context: 'CreateServiceRequestUseCase.execute',
         }),
       );
   });

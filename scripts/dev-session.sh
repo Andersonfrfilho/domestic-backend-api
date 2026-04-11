@@ -90,7 +90,24 @@ SUPPORT_KEYCLOAK_ID=$(kc_id "$SUPPORT_TOKEN")
 export USER_KEYCLOAK_ID PROVIDER_KEYCLOAK_ID ADMIN_KEYCLOAK_ID SUPPORT_KEYCLOAK_ID
 
 # ---------------------------------------------------------------------------
-# 8. Funções de atalho para chamadas
+# 8. IDs internos dos usuários na API (UUID da tabela users, diferente do keycloakId)
+#    Usa GET /v1/users/me via Kong — resolve pelo X-Access-Token de cada usuário
+# ---------------------------------------------------------------------------
+echo "[dev-session] Buscando IDs internos dos usuários na API..."
+
+_fetch_db_id() {
+  local user_token="${1}"
+  curl -s "${API_URL}/v1/users/me" -H "X-Access-Token: ${user_token}" 2>/dev/null | jq -r '.id // empty'
+}
+
+USER_DB_ID=$(_fetch_db_id "$USER_TOKEN")
+PROVIDER_DB_ID=$(_fetch_db_id "$PROVIDER_TOKEN")
+ADMIN_DB_ID=$(_fetch_db_id "$ADMIN_TOKEN")
+
+export USER_DB_ID PROVIDER_DB_ID ADMIN_DB_ID
+
+# ---------------------------------------------------------------------------
+# 9. Funções de atalho para chamadas
 #    api  <method> <path> [body]  — chama direto na API (porta 3333)
 #    kong <method> <path> [body]  — chama via Kong (porta 8000)
 # ---------------------------------------------------------------------------
@@ -150,11 +167,16 @@ printf "║  PROVIDER_TOKEN   %.40s... ║\n" "$PROVIDER_TOKEN"
 printf "║  ADMIN_TOKEN      %.40s... ║\n" "$ADMIN_TOKEN"
 printf "║  SUPPORT_TOKEN    %.40s... ║\n" "$SUPPORT_TOKEN"
 echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║ Keycloak IDs (sub)                                           ║"
+echo "║ Keycloak IDs (sub do JWT — usado em keycloakId)              ║"
 printf "║  USER_KEYCLOAK_ID      %s ║\n" "$USER_KEYCLOAK_ID"
 printf "║  PROVIDER_KEYCLOAK_ID  %s ║\n" "$PROVIDER_KEYCLOAK_ID"
 printf "║  ADMIN_KEYCLOAK_ID     %s ║\n" "$ADMIN_KEYCLOAK_ID"
 printf "║  SUPPORT_KEYCLOAK_ID   %s ║\n" "$SUPPORT_KEYCLOAK_ID"
+echo "╠══════════════════════════════════════════════════════════════╣"
+echo "║ IDs internos (UUID da tabela users — usado nas rotas)        ║"
+printf "║  USER_DB_ID      %s ║\n" "${USER_DB_ID:-(não encontrado — usuário ainda não criado)}"
+printf "║  PROVIDER_DB_ID  %s ║\n" "${PROVIDER_DB_ID:-(não encontrado — usuário ainda não criado)}"
+printf "║  ADMIN_DB_ID     %s ║\n" "${ADMIN_DB_ID:-(não encontrado — usuário ainda não criado)}"
 echo "╠══════════════════════════════════════════════════════════════╣"
 echo "║ Funções disponíveis                                          ║"
 echo "║  api  <METHOD> <path> [body]   → chama direto na API        ║"
@@ -165,6 +187,7 @@ echo "╚═══════════════════════�
 echo ""
 echo "Exemplos:"
 echo "  api GET /v1/health"
-echo "  api POST /v1/users '{\"fullName\":\"João\",\"keycloakId\":\"\$USER_KEYCLOAK_ID\"}'"
-echo "  kong GET /v1/users/me"
-echo "  kong POST /v1/users/\$USER_ID/restore"
+echo "  api POST /v1/users '{\"fullName\":\"João\",\"keycloakId\":\"$USER_KEYCLOAK_ID\"}'"
+echo "  curl -s 'http://localhost:3333/v1/users/me' -H 'X-Access-Token: \$USER_TOKEN' | jq"
+echo "  api DELETE /v1/users/$USER_DB_ID"
+echo "  api POST /v1/users/$USER_DB_ID/restore"

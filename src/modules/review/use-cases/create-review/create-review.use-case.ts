@@ -9,7 +9,7 @@ import { ReviewErrorFactory } from '../../factories/review.error.factory';
 import { type ReviewRepositoryInterface } from '../../review.repository.interface';
 import { REVIEW_REPOSITORY_PROVIDE } from '../../review.token';
 
-import { CREATE_REVIEW_LOG_CONTEXT, CREATE_REVIEW_LOG_MESSAGES } from './create-review.constants';
+import { CREATE_REVIEW_LOG_MESSAGES } from './create-review.constants';
 import {
   CreateReviewUseCaseInterface,
   CreateReviewUseCaseParams,
@@ -18,7 +18,7 @@ import {
 
 @Injectable()
 export class CreateReviewUseCase implements CreateReviewUseCaseInterface {
-  private readonly logContext = CREATE_REVIEW_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(REVIEW_REPOSITORY_PROVIDE)

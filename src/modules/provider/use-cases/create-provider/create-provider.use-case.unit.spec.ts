@@ -1,37 +1,22 @@
-import { Test } from '@nestjs/testing';
-
-import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
 import { CreateProviderUseCase } from './create-provider.use-case';
-
-const mockRepo = {
-  findByUserId: jest.fn(),
-  create: jest.fn(),
-  createVerification: jest.fn(),
-};
 
 const provider = { id: 'prov-1', userId: 'user-1', businessName: 'Minha Empresa' };
 
 describe('CreateProviderUseCase', () => {
   let useCase: CreateProviderUseCase;
+  let mockRepo: any;
+  let mockLogProvider: any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        CreateProviderUseCase,
-        { provide: PROVIDER_REPOSITORY_PROVIDE, useValue: mockRepo },
-      ],
-    }).compile();
-    useCase = module.get(CreateProviderUseCase);
-    jest.clearAllMocks();
-    mockRepo.createVerification.mockResolvedValue({ id: 'ver-1', status: 'PENDING' });
+  beforeEach(() => {
+    mockRepo = { findByUserId: jest.fn(), create: jest.fn(), createVerification: jest.fn().mockResolvedValue({ id: 'ver-1', status: 'PENDING' }) };
+    mockLogProvider = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+    useCase = new CreateProviderUseCase(mockRepo, mockLogProvider);
   });
 
   it('creates provider and initial verification', async () => {
     mockRepo.findByUserId.mockResolvedValue(null);
     mockRepo.create.mockResolvedValue(provider);
-
     const result = await useCase.execute({ userId: 'user-1' });
-
     expect(result).toEqual(provider);
     expect(mockRepo.createVerification).toHaveBeenCalledWith({ providerId: 'prov-1', status: 'PENDING' });
   });

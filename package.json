@@ -32,7 +32,9 @@
     "migration:revert": "node scripts/migration.js revert",
     "migration:generate": "node scripts/migration.js generate",
     "test:e2e:ci": "USE_TEST_CONTAINERS=true DOTENV_CONFIG_PATH=.env.e2e.ci jest --config jest.config.e2e.ts --runInBand",
-    "run:api-curls": "node scripts/api-curl-tester.js"
+    "run:api-curls": "node scripts/api-curl-tester.js",
+    "flows": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts",
+    "flows:user": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts user"
   },
   "dependencies": {
     "@adatechnology/auth-keycloak": "^0.1.3",
@@ -89,6 +91,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
+    "@usebruno/cli": "^3.2.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-import-resolver-typescript": "^4.4.4",

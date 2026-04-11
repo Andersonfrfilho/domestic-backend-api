@@ -8,7 +8,6 @@ import { type ServiceRequestRepositoryInterface } from '../../service-request.re
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
 import {
-  REJECT_SERVICE_REQUEST_LOG_CONTEXT,
   REJECT_SERVICE_REQUEST_LOG_MESSAGES,
 } from './reject-service-request.constants';
 import {
@@ -19,7 +18,7 @@ import {
 
 @Injectable()
 export class RejectServiceRequestUseCase implements RejectServiceRequestUseCaseInterface {
-  private readonly logContext = REJECT_SERVICE_REQUEST_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)

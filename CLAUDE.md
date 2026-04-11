@@ -94,3 +94,53 @@ All env vars are validated at startup via Joi schema in `src/config/env.validati
 - E2E tests cover auth, health, swagger, shared — user/phone modules need expansion
 - Coverage thresholds: 50% functions/lines/statements (excludes configs, migrations, enums, DTOs)
 - E2E tests include load/stress testing (10–50 concurrent) and performance benchmarks (< 200ms targets)
+
+### Logging conventions
+
+Every use-case and service method must have structured logs via `LOGGER_PROVIDER` (`@adatechnology/logger`).
+
+**Log context** — derive from the class name directly, never hardcode a string constant:
+
+```ts
+private readonly logContext = `${this.constructor.name}.execute`;
+```
+
+**Constants file** (`*.constants.ts`) — contains only `LOG_MESSAGES`, never `LOG_CONTEXT`:
+
+```ts
+export const CREATE_FOO_LOG_MESSAGES = {
+  START_FLOW: 'Starting create foo flow',
+  NOT_FOUND: 'Foo not found',
+  CREATED_SUCCESS: 'Foo created successfully',
+} as const;
+```
+
+**Log points per use-case:**
+- `info` at the start of `execute()` with relevant input params
+- `warn` before every thrown error (not_found, conflict, invalid state)
+- `info` on successful completion with result identifiers
+
+**Service-level logs** — only on methods that orchestrate multiple use-cases (e.g., resolve by keycloakId then act). Simple single-use-case delegations do not need service-level logs.
+
+### Flow tests (Spec-Driven)
+
+Every module must have a corresponding flow test in `scripts/flows/<module>.flow.js`. Flow tests verify end-to-end business behavior against a running environment.
+
+**When to create or update:**
+- When a new module is created → create `scripts/flows/<module>.flow.js`
+- When a use-case or endpoint is added/changed → update the corresponding flow
+- When a bug is fixed → add or adjust the step that would have caught it
+
+**Rules:**
+- Each flow exports an array of flow objects consumed by `scripts/flows/index.js`
+- The `setup` function must clean up state left by previous failed runs before executing steps
+- Steps must capture IDs from responses and pass them to subsequent steps via `ctx`
+- Required steps (default) abort the flow on failure; optional steps (`required: false`) continue
+- Do not use `faker` in flow tests — fixed, readable data makes log debugging easier
+- Auth tokens are obtained via Keycloak (`lib/auth.js`) — never hardcode tokens
+
+**Running:**
+```bash
+npm run flows          # all modules
+npm run flows:user     # single module
+```

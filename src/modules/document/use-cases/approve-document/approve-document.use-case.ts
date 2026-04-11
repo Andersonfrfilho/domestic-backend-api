@@ -8,7 +8,6 @@ import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 import { DocumentErrorFactory } from '../../factories/document.error.factory';
 
 import {
-  APPROVE_DOCUMENT_LOG_CONTEXT,
   APPROVE_DOCUMENT_LOG_MESSAGES,
 } from './approve-document.constants';
 import {
@@ -19,7 +18,7 @@ import {
 
 @Injectable()
 export class ApproveDocumentUseCase implements ApproveDocumentUseCaseInterface {
-  private readonly logContext = APPROVE_DOCUMENT_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(DOCUMENT_REPOSITORY_PROVIDE)

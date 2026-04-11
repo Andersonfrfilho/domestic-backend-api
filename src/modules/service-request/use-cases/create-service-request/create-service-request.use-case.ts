@@ -12,7 +12,6 @@ import { type ServiceRequestRepositoryInterface } from '../../service-request.re
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
 import {
-  CREATE_SERVICE_REQUEST_LOG_CONTEXT,
   CREATE_SERVICE_REQUEST_LOG_MESSAGES,
 } from './create-service-request.constants';
 import {
@@ -26,7 +25,7 @@ const ROUTING_KEY = 'service_request.created';
 
 @Injectable()
 export class CreateServiceRequestUseCase implements CreateServiceRequestUseCaseInterface {
-  private readonly logContext = CREATE_SERVICE_REQUEST_LOG_CONTEXT;
+  private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(
     @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)

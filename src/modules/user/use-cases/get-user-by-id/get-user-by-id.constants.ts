@@ -1,4 +1,3 @@
-export const GET_USER_BY_ID_LOG_CONTEXT = 'GetUserByIdUseCase.execute';
 
 export const GET_USER_BY_ID_LOG_MESSAGES = {
   START_FLOW: 'Starting get user by id flow',

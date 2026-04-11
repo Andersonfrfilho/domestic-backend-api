@@ -3,7 +3,6 @@ import { Test } from '@nestjs/testing';
 
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 import {
-  MARK_NOTIFICATION_READ_LOG_CONTEXT,
   MARK_NOTIFICATION_READ_LOG_MESSAGES,
 } from './mark-notification-read-constants.interface';
 import { MarkNotificationReadUseCase } from './mark-notification-read.use-case';
@@ -40,13 +39,13 @@ describe('MarkNotificationReadUseCase', () => {
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: MARK_NOTIFICATION_READ_LOG_MESSAGES.START_FLOW,
-        context: MARK_NOTIFICATION_READ_LOG_CONTEXT,
+        context: 'MarkNotificationReadUseCase.execute',
       }),
     );
     expect(mockLogProvider.info).toHaveBeenCalledWith(
       expect.objectContaining({
         message: MARK_NOTIFICATION_READ_LOG_MESSAGES.MARKED_SUCCESS,
-        context: MARK_NOTIFICATION_READ_LOG_CONTEXT,
+        context: 'MarkNotificationReadUseCase.execute',
       }),
     );
   });
