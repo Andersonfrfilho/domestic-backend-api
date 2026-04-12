@@ -258,4 +258,48 @@ describe('Users Controller (e2e)', () => {
       expect(response.statusCode).toBe(404);
     });
   });
+
+  // ── DELETE /users/me/addresses/:addressId ────────────────────────────────
+
+  describe('DELETE /users/me/addresses/:addressId', () => {
+    it('should remove address from user and return 204', async () => {
+      const keycloakId = faker.string.uuid();
+      await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: { fullName: faker.person.fullName(), keycloakId },
+      });
+
+      const addRes = await app.inject({
+        method: 'POST',
+        url: '/users/me/addresses',
+        headers: { 'x-user-id': keycloakId },
+        payload: {
+          street: faker.location.street(),
+          number: '100',
+          neighborhood: 'Centro',
+          city: faker.location.city(),
+          state: 'SP',
+          zipCode: '01310100',
+        },
+      });
+      const address = JSON.parse(addRes.body);
+
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/me/addresses/${address.id}`,
+        headers: { 'x-user-id': keycloakId },
+      });
+      expect(response.statusCode).toBe(204);
+    });
+
+    it('should return 404 for non-existent address', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/users/me/addresses/${NON_EXISTENT_UUID}`,
+        headers: { 'x-user-id': faker.string.uuid() },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
 });

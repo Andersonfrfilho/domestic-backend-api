@@ -1,53 +1,15 @@
 import { faker } from '@faker-js/faker';
-import { Test } from '@nestjs/testing';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { AppModule } from '../../../src/app.module';
-import { ApiAuthGuard, RolesGuard } from '@adatechnology/auth-keycloak';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
-import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
+
+import { closeApp, createApp } from '../helpers/create-app.helper';
 
 describe('NotificationController (e2e)', () => {
   let app: NestFastifyApplication;
-    let mockLogProvider: any;
-
   let userKeycloakId: string;
   const NON_EXISTENT_UUID = faker.string.uuid();
 
   beforeAll(async () => {
-    mockLogProvider = {
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      debug: jest.fn(),
-    };
-
-    const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(LOGGER_PROVIDER)
-      .useValue(mockLogProvider)
-      .overrideGuard(ApiAuthGuard)
-      .useValue({
-        canActivate: () => true,
-      })
-      .overrideGuard(RolesGuard)
-      .useValue({
-        canActivate: () => true,
-      })
-      .overrideProvider(AmqpConnection)
-      .useValue({
-        publish: jest.fn(),
-        request: jest.fn(),
-        send: jest.fn(),
-      })
-      .compile();
-
-    app = moduleRef.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
-
-    await app.init();
-    await app.getHttpAdapter().getInstance().ready();
+    app = await createApp();
 
     userKeycloakId = faker.string.uuid();
 
@@ -62,7 +24,7 @@ describe('NotificationController (e2e)', () => {
   }, 60000);
 
   afterAll(async () => {
-    await app.close();
+    await closeApp(app);
   });
 
   // ─────────────────────────────────────────────

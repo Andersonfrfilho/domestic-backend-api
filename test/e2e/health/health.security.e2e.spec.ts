@@ -1,43 +1,17 @@
 import { faker } from '@faker-js/faker';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { Test, TestingModule } from '@nestjs/testing';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
 
-import { LOG_PROVIDER } from '@modules/shared/infrastructure/providers/log/log.token';
-import { AppModule } from '../../../src/app.module';
+import { closeApp, createApp } from '../helpers/create-app.helper';
 
 describe('Health Module - Security E2E Tests', () => {
   let app: NestFastifyApplication;
 
-  const mockLogProvider = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  };
-
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    })
-      .overrideProvider(LOG_PROVIDER)
-      .useValue(mockLogProvider)
-      .compile();
-
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
-    await app.init();
+    app = await createApp();
   });
 
   afterAll(async () => {
-    try {
-      await app.close();
-    } catch (error) {
-      // Silently ignore DataSource not found errors (TypeORM cleanup issue with MONGO_URI)
-      if ((error as Error).message?.includes('DataSource')) {
-        console.warn('⚠️  DataSource cleanup error (expected with MONGO_URI)');
-      } else {
-        throw error;
-      }
-    }
+    await closeApp(app);
   });
 
   describe('Health Endpoint Security - Input Validation', () => {

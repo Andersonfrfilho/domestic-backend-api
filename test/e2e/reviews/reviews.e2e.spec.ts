@@ -8,16 +8,104 @@ describe('Reviews Controller (e2e)', () => {
   const NON_EXISTENT_UUID = faker.string.uuid();
   let contractorKeycloakId: string;
 
+  let serviceRequestId: string;
+  let providerId: string;
+
   beforeAll(async () => {
     app = await createApp();
 
+    // 1. Create contractor
     contractorKeycloakId = faker.string.uuid();
-    await app.inject({
+    const contractorRes = await app.inject({
       method: 'POST',
       url: '/users',
       payload: { fullName: faker.person.fullName(), keycloakId: contractorKeycloakId },
     });
-  }, 60000);
+    const contractorId = JSON.parse(contractorRes.body).id;
+
+    // 2. Add address to contractor
+    const addrRes = await app.inject({
+      method: 'POST',
+      url: '/users/me/addresses',
+      headers: { 'x-user-id': contractorKeycloakId },
+      payload: {
+        street: 'Avenida Paulista',
+        number: '123',
+        neighborhood: 'Centro',
+        city: 'São Paulo',
+        state: 'SP',
+        zipCode: '01310100',
+      },
+    });
+    const addressId = JSON.parse(addrRes.body).id;
+
+    // 3. Create provider
+    const providerKeycloakId = faker.string.uuid();
+    const providerUserRes = await app.inject({
+      method: 'POST',
+      url: '/users',
+      payload: { fullName: faker.person.fullName(), keycloakId: providerKeycloakId },
+    });
+    const providerUserId = JSON.parse(providerUserRes.body).id;
+
+    const providerProfileRes = await app.inject({
+      method: 'POST',
+      url: '/providers',
+      payload: { userId: providerUserId, businessName: faker.company.name() },
+    });
+    providerId = JSON.parse(providerProfileRes.body).id;
+
+    // Approve provider
+    await app.inject({
+      method: 'POST',
+      url: `/providers/${providerId}/verification`,
+      headers: { 'x-user-id': providerKeycloakId },
+    });
+    await app.inject({
+      method: 'PUT',
+      url: `/providers/${providerId}/verification/approve`,
+      headers: { 'x-user-id': faker.string.uuid() },
+    });
+
+    // 4. Create category & service
+    const catRes = await app.inject({
+      method: 'POST',
+      url: '/categories',
+      payload: { name: faker.word.noun(), slug: `rev-cat-${faker.string.alphanumeric(8).toLowerCase()}` },
+    });
+    const catId = JSON.parse(catRes.body).id;
+
+    const svcRes = await app.inject({
+      method: 'POST',
+      url: '/services',
+      payload: { categoryId: catId, name: faker.word.noun() },
+    });
+    const serviceId = JSON.parse(svcRes.body).id;
+
+    // 5. Create Service Request
+    const srRes = await app.inject({
+      method: 'POST',
+      url: '/service-requests',
+      headers: { 'x-user-id': contractorKeycloakId },
+      payload: { providerId, serviceId, addressId, scheduledAt: new Date(Date.now() + 86400000).toISOString() },
+    });
+    serviceRequestId = JSON.parse(srRes.body).id;
+
+    // Accept SR
+    await app.inject({
+      method: 'PUT',
+      url: `/service-requests/${serviceRequestId}/accept`,
+      headers: { 'x-user-id': providerKeycloakId },
+    });
+
+    // Complete SR
+    await app.inject({
+      method: 'PUT',
+      url: `/service-requests/${serviceRequestId}/complete`,
+      headers: { 'x-user-id': contractorKeycloakId },
+    });
+
+  }, 90000);
 
   afterAll(async () => {
     await closeApp(app);
@@ -88,6 +176,19 @@ describe('Reviews Controller (e2e)', () => {
       });
       expect(response.statusCode).toBeGreaterThanOrEqual(400);
       expect(response.statusCode).toBeLessThan(500);
+    });
+
+    it('should create a review successfully and return 201', async () => {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/reviews',
+        headers: { 'x-user-id': contractorKeycloakId },
+        payload: { serviceRequestId, rating: 5, comment: 'Excellent service!' },
+      });
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body);
+      expect(body).toHaveProperty('id');
+      expect(body.rating).toBe(5);
     });
   });
 });

@@ -163,8 +163,8 @@ describe('Service Requests Controller (e2e)', () => {
           scheduledAt: new Date(Date.now() + 86400000).toISOString(),
         },
       });
-      // Accept 201 or 400 (provider may not be approved in test env)
-      expect([201, 400]).toContain(response.statusCode);
+      expect(response.statusCode).toBe(201);
+      (global as any).__srId = JSON.parse(response.body).id;
     });
   });
 
@@ -177,6 +177,16 @@ describe('Service Requests Controller (e2e)', () => {
         url: `/service-requests/${NON_EXISTENT_UUID}`,
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should return service request by ID', async () => {
+      const srId = (global as any).__srId;
+      const response = await app.inject({
+        method: 'GET',
+        url: `/service-requests/${srId}`,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).id).toBe(srId);
     });
   });
 
@@ -191,6 +201,17 @@ describe('Service Requests Controller (e2e)', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('should accept the service request', async () => {
+      const srId = (global as any).__srId;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/service-requests/${srId}/accept`,
+        headers: { 'x-user-id': providerKeycloakId },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).status).toBe('ACCEPTED');
+    });
   });
 
   // ── PUT /service-requests/:id/reject ──────────────────────────────────────
@@ -203,6 +224,30 @@ describe('Service Requests Controller (e2e)', () => {
         headers: { 'x-user-id': providerKeycloakId },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should reject a new service request', async () => {
+      // Create a second request to reject
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/service-requests',
+        headers: { 'x-user-id': contractorKeycloakId },
+        payload: {
+          providerId,
+          serviceId,
+          addressId: contractorAddressId,
+          scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+        },
+      });
+      const newSrId = JSON.parse(createRes.body).id;
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/service-requests/${newSrId}/reject`,
+        headers: { 'x-user-id': providerKeycloakId },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).status).toBe('REJECTED');
     });
   });
 
@@ -217,6 +262,17 @@ describe('Service Requests Controller (e2e)', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('should complete the service request', async () => {
+      const srId = (global as any).__srId;
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/service-requests/${srId}/complete`,
+        headers: { 'x-user-id': contractorKeycloakId },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).status).toBe('COMPLETED');
+    });
   });
 
   // ── PUT /service-requests/:id/cancel ──────────────────────────────────────
@@ -229,6 +285,30 @@ describe('Service Requests Controller (e2e)', () => {
         headers: { 'x-user-id': contractorKeycloakId },
       });
       expect(response.statusCode).toBe(404);
+    });
+
+    it('should cancel a new service request', async () => {
+      // Create a third request to cancel
+      const createRes = await app.inject({
+        method: 'POST',
+        url: '/service-requests',
+        headers: { 'x-user-id': contractorKeycloakId },
+        payload: {
+          providerId,
+          serviceId,
+          addressId: contractorAddressId,
+          scheduledAt: new Date(Date.now() + 86400000).toISOString(),
+        },
+      });
+      const thirdSrId = JSON.parse(createRes.body).id;
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/service-requests/${thirdSrId}/cancel`,
+        headers: { 'x-user-id': contractorKeycloakId },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).status).toBe('CANCELLED');
     });
   });
 });

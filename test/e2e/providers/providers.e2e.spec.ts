@@ -14,13 +14,14 @@ describe('Providers Controller (e2e)', () => {
   beforeAll(async () => {
     app = await createApp();
 
-    // Create a user
+    const keycloakId = faker.string.uuid();
     const userRes = await app.inject({
       method: 'POST',
       url: '/users',
-      payload: { fullName: faker.person.fullName(), keycloakId: faker.string.uuid() },
+      payload: { fullName: faker.person.fullName(), keycloakId },
     });
     userId = JSON.parse(userRes.body).id;
+    (global as any).__providerKeycloakId = keycloakId;
 
     // Create a category + service for add-service tests
     const catRes = await app.inject({
@@ -103,6 +104,27 @@ describe('Providers Controller (e2e)', () => {
       });
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body)).toBeInstanceOf(Array);
+    });
+  });
+
+  // ── GET /providers/user/:userId ───────────────────────────────────────────
+
+  describe('GET /providers/user/:userId', () => {
+    it('should return 404 for non-existent user ID', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/providers/user/${NON_EXISTENT_UUID}`,
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should return provider by user ID', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/providers/user/${userId}`,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).id).toBe(providerId);
     });
   });
 
@@ -205,6 +227,14 @@ describe('Providers Controller (e2e)', () => {
       });
       expect(response.statusCode).toBe(404);
     });
+
+    it('should remove linked service and return 204', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/providers/${providerId}/services/${serviceId}`,
+      });
+      expect(response.statusCode).toBe(204);
+    });
   });
 
   // ── GET /providers/:id/work-locations ─────────────────────────────────────
@@ -240,6 +270,54 @@ describe('Providers Controller (e2e)', () => {
       });
       expect(response.statusCode).toBeGreaterThanOrEqual(400);
       expect(response.statusCode).toBeLessThan(600);
+    });
+
+    it('should add work location successfully', async () => {
+      // First, create an address for the user
+      const keycloakId = (global as any).__providerKeycloakId;
+      const addrRes = await app.inject({
+        method: 'POST',
+        url: '/users/me/addresses',
+        headers: { 'x-user-id': keycloakId },
+        payload: {
+          street: faker.location.street(),
+          number: '123',
+          neighborhood: 'Centro',
+          city: faker.location.city(),
+          state: 'SP',
+          zipCode: '00000000',
+        },
+      });
+      const addressId = JSON.parse(addrRes.body).id;
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/providers/${providerId}/work-locations`,
+        payload: { addressId },
+      });
+      expect([200, 201]).toContain(response.statusCode);
+      (global as any).__providerLocationId = JSON.parse(response.body).id;
+    });
+  });
+
+  // ── DELETE /providers/:id/work-locations/:locationId ──────────────────────
+
+  describe('DELETE /providers/:id/work-locations/:locationId', () => {
+    it('should return 404 for non-existent work location', async () => {
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/providers/${providerId}/work-locations/${NON_EXISTENT_UUID}`,
+      });
+      expect(response.statusCode).toBe(404);
+    });
+
+    it('should remove work location and return 204', async () => {
+      const locationId = (global as any).__providerLocationId;
+      const response = await app.inject({
+        method: 'DELETE',
+        url: `/providers/${providerId}/work-locations/${locationId}`,
+      });
+      expect(response.statusCode).toBe(204);
     });
   });
 
@@ -281,6 +359,75 @@ describe('Providers Controller (e2e)', () => {
         url: `/providers/${providerId}/verification`,
       });
       expect(response.statusCode).toBe(200);
+    });
+  });
+
+  // ── PUT /providers/:id/verification/approve ───────────────────────────────
+
+  describe('PUT /providers/:id/verification/approve', () => {
+    it('should approve a provider profile', async () => {
+      // First ensure it's UNDER_REVIEW
+      await app.inject({
+        method: 'POST',
+        url: `/providers/${providerId}/verification`,
+        headers: { 'x-user-id': faker.string.uuid() },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/providers/${providerId}/verification/approve`,
+        headers: { 'x-user-id': faker.string.uuid() }, // Admin ID
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.status).toBe('APPROVED');
+    });
+
+    it('should return 404 for non-existent provider', async () => {
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/providers/${NON_EXISTENT_UUID}/verification/approve`,
+        headers: { 'x-user-id': faker.string.uuid() },
+      });
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  // ── PUT /providers/:id/verification/reject ────────────────────────────────
+
+  describe('PUT /providers/:id/verification/reject', () => {
+    it('should reject a provider profile', async () => {
+      // Create another provider to reject
+      const userRes = await app.inject({
+        method: 'POST',
+        url: '/users',
+        payload: { fullName: faker.person.fullName(), keycloakId: faker.string.uuid() },
+      });
+      const newUserId = JSON.parse(userRes.body).id;
+
+      const provRes = await app.inject({
+        method: 'POST',
+        url: '/providers',
+        payload: { userId: newUserId, businessName: 'To Be Rejected' },
+      });
+      const newProvId = JSON.parse(provRes.body).id;
+
+      // Submit for verification
+      await app.inject({
+        method: 'POST',
+        url: `/providers/${newProvId}/verification`,
+        headers: { 'x-user-id': faker.string.uuid() },
+      });
+
+      const response = await app.inject({
+        method: 'PUT',
+        url: `/providers/${newProvId}/verification/reject`,
+        headers: { 'x-user-id': faker.string.uuid() },
+        payload: { reason: 'Invalid documents' },
+      });
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.status).toBe('REJECTED');
     });
   });
 });
