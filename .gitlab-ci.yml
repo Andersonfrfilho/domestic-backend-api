@@ -50,12 +50,28 @@ test:
   stage: test
   image: node:18-alpine
   services:
-    - postgres:16-alpine
+    - name: postgres:16-alpine
+      alias: postgres
+    - name: mongo:6-jammy
+      alias: mongo
+    - name: redis:7-alpine
+      alias: redis
+    - name: rabbitmq:3-management-alpine
+      alias: rabbitmq
+    - name: minio/minio:latest
+      alias: minio
+      command: ["server", "/data"]
   variables:
     POSTGRES_DB: backend_db_test_e2e
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres1234
     POSTGRES_HOST_AUTH_METHOD: trust
+    DATABASE_POSTGRES_TEST_E2E_HOST: postgres
+    MONGO_URI_TEST_E2E: mongodb://mongo:27017/backend_test_e2e
+    REDIS_HOST_TEST_E2E: redis
+    RABBITMQ_URI_TEST_E2E: amqp://backend-api:backendapi123@rabbitmq:5672
+    MINIO_ENDPOINT_TEST_E2E: minio
+    MINIO_PORT_TEST_E2E: '9000'
   before_script:
     - apk add --no-cache postgresql-client bash
     - npm ci --cache .npm --prefer-offline
