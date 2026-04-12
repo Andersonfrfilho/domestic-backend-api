@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { ProviderProfile } from './provider-profile.entity';
 import { Service } from './service.entity';
@@ -25,6 +25,15 @@ export class ProviderService {
   @ApiPropertyOptional({ example: 'FIXED', description: 'Tipo de cobrança (HOUR, FIXED, etc.)' })
   @Column({ name: 'price_type', nullable: true })
   priceType: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   @ManyToOne(() => ProviderProfile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'provider_id' })

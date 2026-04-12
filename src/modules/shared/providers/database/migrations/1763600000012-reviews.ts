@@ -19,6 +19,8 @@ export default class Reviews1763600000012 implements MigrationInterface {
           { name: 'rating', type: 'int' },
           { name: 'comment', type: 'text', isNullable: true },
           { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,

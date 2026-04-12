@@ -15,9 +15,29 @@
 
 import { runAll, type Flow } from './lib/runner.ts';
 import userFlows from './user.flow.ts';
+import phoneFlows from './phone.flow.ts';
+import emailFlows from './email.flow.ts';
+import healthFlows from './health.flow.ts';
+import categoryFlows from './category.flow.ts';
+import serviceFlows from './service.flow.ts';
+import providerFlows from './provider.flow.ts';
+import serviceRequestFlows from './service-request.flow.ts';
+import reviewFlows from './review.flow.ts';
+import documentFlows from './document.flow.ts';
+import notificationFlows from './notification.flow.ts';
 
 const MODULES: Record<string, Flow[]> = {
   user: userFlows,
+  phone: phoneFlows,
+  email: emailFlows,
+  health: healthFlows,
+  category: categoryFlows,
+  service: serviceFlows,
+  provider: providerFlows,
+  'service-request': serviceRequestFlows,
+  review: reviewFlows,
+  document: documentFlows,
+  notification: notificationFlows,
 };
 
 async function main(): Promise<void> {

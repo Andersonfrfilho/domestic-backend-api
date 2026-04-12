@@ -41,6 +41,7 @@ import {
 export interface ProviderServiceInterface {
   create(params: CreateProviderUseCaseParams): Promise<ProviderProfile>;
   findById(id: string): Promise<ProviderProfile>;
+  findByUserId(userId: string): Promise<ProviderProfile | null>;
   list(): Promise<ProviderProfile[]>;
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile>;
   addService(params: AddProviderServiceUseCaseParams): Promise<ProviderServiceEntity>;
@@ -95,6 +96,10 @@ export class ProviderService implements ProviderServiceInterface {
 
   findById(id: string): Promise<ProviderProfile> {
     return this.getByIdUseCase.execute({ id });
+  }
+
+  findByUserId(userId: string): Promise<ProviderProfile | null> {
+    return this.providerRepository.findByUserId(userId);
   }
 
   list(): Promise<ProviderProfile[]> {

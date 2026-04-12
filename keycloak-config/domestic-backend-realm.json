@@ -462,7 +462,8 @@
         "user-manager",
         "manage-requests",
         "manage-services",
-        "manage-reviews"
+        "manage-reviews",
+        "document-verifier"
       ],
       "groups": [
         "providers"

@@ -13,7 +13,7 @@ export default class UpdatePhones1763600000018 implements MigrationInterface {
       }
     }
 
-    const columnsToDrop = ['country', 'area', 'user_id', 'updated_at', 'deleted_at'];
+    const columnsToDrop = ['country', 'area', 'user_id'];
     for (const col of columnsToDrop) {
       const hasColumn = await queryRunner.hasColumn('phones', col);
       if (hasColumn) {
@@ -59,8 +59,6 @@ export default class UpdatePhones1763600000018 implements MigrationInterface {
       new TableColumn({ name: 'country', type: 'varchar', isNullable: true }),
       new TableColumn({ name: 'area', type: 'varchar', isNullable: true }),
       new TableColumn({ name: 'user_id', type: 'uuid', isNullable: true }),
-      new TableColumn({ name: 'updated_at', type: 'timestamp', isNullable: true }),
-      new TableColumn({ name: 'deleted_at', type: 'timestamp', isNullable: true }),
     ]);
   }
 }

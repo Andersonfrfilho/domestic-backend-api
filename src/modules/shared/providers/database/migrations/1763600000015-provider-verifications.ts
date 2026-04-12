@@ -33,6 +33,7 @@ export default class ProviderVerifications1763600000015 implements MigrationInte
           },
           { name: 'notes', type: 'text', isNullable: true },
           { name: 'updated_at', type: 'timestamp', isNullable: true },
+          { name: 'deleted_at', type: 'timestamp', isNullable: true },
         ],
       }),
       true,

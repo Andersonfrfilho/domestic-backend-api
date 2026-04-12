@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, ObjectId, ObjectIdColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('notifications')
 export class Notification {
@@ -31,10 +31,13 @@ export class Notification {
   read: boolean;
 
   @ApiProperty({ example: '2026-04-04T10:00:00Z' })
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
   createdAt: Date;
 
   @ApiProperty({ example: '2026-04-04T10:00:00Z' })
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt: Date;
+  @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deletedAt', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 }

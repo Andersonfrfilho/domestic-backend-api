@@ -1,4 +1,4 @@
-import { AuthUser, B2CGuard, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { AuthUser, B2CGuard } from '@adatechnology/auth-keycloak';
 import { Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
@@ -10,7 +10,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ROLES } from '@modules/shared/constants';
 import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
@@ -29,8 +28,7 @@ export class DocumentController {
   ) {}
 
   @Post()
-  @Roles(ROLES.DOCUMENT.VERIFIER)
-  @UseGuards(B2CGuard, RolesGuard)
+  @UseGuards(B2CGuard)
   @ApiOperation({ summary: 'Upload de documento (PROVIDER)' })
   @ApiHeader({ name: 'X-Access-Token', required: true, description: 'User JWT forwarded by Kong' })
   @ApiConsumes('multipart/form-data')

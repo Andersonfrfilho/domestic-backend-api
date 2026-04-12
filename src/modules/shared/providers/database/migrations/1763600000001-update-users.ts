@@ -72,8 +72,6 @@ export default class UpdateUsers1763600000001 implements MigrationInterface {
       new TableColumn({ name: 'gender', type: 'varchar', isNullable: true }),
       new TableColumn({ name: 'details', type: 'jsonb', isNullable: true }),
       new TableColumn({ name: 'birth_date', type: 'timestamp', isNullable: true }),
-      new TableColumn({ name: 'updated_at', type: 'timestamp', isNullable: true }),
-      new TableColumn({ name: 'deleted_at', type: 'timestamp', isNullable: true }),
     ]);
   }
 }

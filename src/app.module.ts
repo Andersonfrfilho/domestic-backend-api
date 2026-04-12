@@ -17,7 +17,9 @@ import * as tsConfig from '../tsconfig.json';
 
 import { CategoryModule } from './modules/category/category.module';
 import { DocumentModule } from './modules/document/document.module';
+import { EmailModule } from './modules/email/email.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { PhoneModule } from './modules/phone/phone.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { ReviewModule } from './modules/review/review.module';
 import { ServiceModule } from './modules/service/service.module';
@@ -51,6 +53,8 @@ tsConfigPathsRegister({
     ErrorModule,
     HealthModule,
     UserModule,
+    PhoneModule,
+    EmailModule,
     CategoryModule,
     ServiceModule,
     ProviderModule,

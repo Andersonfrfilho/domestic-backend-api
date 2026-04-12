@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 import { Phone } from './phone.entity';
 import { ProviderProfile } from './provider-profile.entity';
@@ -19,6 +19,15 @@ export class ProviderPhone {
 
   @Column({ name: 'is_primary', default: false })
   isPrimary: boolean;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp', nullable: true })
+  updatedAt: Date | null;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
+  deletedAt: Date | null;
 
   @ManyToOne(() => ProviderProfile, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'provider_id' })

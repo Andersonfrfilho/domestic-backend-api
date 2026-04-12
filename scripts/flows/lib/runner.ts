@@ -39,6 +39,7 @@ export interface Flow<Ctx extends object = Record<string, unknown>> {
   name: string;
   setup?: (ctx: Ctx) => Promise<void>;
   steps: FlowStep<Ctx>[];
+  teardown?: (ctx: Ctx) => Promise<void>;
 }
 
 export async function request(
@@ -46,13 +47,24 @@ export async function request(
   path: string,
   { body, headers = {} }: { body?: unknown; headers?: Record<string, string> } = {},
 ): Promise<RequestResponse> {
-  const url = `${BASE_URL}${path}`;
-  const baseHeaders: Record<string, string> = body ? { 'Content-Type': 'application/json' } : {};
+  const url = path.startsWith('http') ? path : `${BASE_URL}${path}`;
+
+  let reqBody: BodyInit | undefined;
+  let baseHeaders: Record<string, string> = {};
+
+  if (body instanceof FormData) {
+    reqBody = body;
+    // Content-Type is set automatically by fetch (includes boundary)
+  } else if (body !== undefined) {
+    reqBody = JSON.stringify(body);
+    baseHeaders = { 'Content-Type': 'application/json' };
+  }
+
   const opts: RequestInit = {
     method,
     headers: { ...baseHeaders, ...headers },
+    body: reqBody,
   };
-  if (body) opts.body = JSON.stringify(body);
 
   const start = Date.now();
   const res = await fetch(url, opts);
@@ -96,7 +108,8 @@ export async function runFlow<Ctx extends object>(flow: Flow<Ctx>): Promise<{ pa
     let res: RequestResponse;
     try {
       const req = step.request(ctx);
-      console.log(`  ${DIM}${req.method} ${BASE_URL}${req.path}${RESET}`);
+      const url = req.path.startsWith('http') ? req.path : `${BASE_URL}${req.path}`;
+      console.log(`  ${DIM}${req.method} ${url}${RESET}`);
       res = await request(req.method, req.path, { body: req.body, headers: req.headers });
       console.log(`  ${DIM}${res.status} — ${res.ms}ms${RESET}`);
     } catch (err) {
@@ -127,6 +140,11 @@ export async function runFlow<Ctx extends object>(flow: Flow<Ctx>): Promise<{ pa
       failed++;
       break;
     }
+  }
+
+  if (flow.teardown) {
+    try { await flow.teardown(ctx); }
+    catch (err) { console.log(`  ${warn(`Teardown error: ${(err as Error).message}`)}`); }
   }
 
   console.log(`\n${'─'.repeat(50)}`);

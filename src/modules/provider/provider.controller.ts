@@ -68,6 +68,14 @@ export class ProviderController {
     return this.providerService.listPending();
   }
 
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Buscar prestador pelo ID do usuário' })
+  @ApiOkResponse({ type: ProviderProfile })
+  @ApiNotFoundResponse({ description: 'Prestador não encontrado' })
+  async findByUserId(@Param('userId') userId: string): Promise<ProviderProfile | null> {
+    return this.providerService.findByUserId(userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar prestador por ID' })
   @ApiOkResponse({ type: ProviderProfile })
