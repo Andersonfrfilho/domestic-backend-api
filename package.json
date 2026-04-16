@@ -44,7 +44,8 @@
     "flows:service-request": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts service-request",
     "flows:review": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts review",
     "flows:document": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts document",
-    "flows:notification": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts notification"
+    "flows:notification": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/flows/index.ts notification",
+    "seed": "DOTENV_CONFIG_PATH=.env.dev.local ts-node -r tsconfig-paths/register -r dotenv/config scripts/seeds/index.ts"
   },
   "dependencies": {
     "@adatechnology/auth-keycloak": "^0.1.3",
