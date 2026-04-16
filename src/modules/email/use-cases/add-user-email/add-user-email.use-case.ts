@@ -3,16 +3,13 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
-import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 import { type UserRepositoryInterface } from '@modules/user/user.repository.interface';
+import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
-import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { type EmailRepositoryInterface } from '../../email.repository.interface';
+import { EMAIL_REPOSITORY_PROVIDE, USER_EMAIL_REPOSITORY_PROVIDE } from '../../email.token';
+import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { type UserEmailRepositoryInterface } from '../../user-email.repository.interface';
-import {
-  EMAIL_REPOSITORY_PROVIDE,
-  USER_EMAIL_REPOSITORY_PROVIDE,
-} from '../../email.token';
 
 import { ADD_USER_EMAIL_LOG_MESSAGES } from './add-user-email.constants';
 import {
@@ -56,7 +53,10 @@ export class AddUserEmailUseCase implements AddUserEmailUseCaseInterface {
     let email = await this.emailRepository.findByEmail(params.email);
 
     if (email) {
-      const existing = await this.userEmailRepository.findByUserIdAndEmailId(params.userId, email.id);
+      const existing = await this.userEmailRepository.findByUserIdAndEmailId(
+        params.userId,
+        email.id,
+      );
       if (existing) {
         this.logProvider.warn({
           message: ADD_USER_EMAIL_LOG_MESSAGES.EMAIL_ALREADY_EXISTS,

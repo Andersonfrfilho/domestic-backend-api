@@ -33,7 +33,7 @@ export class HealthService {
       this.logProvider.warn({
         message: 'Database health check failed',
         context: 'HealthService.checkDatabase',
-        params: { error: err?.message },
+        meta: { error: err?.message },
       });
       return { status: 'down', details: { error: err?.message } };
     }
@@ -58,7 +58,7 @@ export class HealthService {
       this.logProvider.warn({
         message: 'Redis health check failed',
         context: 'HealthService.checkRedis',
-        params: { error: err?.message },
+        meta: { error: err?.message },
       });
       return { status: 'down', details: { error: err?.message } };
     }

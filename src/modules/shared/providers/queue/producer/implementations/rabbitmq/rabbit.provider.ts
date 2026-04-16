@@ -151,7 +151,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
         message: `Message sent successfully: ${messageId} to exchange '${exchange}' with routing key '${routingKey}'`,
         context: 'RabbitMQMessageProducer.send',
         requestId: message.metadata?.correlationId,
-        params: { messageId, exchange, routingKey, queueName },
+        meta: { messageId, exchange, routingKey, queueName },
       });
       return result;
     } catch (error) {
@@ -168,7 +168,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
         message: `Failed to send message ${messageId} to ${queueName}`,
         context: 'RabbitMQMessageProducer.send',
         requestId: message.metadata?.correlationId,
-        params: { messageId, queueName, error: error.message },
+        meta: { messageId, queueName, error: error.message },
       });
       return result;
     }
@@ -234,7 +234,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
       this.logger.error({
         message: `Batch send failed for queue ${queueName}`,
         context: 'RabbitMQMessageProducer.sendBatch',
-        params: { queueName, error: error.message, totalMessages: messages.length },
+        meta: { queueName, error: error.message, totalMessages: messages.length },
       });
 
       return {
@@ -377,14 +377,14 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
       this.logger.info({
         message: `Purge queue requested for ${queueName}`,
         context: 'RabbitMQMessageProducer.purgeQueue',
-        params: { queueName },
+        meta: { queueName },
       });
       return Promise.resolve(0);
     } catch (error) {
       this.logger.error({
         message: `Failed to purge queue ${queueName}`,
         context: 'RabbitMQMessageProducer.purgeQueue',
-        params: { queueName, error: error.message },
+        meta: { queueName, error: error.message },
       });
       return Promise.resolve(0);
     }
@@ -403,14 +403,14 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
       this.logger.info({
         message: `Producer ${this.producerId} closed`,
         context: 'RabbitMQMessageProducer.close',
-        params: { producerId: this.producerId },
+        meta: { producerId: this.producerId },
       });
       return Promise.resolve();
     } catch (error) {
       this.logger.error({
         message: `Error closing producer ${this.producerId}`,
         context: 'RabbitMQMessageProducer.close',
-        params: { producerId: this.producerId, error: error.message },
+        meta: { producerId: this.producerId, error: error.message },
       });
       return Promise.resolve();
     }
@@ -421,7 +421,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
     this.logger.info({
       message: `Producer ${this.producerId} reconnected`,
       context: 'RabbitMQMessageProducer.reconnect',
-      params: { producerId: this.producerId },
+      meta: { producerId: this.producerId },
     });
     return Promise.resolve();
   }
@@ -435,7 +435,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
     this.logger.debug({
       message: `Event listener added for ${event}`,
       context: 'RabbitMQMessageProducer.on',
-      params: { event, producerId: this.producerId },
+      meta: { event, producerId: this.producerId },
     });
   }
 
@@ -448,7 +448,7 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
     this.logger.debug({
       message: `Event listener removed for ${event}`,
       context: 'RabbitMQMessageProducer.off',
-      params: { event, producerId: this.producerId },
+      meta: { event, producerId: this.producerId },
     });
   }
 

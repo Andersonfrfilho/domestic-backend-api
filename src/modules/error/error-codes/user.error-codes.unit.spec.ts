@@ -43,7 +43,7 @@ describe('UserErrorCode - Unit Tests', () => {
   describe('enum structure', () => {
     it('should have all expected error codes', () => {
       const codes = Object.values(UserErrorCode);
-      expect(codes).toHaveLength(9);
+      expect(codes).toHaveLength(11);
       expect(codes).toContain('DUPLICATE_EMAIL');
       expect(codes).toContain('DUPLICATE_CPF');
       expect(codes).toContain('DUPLICATE_RG');
@@ -51,8 +51,10 @@ describe('UserErrorCode - Unit Tests', () => {
       expect(codes).toContain('USER_NOT_FOUND');
       expect(codes).toContain('INVALID_PASSWORD');
       expect(codes).toContain('ACCOUNT_DISABLED');
+      expect(codes).toContain('ACCOUNT_DELETED');
       expect(codes).toContain('EMAIL_NOT_VERIFIED');
       expect(codes).toContain('INVALID_USER_TYPE');
+      expect(codes).toContain('USER_NOT_DELETED');
     });
   });
 });
