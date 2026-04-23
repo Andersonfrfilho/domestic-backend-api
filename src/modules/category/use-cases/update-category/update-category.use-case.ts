@@ -63,7 +63,7 @@ export class UpdateCategoryUseCase implements UpdateCategoryUseCaseInterface {
     }
 
     const updated = await this.categoryRepository.update(id, updateData);
-    await this.cacheProvider.del(CACHE_KEY).catch(() => null);
+    await this.cacheProvider.del({ key: CACHE_KEY }).catch(() => null);
 
     this.logProvider.info({
       message: UPDATE_CATEGORY_LOG_MESSAGES.UPDATED_SUCCESS,

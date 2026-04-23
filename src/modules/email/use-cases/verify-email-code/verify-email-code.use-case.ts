@@ -62,7 +62,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     }
 
     const cacheKey = `email:verification:${params.userEmailId}`;
-    const storedCode = await this.cacheProvider.get<string>(cacheKey);
+    const storedCode = await this.cacheProvider.get<string>({ key: cacheKey });
 
     this.logProvider.info({
       message: VERIFY_EMAIL_CODE_LOG_MESSAGES.CODE_RECEIVED,
@@ -88,7 +88,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
       throw EmailErrorFactory.invalidCode();
     }
 
-    await this.cacheProvider.del(cacheKey);
+    await this.cacheProvider.del({ key: cacheKey });
     await this.emailRepository.update(userEmail.emailId, { isVerified: true });
 
     const updated = await this.userEmailRepository.findById(params.userEmailId);

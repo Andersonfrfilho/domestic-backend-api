@@ -36,7 +36,7 @@ export class ListCategoriesUseCase implements ListCategoriesUseCaseInterface {
       context: this.logContext,
     });
 
-    const cached = await this.cacheProvider.get<ListCategoriesUseCaseResponse>(CACHE_KEY);
+    const cached = await this.cacheProvider.get<ListCategoriesUseCaseResponse>({ key: CACHE_KEY });
     if (cached) {
       this.logProvider.info({
         message: LIST_CATEGORIES_LOG_MESSAGES.CACHE_HIT,
@@ -47,7 +47,7 @@ export class ListCategoriesUseCase implements ListCategoriesUseCaseInterface {
     }
 
     const categories = await this.categoryRepository.listActive();
-    await this.cacheProvider.set(CACHE_KEY, categories, CACHE_TTL);
+    await this.cacheProvider.set({ key: CACHE_KEY, value: categories, ttlInSeconds: CACHE_TTL });
 
     this.logProvider.info({
       message: LIST_CATEGORIES_LOG_MESSAGES.DB_FETCHED,

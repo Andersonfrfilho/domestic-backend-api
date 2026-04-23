@@ -45,7 +45,7 @@ export class DeleteCategoryUseCase implements DeleteCategoryUseCaseInterface {
     }
 
     await this.categoryRepository.deactivate(params.id);
-    await this.cacheProvider.del(CACHE_KEY).catch(() => null);
+    await this.cacheProvider.del({ key: CACHE_KEY }).catch(() => null);
 
     this.logProvider.info({
       message: DELETE_CATEGORY_LOG_MESSAGES.DELETED_SUCCESS,

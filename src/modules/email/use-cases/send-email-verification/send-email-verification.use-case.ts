@@ -62,7 +62,7 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
     const code = isProduction ? this.generateRandomCode() : EMAIL_VERIFICATION_DEV_CODE;
     const cacheKey = `email:verification:${params.userEmailId}`;
 
-    await this.cacheProvider.set(cacheKey, code, EMAIL_VERIFICATION_TTL_SECONDS);
+    await this.cacheProvider.set({ key: cacheKey, value: code, ttlInSeconds: EMAIL_VERIFICATION_TTL_SECONDS });
 
     this.logProvider.info({
       message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.CODE_GENERATED,

@@ -46,13 +46,13 @@ export class HealthService {
       // Attempt to set/get a short-lived key. Use 1 second TTL.
       // Some cache providers accept (key, value, ttlSeconds)
       // We'll race with a timeout to avoid hanging.
-      const setPromise = this.cacheProvider.set(key, '1', 1);
+      const setPromise = this.cacheProvider.set({ key, value: '1', ttlInSeconds: 1 });
       await Promise.race([setPromise, timeout({ ms: 800, message: 'redis timeout' })]);
-      const getPromise = this.cacheProvider.get<string>(key);
+      const getPromise = this.cacheProvider.get<string>({ key });
       const val = await Promise.race([getPromise, timeout({ ms: 800, message: 'redis timeout' })]);
       const elapsed = Date.now() - start;
       // best-effort cleanup
-      this.cacheProvider.del(key).catch(() => null);
+      this.cacheProvider.del({ key }).catch(() => null);
       return { status: val ? 'up' : 'down', details: { responseMs: elapsed } };
     } catch (err: any) {
       this.logProvider.warn({

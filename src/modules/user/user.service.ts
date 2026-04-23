@@ -76,7 +76,7 @@ export class UserService implements UserServiceInterface {
         context: `${this.logContext}.createUser`,
         meta: { userId: user?.id ?? null, cacheKey: 'users:list' },
       });
-      await this.cacheProvider.del('users:list');
+      await this.cacheProvider.del({ key: 'users:list' });
       this.logProvider.info({
         message: USER_SERVICE_LOG_MESSAGES.INVALIDATE_CACHE_SUCCESS,
         context: `${this.logContext}.createUser`,
