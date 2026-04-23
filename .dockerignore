@@ -18,3 +18,4 @@ jest.config.*
 .github
 makefile
 make.bat
+*.tsbuildinfo
