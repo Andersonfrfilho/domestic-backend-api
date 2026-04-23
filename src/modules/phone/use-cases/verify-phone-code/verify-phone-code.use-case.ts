@@ -62,7 +62,7 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
     }
 
     const cacheKey = `phone:verification:${params.userPhoneId}`;
-    const storedCode = await this.cacheProvider.get<string>(cacheKey);
+    const storedCode = await this.cacheProvider.get<string>({ key: cacheKey });
 
     this.logProvider.info({
       message: VERIFY_PHONE_CODE_LOG_MESSAGES.DEV_CODE_RECEIVED,
@@ -88,7 +88,7 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
       throw PhoneErrorFactory.invalidCode();
     }
 
-    await this.cacheProvider.del(cacheKey);
+    await this.cacheProvider.del({ key: cacheKey });
     await this.phoneRepository.update(userPhone.phoneId, { isVerified: true });
 
     const updated = await this.userPhoneRepository.findById(params.userPhoneId);

@@ -65,7 +65,7 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
 
     const cacheKey = `phone:verification:${params.userPhoneId}`;
 
-    await this.cacheProvider.set(cacheKey, code, PHONE_VERIFICATION_TTL_SECONDS);
+    await this.cacheProvider.set({ key: cacheKey, value: code, ttlInSeconds: PHONE_VERIFICATION_TTL_SECONDS });
 
     this.logProvider.info({
       message: SEND_PHONE_VERIFICATION_LOG_MESSAGES.CODE_STORED,
