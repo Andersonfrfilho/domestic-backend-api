@@ -322,8 +322,8 @@
           "composites": {
             "client": {
               "realm-management": [
-                "view-realm",
                 "impersonation",
+                "view-realm",
                 "view-events",
                 "manage-users",
                 "query-realms",
@@ -338,8 +338,8 @@
                 "manage-identity-providers",
                 "manage-realm",
                 "view-clients",
-                "view-identity-providers",
-                "query-users"
+                "query-users",
+                "view-identity-providers"
               ]
             }
           },
@@ -747,6 +747,26 @@
       "groups": [
         "/admin"
       ]
+    },
+    {
+      "username": "test.user",
+      "email": "test.user@domestic.local",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "attributes": {},
+      "credentials": [
+        {
+          "type": "password",
+          "value": "10203040",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "contractor"
+      ],
+      "groups": []
     }
   ],
   "scopeMappings": [
@@ -866,7 +886,9 @@
       "publicClient": true,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -881,7 +903,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "argocd-client-secret",
       "redirectUris": [
         "http://argocd.domestic.local/auth/callback"
       ],
@@ -900,6 +922,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
         "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
@@ -946,7 +969,9 @@
       "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -963,7 +988,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "api-client-secret",
       "redirectUris": [
         "http://localhost:8080/*",
         "http://localhost:3000/*"
@@ -1004,11 +1029,26 @@
           "consentRequired": false,
           "config": {
             "user.session.note": "clientAddress",
-            "id.token.claim": "true",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "clientAddress",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "id": "8c05f814-abcb-4a66-bf50-cacd953aa837",
+          "name": "picture",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "picture",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "picture",
+            "userinfo.token.claim": "true"
           }
         },
         {
@@ -1019,11 +1059,27 @@
           "consentRequired": false,
           "config": {
             "user.session.note": "clientHost",
-            "id.token.claim": "true",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "clientHost",
             "jsonType.label": "String"
+          }
+        },
+        {
+          "id": "6e026941-5d14-4ce3-b197-55aa8f260108",
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "groups",
+            "userinfo.token.claim": "true",
+            "multivalued": "true"
           }
         },
         {
@@ -1034,8 +1090,9 @@
           "consentRequired": false,
           "config": {
             "user.session.note": "client_id",
-            "id.token.claim": "true",
             "introspection.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "client_id",
             "jsonType.label": "String"
@@ -1076,7 +1133,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "backend-bff-client-secret",
       "redirectUris": [
         "http://localhost:8080/*",
         "http://localhost:3000/*",
@@ -1146,7 +1203,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "backend-cron-client-secret",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -1188,7 +1245,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "backend-kong-client-secret",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -1242,7 +1299,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "backend-worker-client-secret",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -1282,7 +1339,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "grafana-client-secret",
       "redirectUris": [
         "http://grafana.domestic.local/login/generic_oauth"
       ],
@@ -1301,6 +1358,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
         "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
@@ -1335,7 +1393,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "minio-client-secret",
       "redirectUris": [
         "http://storage.domestic.local/oauth_callback"
       ],
@@ -1354,6 +1412,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
         "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
@@ -1388,7 +1447,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "**********",
+      "secret": "rabbitmq-client-secret",
       "redirectUris": [
         "http://queue.domestic.local/login"
       ],
@@ -1407,6 +1466,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
         "backchannel.logout.revoke.offline.tokens": "false"
       },
       "authenticationFlowBindingOverrides": {},
@@ -1453,7 +1513,9 @@
       "publicClient": false,
       "frontchannelLogout": false,
       "protocol": "openid-connect",
-      "attributes": {},
+      "attributes": {
+        "post.logout.redirect.uris": "+"
+      },
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": false,
       "nodeReRegistrationTimeout": 0,
@@ -1682,14 +1744,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "saml-role-list-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "oidc-usermodel-property-mapper",
-            "saml-user-property-mapper",
             "oidc-address-mapper",
             "saml-user-attribute-mapper",
             "oidc-full-name-mapper",
-            "oidc-sha256-pairwise-sub-mapper"
+            "saml-role-list-mapper",
+            "oidc-usermodel-attribute-mapper",
+            "saml-user-property-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
+            "oidc-usermodel-property-mapper"
           ]
         }
       },
@@ -1701,13 +1763,13 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "saml-user-property-mapper",
             "saml-role-list-mapper",
-            "saml-user-attribute-mapper",
-            "oidc-usermodel-property-mapper",
-            "oidc-usermodel-attribute-mapper",
             "oidc-full-name-mapper",
+            "saml-user-property-mapper",
+            "oidc-usermodel-property-mapper",
             "oidc-address-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-usermodel-attribute-mapper",
             "oidc-sha256-pairwise-sub-mapper"
           ]
         }
@@ -2494,13 +2556,18 @@
   "firstBrokerLoginFlow": "first broker login",
   "attributes": {
     "cibaBackchannelTokenDeliveryMode": "poll",
-    "cibaExpiresIn": "120",
     "cibaAuthRequestedUserHint": "login_hint",
-    "oauth2DeviceCodeLifespan": "600",
+    "clientOfflineSessionMaxLifespan": "0",
     "oauth2DevicePollingInterval": "5",
-    "parRequestUriLifespan": "60",
+    "clientSessionIdleTimeout": "0",
+    "clientOfflineSessionIdleTimeout": "0",
     "cibaInterval": "5",
-    "realmReusableOtpCode": "false"
+    "realmReusableOtpCode": "false",
+    "cibaExpiresIn": "120",
+    "oauth2DeviceCodeLifespan": "600",
+    "parRequestUriLifespan": "60",
+    "clientSessionMaxLifespan": "0",
+    "organizationsEnabled": "false"
   },
   "keycloakVersion": "25.0.6",
   "userManagedAccessAllowed": false,
