@@ -1128,7 +1128,7 @@
       "id": "0408cb57-a1f8-4d81-a500-6c6be89b7460",
       "clientId": "domestic-backend-bff",
       "name": "Domestic Backend BFF",
-      "description": "Backend For Frontend \u2014 valida tokens de usu\u00e1rio e encaminha chamadas B2B ao backend-api",
+      "description": "Backend For Frontend — valida tokens de usuário e encaminha chamadas B2B ao backend-api",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
@@ -1240,7 +1240,7 @@
       "id": "967292a7-5b15-49e3-9601-d2cc76c000ec",
       "clientId": "domestic-backend-kong",
       "name": "Domestic Backend Kong",
-      "description": "Kong API Gateway \u2014 service account para autenticar chamadas upstream ao BFF e API",
+      "description": "Kong API Gateway — service account para autenticar chamadas upstream ao BFF e API",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
@@ -1575,6 +1575,44 @@
       ],
       "defaultClientScopes": [],
       "optionalClientScopes": []
+    },
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "clientId": "kong-manager",
+      "name": "Kong Manager",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "kong-manager-client-secret",
+      "redirectUris": [
+        "http://kong-manager.domestic.local/oauth2/callback"
+      ],
+      "webOrigins": [
+        "http://kong-manager.domestic.local"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "backchannel.logout.session.required": "true",
+        "post.logout.redirect.uris": "+",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [],
+      "optionalClientScopes": [
+        "offline_access"
+      ]
     }
   ],
   "clientScopes": [
