@@ -12,6 +12,7 @@ import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 import { ConfigModule } from '@config/config.module';
 import { ErrorModule } from '@modules/error/error.module';
 import { HealthModule } from '@modules/health/health.module';
+import { MetricsModule } from '@modules/metrics/metrics.module';
 
 import * as tsConfig from '../tsconfig.json';
 
@@ -42,6 +43,7 @@ tsConfigPathsRegister({
     },
   ],
   imports: [
+    MetricsModule,
     ConfigModule,
     LoggerModule.forRoot({
       level: process.env.LOG_LEVEL || 'info',
