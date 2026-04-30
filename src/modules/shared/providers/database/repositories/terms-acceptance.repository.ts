@@ -18,7 +18,12 @@ export class TermsAcceptanceRepository {
     acceptedAt: Date;
     ipAddress: string | null;
   }): Promise<TermsAcceptance> {
-    const entity = this.typeormRepo.create(data);
+    const entity = this.typeormRepo.create({
+      userId: data.userId,
+      termsVersion: { id: data.termsVersionId } as TermsVersion,
+      acceptedAt: data.acceptedAt,
+      ipAddress: data.ipAddress,
+    });
     return this.typeormRepo.save(entity);
   }
 
