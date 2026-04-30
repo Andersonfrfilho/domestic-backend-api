@@ -3,6 +3,7 @@ import { DataSource, Repository } from 'typeorm';
 
 import { DATABASE_POSTGRES_SOURCE } from '@modules/shared/providers/database/database.token';
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
+import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
 
 @Injectable()
 export class TermsAcceptanceRepository {
