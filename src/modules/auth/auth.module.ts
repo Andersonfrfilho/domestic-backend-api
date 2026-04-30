@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { SharedModule } from '@modules/shared/shared.module';
+import { rabbitConnection } from '@modules/shared/providers/queue/producer/implementations/rabbitmq/rabbit.connection';
 
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';
@@ -16,7 +17,7 @@ import { CheckPendingTermsUseCase } from './use-cases/check-pending-terms/check-
 import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
 
 @Module({
-  imports: [SharedModule],
+  imports: [SharedModule, rabbitConnection],
   controllers: [AuthController],
   providers: [
     VerificationCodeRepository,
