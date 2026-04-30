@@ -21,6 +21,9 @@ import { UserAddress } from '@app/modules/shared/providers/database/entities/use
 import { UserEmail } from '@app/modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@app/modules/shared/providers/database/entities/user-phone.entity';
 import { User } from '@app/modules/shared/providers/database/entities/user.entity';
+import { VerificationCode } from '@app/modules/shared/providers/database/entities/verification-code.entity';
+import { TermsAcceptance } from '@app/modules/shared/providers/database/entities/terms-acceptance.entity';
+import { TermsVersion } from '@app/modules/shared/providers/database/entities/terms-version.entity';
 import { getDatabaseConfig } from '@config/database-config';
 
 import { migrations } from '../../migrations/index';
@@ -57,6 +60,9 @@ const PostgresDataSource = new DataSource({
     ProviderVerification,
     ProviderVerificationLog,
     ProviderDocument,
+    VerificationCode,
+    TermsAcceptance,
+    TermsVersion,
   ],
   migrations,
   migrationsRun: false,
