@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 
+import { DATABASE_POSTGRES_SOURCE } from '@modules/shared/providers/database/database.token';
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
 
 @Injectable()
 export class TermsAcceptanceRepository {
-  constructor(
-    @InjectRepository(TermsAcceptance)
-    private readonly repo: Repository<TermsAcceptance>,
-  ) {}
+  private typeormRepo: Repository<TermsAcceptance>;
+
+  constructor(@Inject(DATABASE_POSTGRES_SOURCE) private dataSource: DataSource) {
+    this.typeormRepo = this.dataSource.getRepository(TermsAcceptance);
+  }
 
   async create(data: {
     userId: string;
@@ -17,12 +18,12 @@ export class TermsAcceptanceRepository {
     acceptedAt: Date;
     ipAddress: string | null;
   }): Promise<TermsAcceptance> {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    const entity = this.typeormRepo.create(data);
+    return this.typeormRepo.save(entity);
   }
 
   async findByUserId(userId: string): Promise<TermsAcceptance[]> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('ta')
       .leftJoinAndSelect('ta.termsVersion', 'tv')
       .where('ta.user_id = :userId', { userId })
@@ -31,7 +32,7 @@ export class TermsAcceptanceRepository {
   }
 
   async findLatestByUserId(userId: string): Promise<TermsAcceptance | null> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('ta')
       .leftJoinAndSelect('ta.termsVersion', 'tv')
       .where('ta.user_id = :userId', { userId })
@@ -40,7 +41,7 @@ export class TermsAcceptanceRepository {
   }
 
   async hasAcceptedVersion(userId: string, termsVersionId: string): Promise<boolean> {
-    const count = await this.repo
+    const count = await this.typeormRepo
       .createQueryBuilder('ta')
       .where('ta.user_id = :userId', { userId })
       .andWhere('ta.terms_version_id = :termsVersionId', { termsVersionId })

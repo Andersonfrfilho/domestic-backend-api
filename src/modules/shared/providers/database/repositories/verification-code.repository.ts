@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 
+import { DATABASE_POSTGRES_SOURCE } from '@modules/shared/providers/database/database.token';
 import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
 
 @Injectable()
 export class VerificationCodeRepository {
-  constructor(
-    @InjectRepository(VerificationCode)
-    private readonly repo: Repository<VerificationCode>,
-  ) {}
+  private typeormRepo: Repository<VerificationCode>;
+
+  constructor(@Inject(DATABASE_POSTGRES_SOURCE) private dataSource: DataSource) {
+    this.typeormRepo = this.dataSource.getRepository(VerificationCode);
+  }
 
   async create(data: {
     destination: string;
@@ -17,12 +18,12 @@ export class VerificationCodeRepository {
     code: string;
     expiresAt: Date;
   }): Promise<VerificationCode> {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    const entity = this.typeormRepo.create(data);
+    return this.typeormRepo.save(entity);
   }
 
   async findActiveCode(destination: string, type: 'email' | 'phone'): Promise<VerificationCode | null> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('vc')
       .where('vc.destination = :destination', { destination })
       .andWhere('vc.type = :type', { type })
@@ -33,11 +34,11 @@ export class VerificationCodeRepository {
   }
 
   async markAsUsed(id: string): Promise<void> {
-    await this.repo.update(id, { isUsed: true, verifiedAt: new Date() });
+    await this.typeormRepo.update(id, { isUsed: true, verifiedAt: new Date() });
   }
 
   async deleteExpired(): Promise<number> {
-    const result = await this.repo
+    const result = await this.typeormRepo
       .createQueryBuilder()
       .delete()
       .where('expires_at < NOW()')

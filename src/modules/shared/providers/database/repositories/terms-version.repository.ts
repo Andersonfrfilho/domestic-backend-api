@@ -1,18 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
 
+import { DATABASE_POSTGRES_SOURCE } from '@modules/shared/providers/database/database.token';
 import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
 
 @Injectable()
 export class TermsVersionRepository {
-  constructor(
-    @InjectRepository(TermsVersion)
-    private readonly repo: Repository<TermsVersion>,
-  ) {}
+  private typeormRepo: Repository<TermsVersion>;
+
+  constructor(@Inject(DATABASE_POSTGRES_SOURCE) private dataSource: DataSource) {
+    this.typeormRepo = this.dataSource.getRepository(TermsVersion);
+  }
 
   async findActiveVersion(): Promise<TermsVersion | null> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('tv')
       .where('tv.is_active = true')
       .orderBy('tv.effective_date', 'DESC')
@@ -20,14 +21,14 @@ export class TermsVersionRepository {
   }
 
   async findAll(): Promise<TermsVersion[]> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('tv')
       .orderBy('tv.effective_date', 'DESC')
       .getMany();
   }
 
   async findByVersion(version: string): Promise<TermsVersion | null> {
-    return this.repo
+    return this.typeormRepo
       .createQueryBuilder('tv')
       .where('tv.version = :version', { version })
       .getOne();
@@ -40,15 +41,15 @@ export class TermsVersionRepository {
     effectiveDate: Date;
     isActive: boolean;
   }): Promise<TermsVersion> {
-    const entity = this.repo.create(data);
-    return this.repo.save(entity);
+    const entity = this.typeormRepo.create(data);
+    return this.typeormRepo.save(entity);
   }
 
   async deactivateAll(): Promise<void> {
-    await this.repo.update({}, { isActive: false });
+    await this.typeormRepo.update({}, { isActive: false });
   }
 
   async setActive(version: string): Promise<void> {
-    await this.repo.update({ version }, { isActive: true });
+    await this.typeormRepo.update({ version }, { isActive: true });
   }
 }
