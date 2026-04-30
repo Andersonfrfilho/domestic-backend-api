@@ -34,6 +34,13 @@ export class TermsVersionRepository {
       .getOne();
   }
 
+  async findById(id: string): Promise<TermsVersion | null> {
+    return this.typeormRepo
+      .createQueryBuilder('tv')
+      .where('tv.id = :id', { id })
+      .getOne();
+  }
+
   async create(data: {
     version: string;
     title: string;

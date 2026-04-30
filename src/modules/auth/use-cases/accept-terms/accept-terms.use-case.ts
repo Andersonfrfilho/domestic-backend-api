@@ -24,7 +24,7 @@ export class AcceptTermsUseCase implements AcceptTermsUseCaseInterface {
 
   async execute(params: AcceptTermsParams): Promise<AcceptTermsResponse> {
     const targetVersion = params.termsVersionId
-      ? await this.termsVersionRepo.findByVersion(params.termsVersionId)
+      ? await this.termsVersionRepo.findById(params.termsVersionId)
       : await this.termsVersionRepo.findActiveVersion();
 
     if (!targetVersion) {
