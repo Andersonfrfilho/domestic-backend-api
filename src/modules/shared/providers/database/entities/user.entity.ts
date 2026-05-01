@@ -12,8 +12,8 @@ export class User {
   @Column({ name: 'full_name', nullable: true })
   fullName: string;
 
-  @Column({ nullable: true })
-  document: string | null;
+  @Column({ type: 'varchar', nullable: true })
+  document: string;
 
   @Column({ default: 'PENDING' })
   status: string;
