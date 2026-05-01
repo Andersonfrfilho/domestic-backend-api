@@ -112,6 +112,11 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       .leftJoin('addresses', 'a', 'a.id = pa.address_id')
       .leftJoin('provider_services', 'ps', 'ps.provider_id = p.id')
       .leftJoin('services', 's', 's.id = ps.service_id')
+      .addSelect([
+        'a.city', 'a.state', 'a.latitude', 'a.longitude',
+        's.id', 's.name',
+        'ps.price_base', 'ps.price_type',
+      ])
       .where('v.status = :status', { status: 'APPROVED' });
 
     if (available) {
