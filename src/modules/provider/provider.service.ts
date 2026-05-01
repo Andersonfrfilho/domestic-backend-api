@@ -6,6 +6,7 @@ import { ProviderVerification } from '@modules/shared/providers/database/entitie
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
 import { type ProviderRepositoryInterface } from './provider.repository.interface';
+import { type ProviderWithDetails } from './provider.repository';
 
 import { type CreateProviderUseCaseInterface, CreateProviderUseCaseParams } from './use-cases/create-provider/create-provider.interface';
 import { type GetProviderByIdUseCaseInterface } from './use-cases/get-provider-by-id/get-provider-by-id.interface';
@@ -43,6 +44,7 @@ export interface ProviderServiceInterface {
   findById(id: string): Promise<ProviderProfile>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   list(): Promise<ProviderProfile[]>;
+  listWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]>;
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile>;
   addService(params: AddProviderServiceUseCaseParams): Promise<ProviderServiceEntity>;
   removeService(providerId: string, serviceId: string): Promise<void>;
@@ -104,6 +106,10 @@ export class ProviderService implements ProviderServiceInterface {
 
   list(): Promise<ProviderProfile[]> {
     return this.listUseCase.execute();
+  }
+
+  listWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]> {
+    return this.providerRepository.listApprovedWithDetails(sort, limit, available);
   }
 
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile> {

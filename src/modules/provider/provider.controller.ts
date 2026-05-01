@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -30,6 +31,7 @@ import { ProviderVerification } from '@modules/shared/providers/database/entitie
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
 import { type ProviderServiceInterface } from './provider.service';
+import { type ProviderWithDetails } from './provider.repository';
 import { PROVIDER_SERVICE_PROVIDE } from './provider.token';
 import { AddProviderServiceRequestDto } from './use-cases/add-provider-service/dtos/add-provider-service-request.dto';
 import { AddWorkLocationRequestDto } from './use-cases/add-work-location/dtos/add-work-location-request.dto';
@@ -57,7 +59,18 @@ export class ProviderController {
   @Get()
   @ApiOperation({ summary: 'Listar prestadores aprovados' })
   @ApiOkResponse({ type: [ProviderProfile] })
-  async list(): Promise<ProviderProfile[]> {
+  async list(
+    @Query('sort') sort?: string,
+    @Query('limit') limit?: string,
+    @Query('available') available?: string,
+  ): Promise<ProviderProfile[] | ProviderWithDetails[]> {
+    if (sort || limit || available) {
+      return this.providerService.listWithDetails(
+        sort,
+        limit ? parseInt(limit, 10) : undefined,
+        available === 'true',
+      );
+    }
     return this.providerService.list();
   }
 

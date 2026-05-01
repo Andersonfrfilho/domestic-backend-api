@@ -3,6 +3,8 @@ import { ProviderService } from '@modules/shared/providers/database/entities/pro
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
+import { ProviderWithDetails } from './provider.repository';
+
 export interface CreateProviderParams {
   userId: string;
   businessName?: string;
@@ -47,6 +49,7 @@ export interface ProviderRepositoryInterface {
   findById(id: string): Promise<ProviderProfile | null>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   listApproved(): Promise<ProviderProfile[]>;
+  listApprovedWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]>;
   update(id: string, params: UpdateProviderParams): Promise<ProviderProfile>;
 
   addService(params: AddProviderServiceParams): Promise<ProviderService>;
