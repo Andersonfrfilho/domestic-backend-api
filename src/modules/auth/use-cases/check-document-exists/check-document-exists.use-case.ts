@@ -19,7 +19,7 @@ export class CheckDocumentExistsUseCase {
     const normalized = params.document.replace(/\D/g, '');
 
     const user = await this.userRepository.findOne({
-      where: { cpf: normalized },
+      where: { document: normalized },
     });
 
     if (user) {

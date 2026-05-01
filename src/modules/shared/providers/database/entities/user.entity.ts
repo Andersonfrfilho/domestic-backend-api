@@ -13,7 +13,7 @@ export class User {
   fullName: string;
 
   @Column({ nullable: true })
-  cpf: string | null;
+  document: string | null;
 
   @Column({ default: 'PENDING' })
   status: string;
