@@ -12,6 +12,9 @@ export class User {
   @Column({ name: 'full_name', nullable: true })
   fullName: string;
 
+  @Column({ nullable: true })
+  cpf: string | null;
+
   @Column({ default: 'PENDING' })
   status: string;
 

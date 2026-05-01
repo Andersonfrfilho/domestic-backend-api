@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { PhoneRepositoryInterface } from '../../phone.repository.interface';
+import type { PhoneRepositoryInterface } from '@modules/phone/phone.repository.interface';
 
 export interface CheckPhoneExistsParams {
   phone: string;

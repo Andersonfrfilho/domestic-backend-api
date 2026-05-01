@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '@modules/shared/shared.module';
 import { rabbitConnection } from '@modules/shared/providers/queue/producer/implementations/rabbitmq/rabbit.connection';
 import { User } from '@modules/shared/providers/database/entities/user.entity';
+import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
 
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';

@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { EmailRepositoryInterface } from '../../email.repository.interface';
+import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
 
 export interface CheckEmailExistsParams {
   email: string;
