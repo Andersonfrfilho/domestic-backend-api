@@ -8,11 +8,17 @@ import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-ca
 import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
 import { CheckPendingTermsUseCase } from './use-cases/check-pending-terms/check-pending-terms.use-case';
 import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
+import { CheckEmailExistsUseCase } from './use-cases/check-email-exists/check-email-exists.use-case';
+import { CheckPhoneExistsUseCase } from './use-cases/check-phone-exists/check-phone-exists.use-case';
+import { CheckDocumentExistsUseCase } from './use-cases/check-document-exists/check-document-exists.use-case';
 
 import type { SendVerificationCodeParams } from './use-cases/send-verification-code/send-verification-code.interface';
 import type { VerifyCodeParams } from './use-cases/verify-code/verify-code.interface';
 import type { AcceptTermsParams } from './use-cases/accept-terms/accept-terms.interface';
 import type { CheckPendingTermsParams } from './use-cases/check-pending-terms/check-pending-terms.interface';
+import type { CheckEmailExistsParams } from './use-cases/check-email-exists/check-email-exists.interface';
+import type { CheckPhoneExistsParams } from './use-cases/check-phone-exists/check-phone-exists.interface';
+import type { CheckDocumentExistsParams } from './use-cases/check-document-exists/check-document-exists.interface';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -25,6 +31,9 @@ export class AuthController {
     private readonly getCurrentTermsVersion: GetCurrentTermsVersionUseCase,
     private readonly checkPendingTerms: CheckPendingTermsUseCase,
     private readonly listTermsVersions: ListTermsVersionsUseCase,
+    private readonly checkEmailExists: CheckEmailExistsUseCase,
+    private readonly checkPhoneExists: CheckPhoneExistsUseCase,
+    private readonly checkDocumentExists: CheckDocumentExistsUseCase,
   ) {}
 
   @Post('verification/send')
@@ -84,5 +93,32 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Status de pendência dos termos.' })
   async checkPendingTermsHandler(@Body() body: CheckPendingTermsParams) {
     return this.checkPendingTerms.execute(body);
+  }
+
+  @Post('verify/email')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar se email existe' })
+  @ApiResponse({ status: 200, description: 'Email disponível.' })
+  @ApiResponse({ status: 409, description: 'Email já cadastrado.' })
+  async verifyEmail(@Body() body: CheckEmailExistsParams) {
+    await this.checkEmailExists.execute(body);
+  }
+
+  @Post('verify/phone')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar se telefone existe' })
+  @ApiResponse({ status: 200, description: 'Telefone disponível.' })
+  @ApiResponse({ status: 409, description: 'Telefone já cadastrado.' })
+  async verifyPhone(@Body() body: CheckPhoneExistsParams) {
+    await this.checkPhoneExists.execute(body);
+  }
+
+  @Post('verify/document')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar se documento existe' })
+  @ApiResponse({ status: 200, description: 'Documento disponível.' })
+  @ApiResponse({ status: 409, description: 'Documento já cadastrado.' })
+  async verifyDocument(@Body() body: CheckDocumentExistsParams) {
+    await this.checkDocumentExists.execute(body);
   }
 }
