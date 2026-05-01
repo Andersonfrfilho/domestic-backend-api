@@ -115,8 +115,9 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       .addSelect([
         'a.city', 'a.state', 'a.latitude', 'a.longitude',
         's.id', 's.name',
-        'ps.price_base', 'ps.price_type',
       ])
+      .addSelect('ps.price_base', 'ps_price_base')
+      .addSelect('ps.price_type', 'ps_price_type')
       .where('v.status = :status', { status: 'APPROVED' });
 
     if (available) {
