@@ -5,6 +5,8 @@ import { SharedModule } from '@modules/shared/shared.module';
 import { rabbitConnection } from '@modules/shared/providers/queue/producer/implementations/rabbitmq/rabbit.connection';
 import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
+import { EmailModule } from '@modules/email/email.module';
+import { PhoneModule } from '@modules/phone/phone.module';
 
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';
@@ -23,7 +25,7 @@ import { CheckPhoneExistsUseCase } from './use-cases/check-phone-exists/check-ph
 import { CheckDocumentExistsUseCase } from './use-cases/check-document-exists/check-document-exists.use-case';
 
 @Module({
-  imports: [SharedModule, rabbitConnection, TypeOrmModule.forFeature([User], CONNECTIONS_NAMES.POSTGRES)],
+  imports: [SharedModule, rabbitConnection, TypeOrmModule.forFeature([User], CONNECTIONS_NAMES.POSTGRES), EmailModule, PhoneModule],
   controllers: [AuthController],
   providers: [
     VerificationCodeRepository,
