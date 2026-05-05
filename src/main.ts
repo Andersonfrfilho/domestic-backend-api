@@ -67,7 +67,8 @@ async function bootstrap() {
     docsFactory({ app, document });
   }
 
-  await app.listen(process.env.PORT ?? 3333, '0.0.0.0');
+  const port = process.env.PORT ?? 3333;
+  await app.listen(port, '0.0.0.0');
 }
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
