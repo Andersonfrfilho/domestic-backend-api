@@ -16,7 +16,7 @@ export default class CreateUserDocuments1763600000022 implements MigrationInterf
           { name: 'user_id', type: 'uuid' },
           { name: 'document_number', type: 'varchar' },
           { name: 'document_type', type: 'varchar', comment: 'CPF, CNPJ, RG, etc' },
-          { name: 'status', type: 'varchar', default: 'PENDING' },
+          { name: 'status', type: 'varchar', default: "'PENDING'" },
           { name: 'verified_at', type: 'timestamp', isNullable: true },
           {
             name: 'created_at',
@@ -48,7 +48,10 @@ export default class CreateUserDocuments1763600000022 implements MigrationInterf
       }),
     );
 
-    await queryRunner.dropColumn('users', 'document');
+    const hasDocumentColumn = await queryRunner.hasColumn('users', 'document');
+    if (hasDocumentColumn) {
+      await queryRunner.dropColumn('users', 'document');
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
