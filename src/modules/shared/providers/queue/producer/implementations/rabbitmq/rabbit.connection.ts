@@ -169,7 +169,7 @@ export const rabbitConnection = RabbitMQModule.forRootAsync({
     ],
 
     uri: `amqp://${configService.get('QUEUE_RABBITMQ_USER')}:${configService.get('QUEUE_RABBITMQ_PASS')}@${configService.get('QUEUE_RABBITMQ_HOST')}:${configService.get('QUEUE_RABBITMQ_PORT')}`,
-    connectionInitOptions: { wait: false, maxConnectionAttempts: 3 },
+    connectionInitOptions: { wait: false },
   }),
   inject: [ConfigService],
 });

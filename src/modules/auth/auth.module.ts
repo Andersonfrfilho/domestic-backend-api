@@ -9,7 +9,6 @@ import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';
 import { TermsVersionRepository } from '@modules/shared/providers/database/repositories/terms-version.repository';
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
-import { rabbitConnection } from '@modules/shared/providers/queue/producer/implementations/rabbitmq/rabbit.connection';
 import { SharedModule } from '@modules/shared/shared.module';
 
 import { AuthController } from './auth.controller';
@@ -27,7 +26,6 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
 @Module({
   imports: [
     SharedModule,
-    rabbitConnection,
     TypeOrmModule.forFeature([User, UserDocument], CONNECTIONS_NAMES.POSTGRES),
     EmailModule,
     PhoneModule,

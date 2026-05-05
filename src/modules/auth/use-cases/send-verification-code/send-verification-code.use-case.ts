@@ -1,6 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
@@ -20,7 +20,7 @@ export class SendVerificationCodeUseCase implements SendVerificationCodeUseCaseI
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
     private readonly verificationCodeRepo: VerificationCodeRepository,
-    private readonly amqpConnection: AmqpConnection,
+    @Optional() private readonly amqpConnection?: AmqpConnection,
   ) {}
 
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResponse> {
@@ -48,11 +48,19 @@ export class SendVerificationCodeUseCase implements SendVerificationCodeUseCaseI
 
     const routingKey = params.type === 'email' ? 'notifications.email' : 'notifications.sms';
 
-    await this.amqpConnection.publish('zolve.events', routingKey, {
-      to: params.destination,
-      template_id: params.type === 'email' ? 'verification_code' : 'verification_code_sms',
-      params: { code, expiresIn: '5 minutos' },
-    });
+    if (this.amqpConnection) {
+      await this.amqpConnection.publish('zolve.events', routingKey, {
+        to: params.destination,
+        template_id: params.type === 'email' ? 'verification_code' : 'verification_code_sms',
+        params: { code, expiresIn: '5 minutos' },
+      });
+    } else {
+      this.logProvider.warn({
+        message: 'RabbitMQ connection not available — skipping notification publish',
+        context: this.logContext,
+        meta: { destination: params.destination, routingKey },
+      });
+    }
 
     this.logProvider.info({
       message: SEND_VERIFICATION_CODE_LOG_MESSAGES.CODE_SENT,

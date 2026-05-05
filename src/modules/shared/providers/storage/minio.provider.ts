@@ -1,17 +1,21 @@
 import { Readable } from 'stream';
 
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 
+import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { StorageProviderInterface, UploadFileParams } from './storage.interface';
 
 @Injectable()
 export class MinioStorageProvider implements StorageProviderInterface, OnModuleInit {
-  private readonly logger = new Logger(MinioStorageProvider.name);
   private client: Client;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @Inject(LOGGER_PROVIDER) private readonly logProvider: LogProviderInterface,
+    private readonly configService: ConfigService,
+  ) {
     this.client = new Client({
       endPoint: configService.get('STORAGE_MINIO_ENDPOINT', 'localhost'),
       port: configService.get<number>('STORAGE_MINIO_PORT', 9000),
@@ -25,13 +29,17 @@ export class MinioStorageProvider implements StorageProviderInterface, OnModuleI
     const bucket = this.configService.get('STORAGE_MINIO_BUCKET', 'documents');
     try {
       await this.ensureBucket(bucket);
-      this.logger.log(`MinIO conectado — bucket "${bucket}" pronto`);
+      this.logProvider.info({
+        message: `MinIO conectado — bucket "${bucket}" pronto`,
+        context: `${this.constructor.name}.onModuleInit`,
+      });
     } catch (err) {
       // MinIO indisponível não impede o boot da aplicação.
       // Uploads falharão individualmente até o MinIO estar no ar.
-      this.logger.warn(
-        `MinIO indisponível no startup — uploads desabilitados até reconexão: ${(err as Error).message}`,
-      );
+      this.logProvider.warn({
+        message: `MinIO indisponível no startup — uploads desabilitados até reconexão: ${(err as Error).message}`,
+        context: `${this.constructor.name}.onModuleInit`,
+      });
     }
   }
 
