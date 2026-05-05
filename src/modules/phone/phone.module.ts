@@ -47,6 +47,6 @@ import {
     { provide: VERIFY_PHONE_CODE_USE_CASE_PROVIDE, useClass: VerifyPhoneCodeUseCase },
     { provide: PHONE_SERVICE_PROVIDE, useClass: PhoneService },
   ],
-  exports: [PHONE_SERVICE_PROVIDE],
+  exports: [PHONE_SERVICE_PROVIDE, PHONE_REPOSITORY_PROVIDE],
 })
 export class PhoneModule {}

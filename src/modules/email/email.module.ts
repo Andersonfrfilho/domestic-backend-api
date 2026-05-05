@@ -47,6 +47,6 @@ import {
     { provide: VERIFY_EMAIL_CODE_USE_CASE_PROVIDE, useClass: VerifyEmailCodeUseCase },
     { provide: EMAIL_SERVICE_PROVIDE, useClass: EmailService },
   ],
-  exports: [EMAIL_SERVICE_PROVIDE],
+  exports: [EMAIL_SERVICE_PROVIDE, EMAIL_REPOSITORY_PROVIDE],
 })
 export class EmailModule {}
