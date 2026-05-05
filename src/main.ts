@@ -57,12 +57,15 @@ async function bootstrap() {
   );
 
   const environment = app.get<EnvironmentProviderInterface>(ENVIRONMENT_SERVICE_PROVIDER);
-  const document = SwaggerModule.createDocument(app, swaggerConfig(environment));
-  SwaggerModule.setup('docs', app, document, swaggerCustomOptions(environment));
-  const outputPath = join(process.cwd(), 'swagger-spec.json');
-  writeFileSync(outputPath, JSON.stringify(document, null, 2));
 
-  docsFactory({ app, document });
+  // Skip Swagger setup for worker (PORT 3002) to speed up initialization
+  if (process.env.PORT !== '3002') {
+    const document = SwaggerModule.createDocument(app, swaggerConfig(environment));
+    SwaggerModule.setup('docs', app, document, swaggerCustomOptions(environment));
+    const outputPath = join(process.cwd(), 'swagger-spec.json');
+    writeFileSync(outputPath, JSON.stringify(document, null, 2));
+    docsFactory({ app, document });
+  }
 
   await app.listen(process.env.PORT ?? 3333, '0.0.0.0');
 }
