@@ -21,4 +21,3 @@ export const swaggerCustomOptions = (
   customJsStr: SWAGGER_THEME_TOGGLE_JS,
   customSiteTitle: `${environment.projectName} API Documentation`,
 });
-

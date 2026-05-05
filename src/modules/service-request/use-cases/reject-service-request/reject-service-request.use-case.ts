@@ -7,9 +7,7 @@ import { ServiceRequestErrorFactory } from '../../factories/service-request.erro
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
-import {
-  REJECT_SERVICE_REQUEST_LOG_MESSAGES,
-} from './reject-service-request.constants';
+import { REJECT_SERVICE_REQUEST_LOG_MESSAGES } from './reject-service-request.constants';
 import {
   RejectServiceRequestUseCaseInterface,
   RejectServiceRequestUseCaseParams,

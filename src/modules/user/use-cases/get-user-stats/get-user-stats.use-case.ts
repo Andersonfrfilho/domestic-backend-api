@@ -6,13 +6,11 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 import { USER_REPOSITORY_PROVIDE } from '../../user.token';
 
+import { GET_USER_STATS_LOG_MESSAGES } from './get-user-stats.constants';
 import {
   GetUserStatsUseCaseInterface,
   GetUserStatsUseCaseResponse,
 } from './get-user-stats.interface';
-import {
-  GET_USER_STATS_LOG_MESSAGES,
-} from './get-user-stats.constants';
 
 @Injectable()
 export class GetUserStatsUseCase implements GetUserStatsUseCaseInterface {

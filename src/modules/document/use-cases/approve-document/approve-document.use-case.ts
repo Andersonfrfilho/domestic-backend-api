@@ -7,9 +7,7 @@ import { type DocumentRepositoryInterface } from '../../document.repository.inte
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 import { DocumentErrorFactory } from '../../factories/document.error.factory';
 
-import {
-  APPROVE_DOCUMENT_LOG_MESSAGES,
-} from './approve-document.constants';
+import { APPROVE_DOCUMENT_LOG_MESSAGES } from './approve-document.constants';
 import {
   ApproveDocumentUseCaseInterface,
   ApproveDocumentUseCaseParams,

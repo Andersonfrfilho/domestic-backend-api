@@ -22,7 +22,10 @@ export class VerificationCodeRepository {
     return this.typeormRepo.save(entity);
   }
 
-  async findActiveCode(destination: string, type: 'email' | 'phone'): Promise<VerificationCode | null> {
+  async findActiveCode(
+    destination: string,
+    type: 'email' | 'phone',
+  ): Promise<VerificationCode | null> {
     return this.typeormRepo
       .createQueryBuilder('vc')
       .where('vc.destination = :destination', { destination })

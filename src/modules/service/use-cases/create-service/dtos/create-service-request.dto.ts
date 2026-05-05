@@ -1,9 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsUUID } from 'class-validator';
+
 import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
 export class CreateServiceRequestDto {
-  @ApiProperty({ example: ' limpeza-residencial-id-uuid', description: 'ID da categoria vinculada' })
+  @ApiProperty({
+    example: ' limpeza-residencial-id-uuid',
+    description: 'ID da categoria vinculada',
+  })
   @IsUUID('all', { message: ErrorMessages.invalid('Category ID') })
   categoryId: string;
 

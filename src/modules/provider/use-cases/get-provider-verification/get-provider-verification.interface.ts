@@ -7,5 +7,7 @@ export interface GetProviderVerificationUseCaseParams {
 export type GetProviderVerificationUseCaseResponse = ProviderVerification;
 
 export interface GetProviderVerificationUseCaseInterface {
-  execute(params: GetProviderVerificationUseCaseParams): Promise<GetProviderVerificationUseCaseResponse>;
+  execute(
+    params: GetProviderVerificationUseCaseParams,
+  ): Promise<GetProviderVerificationUseCaseResponse>;
 }

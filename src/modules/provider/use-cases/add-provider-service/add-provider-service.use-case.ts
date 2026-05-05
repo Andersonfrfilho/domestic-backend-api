@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { ADD_PROVIDER_SERVICE_LOG_MESSAGES } from './add-provider-service.constants';
 import {
@@ -25,7 +25,9 @@ export class AddProviderServiceUseCase implements AddProviderServiceUseCaseInter
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  async execute(params: AddProviderServiceUseCaseParams): Promise<AddProviderServiceUseCaseResponse> {
+  async execute(
+    params: AddProviderServiceUseCaseParams,
+  ): Promise<AddProviderServiceUseCaseResponse> {
     this.logProvider.info({
       message: ADD_PROVIDER_SERVICE_LOG_MESSAGES.START_FLOW,
       context: this.logContext,
@@ -42,7 +44,10 @@ export class AddProviderServiceUseCase implements AddProviderServiceUseCaseInter
       throw ProviderErrorFactory.notFound(params.providerId);
     }
 
-    const existing = await this.providerRepository.findProviderService(params.providerId, params.serviceId);
+    const existing = await this.providerRepository.findProviderService(
+      params.providerId,
+      params.serviceId,
+    );
     if (existing) {
       this.logProvider.warn({
         message: ADD_PROVIDER_SERVICE_LOG_MESSAGES.SERVICE_ALREADY_LINKED,

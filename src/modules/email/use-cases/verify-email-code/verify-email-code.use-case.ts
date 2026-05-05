@@ -5,12 +5,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
-import { EmailErrorFactory } from '../../factories/email.error.factory';
-import {
-  EMAIL_REPOSITORY_PROVIDE,
-  USER_EMAIL_REPOSITORY_PROVIDE,
-} from '../../email.token';
 import { type EmailRepositoryInterface } from '../../email.repository.interface';
+import { EMAIL_REPOSITORY_PROVIDE, USER_EMAIL_REPOSITORY_PROVIDE } from '../../email.token';
+import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { type UserEmailRepositoryInterface } from '../../user-email.repository.interface';
 
 import { VERIFY_EMAIL_CODE_LOG_MESSAGES } from './verify-email-code.constants';
@@ -67,7 +64,12 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     this.logProvider.info({
       message: VERIFY_EMAIL_CODE_LOG_MESSAGES.CODE_RECEIVED,
       context: this.logContext,
-      meta: { userId: params.userId, userEmailId: params.userEmailId, received: params.code, stored: storedCode },
+      meta: {
+        userId: params.userId,
+        userEmailId: params.userEmailId,
+        received: params.code,
+        stored: storedCode,
+      },
     });
 
     if (!storedCode) {

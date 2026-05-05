@@ -1,6 +1,13 @@
-import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
+
+import {
+  SERVICE_CREATE_USE_CASE_PROVIDE,
+  SERVICE_GET_BY_ID_USE_CASE_PROVIDE,
+  SERVICE_LIST_USE_CASE_PROVIDE,
+  SERVICE_UPDATE_USE_CASE_PROVIDE,
+} from './service.token';
 import {
   type CreateServiceUseCaseInterface,
   CreateServiceUseCaseParams,
@@ -14,13 +21,6 @@ import {
   type UpdateServiceUseCaseInterface,
   UpdateServiceUseCaseParams,
 } from './use-cases/update-service/update-service.interface';
-
-import {
-  SERVICE_CREATE_USE_CASE_PROVIDE,
-  SERVICE_GET_BY_ID_USE_CASE_PROVIDE,
-  SERVICE_LIST_USE_CASE_PROVIDE,
-  SERVICE_UPDATE_USE_CASE_PROVIDE,
-} from './service.token';
 
 export interface ServiceServiceInterface {
   create(params: CreateServiceUseCaseParams): Promise<Service>;

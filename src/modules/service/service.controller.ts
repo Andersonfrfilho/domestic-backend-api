@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Param,
-  Post,
-  Put,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Put, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiNotFoundResponse,
@@ -17,11 +8,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { ServiceResponseDto } from './use-cases/list-services/dtos/service-response.dto';
-import { CreateServiceRequestDto } from './use-cases/create-service/dtos/create-service-request.dto';
-import { UpdateServiceRequestDto } from './use-cases/update-service/dtos/update-service-request.dto';
 import { type ServiceServiceInterface } from './service.service';
 import { SERVICE_SERVICE_PROVIDE } from './service.token';
+import { CreateServiceRequestDto } from './use-cases/create-service/dtos/create-service-request.dto';
+import { ServiceResponseDto } from './use-cases/list-services/dtos/service-response.dto';
+import { UpdateServiceRequestDto } from './use-cases/update-service/dtos/update-service-request.dto';
 
 @ApiTags('Services')
 @Controller('/services')

@@ -1,7 +1,11 @@
+import {
+  B2BGuard,
+  B2CGuard,
+  BearerTokenGuard,
+  KEYCLOAK_CLIENT,
+} from '@adatechnology/auth-keycloak';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
-import { B2BGuard, B2CGuard, BearerTokenGuard } from '@adatechnology/auth-keycloak';
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
-import { KEYCLOAK_CLIENT } from '@adatechnology/auth-keycloak';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -22,7 +26,7 @@ export class LocalApiAuthGuard implements CanActivate {
     @Inject(KEYCLOAK_CLIENT) keycloakClient: unknown,
     @Inject(LOGGER_PROVIDER) private readonly logger: LogProviderInterface,
   ) {
-    const bearerTokenGuard = new BearerTokenGuard(keycloakClient as any, logger as any);
+    const bearerTokenGuard = new BearerTokenGuard(keycloakClient as any, logger);
     this.b2cGuard = new B2CGuard();
     this.b2bGuard = new B2BGuard(bearerTokenGuard);
 

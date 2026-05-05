@@ -6,9 +6,7 @@ import { type LogProviderInterface } from '@modules/shared';
 import { type ReviewRepositoryInterface } from '../../review.repository.interface';
 import { REVIEW_REPOSITORY_PROVIDE } from '../../review.token';
 
-import {
-  LIST_REVIEWS_BY_PROVIDER_LOG_MESSAGES,
-} from './list-reviews-by-provider.constants';
+import { LIST_REVIEWS_BY_PROVIDER_LOG_MESSAGES } from './list-reviews-by-provider.constants';
 import {
   ListReviewsByProviderUseCaseInterface,
   ListReviewsByProviderUseCaseParams,

@@ -5,7 +5,11 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { Category } from '@modules/shared/providers/database/entities/category.entity';
 
-import { CategoryRepositoryInterface, CreateCategoryParams, UpdateCategoryParams } from './category.repository.interface';
+import {
+  CategoryRepositoryInterface,
+  CreateCategoryParams,
+  UpdateCategoryParams,
+} from './category.repository.interface';
 import { CategoryErrorFactory } from './factories/category.error.factory';
 
 @Injectable()

@@ -1,18 +1,25 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { Readable } from 'stream';
+
+import { Inject, Injectable } from '@nestjs/common';
 
 import { Document } from '@modules/shared/providers/database/entities/document.entity';
 
-import { type UploadDocumentUseCaseInterface, UploadDocumentUseCaseParams } from './use-cases/upload-document/upload-document.interface';
-import { type GetDocumentUrlUseCaseInterface, GetDocumentUrlUseCaseResponse } from './use-cases/get-document-url/get-document-url.interface';
-import { type ApproveDocumentUseCaseInterface } from './use-cases/approve-document/approve-document.interface';
-import { type RejectDocumentUseCaseInterface } from './use-cases/reject-document/reject-document.interface';
 import {
   DOCUMENT_APPROVE_USE_CASE_PROVIDE,
   DOCUMENT_GET_URL_USE_CASE_PROVIDE,
   DOCUMENT_REJECT_USE_CASE_PROVIDE,
   DOCUMENT_UPLOAD_USE_CASE_PROVIDE,
 } from './document.token';
+import { type ApproveDocumentUseCaseInterface } from './use-cases/approve-document/approve-document.interface';
+import {
+  type GetDocumentUrlUseCaseInterface,
+  GetDocumentUrlUseCaseResponse,
+} from './use-cases/get-document-url/get-document-url.interface';
+import { type RejectDocumentUseCaseInterface } from './use-cases/reject-document/reject-document.interface';
+import {
+  type UploadDocumentUseCaseInterface,
+  UploadDocumentUseCaseParams,
+} from './use-cases/upload-document/upload-document.interface';
 
 export interface DocumentServiceInterface {
   upload(params: UploadDocumentUseCaseParams): Promise<Document>;

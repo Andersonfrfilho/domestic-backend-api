@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { REMOVE_PROVIDER_SERVICE_LOG_MESSAGES } from './remove-provider-service.constants';
 import {
@@ -41,7 +41,10 @@ export class RemoveProviderServiceUseCase implements RemoveProviderServiceUseCas
       throw ProviderErrorFactory.notFound(params.providerId);
     }
 
-    const link = await this.providerRepository.findProviderService(params.providerId, params.serviceId);
+    const link = await this.providerRepository.findProviderService(
+      params.providerId,
+      params.serviceId,
+    );
     if (!link) {
       this.logProvider.warn({
         message: REMOVE_PROVIDER_SERVICE_LOG_MESSAGES.SERVICE_NOT_LINKED,

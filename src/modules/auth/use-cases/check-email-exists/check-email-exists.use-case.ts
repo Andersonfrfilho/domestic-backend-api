@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+
 import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
 import { EMAIL_REPOSITORY_PROVIDE } from '@modules/email/email.token';
 

@@ -5,8 +5,8 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
-import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { USER_EMAIL_REPOSITORY_PROVIDE } from '../../email.token';
+import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { type UserEmailRepositoryInterface } from '../../user-email.repository.interface';
 
 import {
@@ -53,7 +53,11 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
       this.logProvider.warn({
         message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.ALREADY_VERIFIED,
         context: this.logContext,
-        meta: { userId: params.userId, userEmailId: params.userEmailId, emailId: userEmail.emailId },
+        meta: {
+          userId: params.userId,
+          userEmailId: params.userEmailId,
+          emailId: userEmail.emailId,
+        },
       });
       throw EmailErrorFactory.alreadyVerified(userEmail.emailId);
     }
@@ -62,7 +66,11 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
     const code = isProduction ? this.generateRandomCode() : EMAIL_VERIFICATION_DEV_CODE;
     const cacheKey = `email:verification:${params.userEmailId}`;
 
-    await this.cacheProvider.set({ key: cacheKey, value: code, ttlInSeconds: EMAIL_VERIFICATION_TTL_SECONDS });
+    await this.cacheProvider.set({
+      key: cacheKey,
+      value: code,
+      ttlInSeconds: EMAIL_VERIFICATION_TTL_SECONDS,
+    });
 
     this.logProvider.info({
       message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.CODE_GENERATED,

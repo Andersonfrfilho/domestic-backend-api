@@ -1,4 +1,3 @@
-
 export const UPDATE_SERVICE_LOG_MESSAGES = {
   START_FLOW: 'Starting update service flow',
   SERVICE_NOT_FOUND: 'Service not found for update',

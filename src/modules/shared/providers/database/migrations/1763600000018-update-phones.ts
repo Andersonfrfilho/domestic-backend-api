@@ -5,9 +5,7 @@ export default class UpdatePhones1763600000018 implements MigrationInterface {
     // Drop FK and old columns not in DBML
     const table = await queryRunner.getTable('phones');
     if (table) {
-      const fk = table.foreignKeys.find(
-        (fk) => fk.columnNames.indexOf('user_id') !== -1,
-      );
+      const fk = table.foreignKeys.find((fk) => fk.columnNames.indexOf('user_id') !== -1);
       if (fk) {
         await queryRunner.dropForeignKey('phones', fk);
       }

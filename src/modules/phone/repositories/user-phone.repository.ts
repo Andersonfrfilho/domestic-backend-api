@@ -5,7 +5,10 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 
-import { CreateUserPhoneParams, UserPhoneRepositoryInterface } from '../user-phone.repository.interface';
+import {
+  CreateUserPhoneParams,
+  UserPhoneRepositoryInterface,
+} from '../user-phone.repository.interface';
 
 @Injectable()
 export class UserPhoneRepository implements UserPhoneRepositoryInterface {

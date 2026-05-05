@@ -1,4 +1,3 @@
-
 export const SUBMIT_VERIFICATION_LOG_MESSAGES = {
   START_FLOW: 'Starting submit provider verification flow',
   PROVIDER_NOT_FOUND: 'Provider not found for verification submit',

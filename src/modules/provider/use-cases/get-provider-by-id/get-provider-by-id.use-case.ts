@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { GET_PROVIDER_BY_ID_LOG_MESSAGES } from './get-provider-by-id.constants';
 import {

@@ -7,9 +7,7 @@ import type { LogProviderInterface } from '@app/modules/shared';
 import { type NotificationRepositoryInterface } from '../../notification.repository.interface';
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 
-import {
-  MARK_NOTIFICATION_READ_LOG_MESSAGES,
-} from './mark-notification-read-constants.interface';
+import { MARK_NOTIFICATION_READ_LOG_MESSAGES } from './mark-notification-read-constants.interface';
 import {
   MarkNotificationReadUseCaseInterface,
   MarkNotificationReadUseCaseParams,

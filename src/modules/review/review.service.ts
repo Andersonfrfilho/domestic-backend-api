@@ -2,9 +2,15 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { Review } from '@modules/shared/providers/database/entities/review.entity';
 
-import { type CreateReviewUseCaseInterface, CreateReviewUseCaseParams } from './use-cases/create-review/create-review.interface';
+import {
+  REVIEW_CREATE_USE_CASE_PROVIDE,
+  REVIEW_LIST_BY_PROVIDER_USE_CASE_PROVIDE,
+} from './review.token';
+import {
+  type CreateReviewUseCaseInterface,
+  CreateReviewUseCaseParams,
+} from './use-cases/create-review/create-review.interface';
 import { type ListReviewsByProviderUseCaseInterface } from './use-cases/list-reviews-by-provider/list-reviews-by-provider.interface';
-import { REVIEW_CREATE_USE_CASE_PROVIDE, REVIEW_LIST_BY_PROVIDER_USE_CASE_PROVIDE } from './review.token';
 
 export interface ReviewServiceInterface {
   create(params: CreateReviewUseCaseParams): Promise<Review>;

@@ -12,7 +12,6 @@ import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constan
 import { ProviderController } from './provider.controller';
 import { ProviderRepository } from './provider.repository';
 import { ProviderService } from './provider.service';
-
 import {
   PROVIDER_ADD_SERVICE_USE_CASE_PROVIDE,
   PROVIDER_ADD_WORK_LOCATION_USE_CASE_PROVIDE,
@@ -30,20 +29,19 @@ import {
   PROVIDER_SUBMIT_VERIFICATION_USE_CASE_PROVIDE,
   PROVIDER_UPDATE_USE_CASE_PROVIDE,
 } from './provider.token';
-
+import { AddProviderServiceUseCase } from './use-cases/add-provider-service/add-provider-service.use-case';
+import { AddWorkLocationUseCase } from './use-cases/add-work-location/add-work-location.use-case';
+import { ApproveProviderUseCase } from './use-cases/approve-provider/approve-provider.use-case';
 import { CreateProviderUseCase } from './use-cases/create-provider/create-provider.use-case';
 import { GetProviderByIdUseCase } from './use-cases/get-provider-by-id/get-provider-by-id.use-case';
+import { GetProviderVerificationUseCase } from './use-cases/get-provider-verification/get-provider-verification.use-case';
+import { ListPendingProvidersUseCase } from './use-cases/list-pending-providers/list-pending-providers.use-case';
 import { ListProvidersUseCase } from './use-cases/list-providers/list-providers.use-case';
-import { UpdateProviderUseCase } from './use-cases/update-provider/update-provider.use-case';
-import { AddProviderServiceUseCase } from './use-cases/add-provider-service/add-provider-service.use-case';
+import { RejectProviderUseCase } from './use-cases/reject-provider/reject-provider.use-case';
 import { RemoveProviderServiceUseCase } from './use-cases/remove-provider-service/remove-provider-service.use-case';
-import { AddWorkLocationUseCase } from './use-cases/add-work-location/add-work-location.use-case';
 import { RemoveWorkLocationUseCase } from './use-cases/remove-work-location/remove-work-location.use-case';
 import { SubmitVerificationUseCase } from './use-cases/submit-verification/submit-verification.use-case';
-import { GetProviderVerificationUseCase } from './use-cases/get-provider-verification/get-provider-verification.use-case';
-import { ApproveProviderUseCase } from './use-cases/approve-provider/approve-provider.use-case';
-import { RejectProviderUseCase } from './use-cases/reject-provider/reject-provider.use-case';
-import { ListPendingProvidersUseCase } from './use-cases/list-pending-providers/list-pending-providers.use-case';
+import { UpdateProviderUseCase } from './use-cases/update-provider/update-provider.use-case';
 
 @Module({
   imports: [
@@ -63,9 +61,15 @@ import { ListPendingProvidersUseCase } from './use-cases/list-pending-providers/
     { provide: PROVIDER_ADD_SERVICE_USE_CASE_PROVIDE, useClass: AddProviderServiceUseCase },
     { provide: PROVIDER_REMOVE_SERVICE_USE_CASE_PROVIDE, useClass: RemoveProviderServiceUseCase },
     { provide: PROVIDER_ADD_WORK_LOCATION_USE_CASE_PROVIDE, useClass: AddWorkLocationUseCase },
-    { provide: PROVIDER_REMOVE_WORK_LOCATION_USE_CASE_PROVIDE, useClass: RemoveWorkLocationUseCase },
+    {
+      provide: PROVIDER_REMOVE_WORK_LOCATION_USE_CASE_PROVIDE,
+      useClass: RemoveWorkLocationUseCase,
+    },
     { provide: PROVIDER_SUBMIT_VERIFICATION_USE_CASE_PROVIDE, useClass: SubmitVerificationUseCase },
-    { provide: PROVIDER_GET_VERIFICATION_USE_CASE_PROVIDE, useClass: GetProviderVerificationUseCase },
+    {
+      provide: PROVIDER_GET_VERIFICATION_USE_CASE_PROVIDE,
+      useClass: GetProviderVerificationUseCase,
+    },
     { provide: PROVIDER_APPROVE_USE_CASE_PROVIDE, useClass: ApproveProviderUseCase },
     { provide: PROVIDER_REJECT_USE_CASE_PROVIDE, useClass: RejectProviderUseCase },
     { provide: PROVIDER_LIST_PENDING_USE_CASE_PROVIDE, useClass: ListPendingProvidersUseCase },

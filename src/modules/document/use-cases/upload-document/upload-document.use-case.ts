@@ -11,9 +11,7 @@ import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.toke
 import { type DocumentRepositoryInterface } from '../../document.repository.interface';
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 
-import {
-  UPLOAD_DOCUMENT_LOG_MESSAGES,
-} from './upload-document.constants';
+import { UPLOAD_DOCUMENT_LOG_MESSAGES } from './upload-document.constants';
 import {
   UploadDocumentUseCaseInterface,
   UploadDocumentUseCaseParams,

@@ -1,4 +1,3 @@
-
 export const GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES = {
   START_FLOW: 'Starting get user by keycloakId flow',
   USER_NOT_FOUND: 'User not found for keycloakId',

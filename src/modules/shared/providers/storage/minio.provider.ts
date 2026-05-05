@@ -1,7 +1,8 @@
+import { Readable } from 'stream';
+
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
-import { Readable } from 'stream';
 
 import { StorageProviderInterface, UploadFileParams } from './storage.interface';
 
@@ -28,18 +29,16 @@ export class MinioStorageProvider implements StorageProviderInterface, OnModuleI
     } catch (err) {
       // MinIO indisponível não impede o boot da aplicação.
       // Uploads falharão individualmente até o MinIO estar no ar.
-      this.logger.warn(`MinIO indisponível no startup — uploads desabilitados até reconexão: ${(err as Error).message}`);
+      this.logger.warn(
+        `MinIO indisponível no startup — uploads desabilitados até reconexão: ${(err as Error).message}`,
+      );
     }
   }
 
   async upload(params: UploadFileParams): Promise<string> {
-    await this.client.putObject(
-      params.bucket,
-      params.objectName,
-      params.stream,
-      params.size,
-      { 'Content-Type': params.contentType },
-    );
+    await this.client.putObject(params.bucket, params.objectName, params.stream, params.size, {
+      'Content-Type': params.contentType,
+    });
     return params.objectName;
   }
 

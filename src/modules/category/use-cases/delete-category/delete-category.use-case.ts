@@ -10,7 +10,10 @@ import { CATEGORY_REPOSITORY_PROVIDE } from '../../category.token';
 import { CategoryErrorFactory } from '../../factories/category.error.factory';
 
 import { DELETE_CATEGORY_LOG_MESSAGES } from './delete-category.constants';
-import { DeleteCategoryUseCaseInterface, DeleteCategoryUseCaseParams } from './delete-category.interface';
+import {
+  DeleteCategoryUseCaseInterface,
+  DeleteCategoryUseCaseParams,
+} from './delete-category.interface';
 
 const CACHE_KEY = 'api:categories';
 

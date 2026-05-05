@@ -7,5 +7,7 @@ export interface ListReviewsByProviderUseCaseParams {
 export type ListReviewsByProviderUseCaseResponse = Review[];
 
 export interface ListReviewsByProviderUseCaseInterface {
-  execute(params: ListReviewsByProviderUseCaseParams): Promise<ListReviewsByProviderUseCaseResponse>;
+  execute(
+    params: ListReviewsByProviderUseCaseParams,
+  ): Promise<ListReviewsByProviderUseCaseResponse>;
 }

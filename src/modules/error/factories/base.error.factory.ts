@@ -1,5 +1,5 @@
-import { AppErrorFactory } from '@modules/error/app.error.factory';
 import type { AppError } from '@modules/error/app.error';
+import { AppErrorFactory } from '@modules/error/app.error.factory';
 import type {
   AuthenticationErrorConfig,
   AuthorizationErrorConfig,

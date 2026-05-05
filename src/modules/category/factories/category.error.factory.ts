@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories';
 import { CATEGORY_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories';
 
 export class CategoryErrorFactory extends BaseErrorFactory {
   static notFound(id: string) {

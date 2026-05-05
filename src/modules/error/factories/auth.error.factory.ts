@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories/base.error.factory';
 import { AUTH_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories/base.error.factory';
 
 export class AuthErrorFactory extends BaseErrorFactory {
   static invalidCredentials() {

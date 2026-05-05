@@ -3,8 +3,8 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
-import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { USER_EMAIL_REPOSITORY_PROVIDE } from '../../email.token';
+import { EmailErrorFactory } from '../../factories/email.error.factory';
 import { type UserEmailRepositoryInterface } from '../../user-email.repository.interface';
 
 import { REMOVE_USER_EMAIL_LOG_MESSAGES } from './remove-user-email.constants';

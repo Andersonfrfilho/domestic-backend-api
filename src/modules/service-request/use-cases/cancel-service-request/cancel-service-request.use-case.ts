@@ -7,9 +7,7 @@ import { ServiceRequestErrorFactory } from '../../factories/service-request.erro
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
-import {
-  CANCEL_SERVICE_REQUEST_LOG_MESSAGES,
-} from './cancel-service-request.constants';
+import { CANCEL_SERVICE_REQUEST_LOG_MESSAGES } from './cancel-service-request.constants';
 import {
   CancelServiceRequestUseCaseInterface,
   CancelServiceRequestUseCaseParams,

@@ -53,7 +53,11 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
       this.logProvider.warn({
         message: SEND_PHONE_VERIFICATION_LOG_MESSAGES.ALREADY_VERIFIED,
         context: this.logContext,
-        meta: { userId: params.userId, userPhoneId: params.userPhoneId, phoneId: userPhone.phoneId },
+        meta: {
+          userId: params.userId,
+          userPhoneId: params.userPhoneId,
+          phoneId: userPhone.phoneId,
+        },
       });
       throw PhoneErrorFactory.alreadyVerified(userPhone.phoneId);
     }
@@ -65,7 +69,11 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
 
     const cacheKey = `phone:verification:${params.userPhoneId}`;
 
-    await this.cacheProvider.set({ key: cacheKey, value: code, ttlInSeconds: PHONE_VERIFICATION_TTL_SECONDS });
+    await this.cacheProvider.set({
+      key: cacheKey,
+      value: code,
+      ttlInSeconds: PHONE_VERIFICATION_TTL_SECONDS,
+    });
 
     this.logProvider.info({
       message: SEND_PHONE_VERIFICATION_LOG_MESSAGES.CODE_STORED,
@@ -104,6 +112,8 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
 
   private getDevCode(phoneNumber: string): string {
     const digits = phoneNumber.replace(/\D/g, '');
-    return digits.slice(-PHONE_VERIFICATION_CODE_LENGTH).padStart(PHONE_VERIFICATION_CODE_LENGTH, '0');
+    return digits
+      .slice(-PHONE_VERIFICATION_CODE_LENGTH)
+      .padStart(PHONE_VERIFICATION_CODE_LENGTH, '0');
   }
 }

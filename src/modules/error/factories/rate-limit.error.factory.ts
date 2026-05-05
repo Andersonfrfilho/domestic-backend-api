@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories/base.error.factory';
 import { RATE_LIMIT_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories/base.error.factory';
 
 export class RateLimitErrorFactory extends BaseErrorFactory {
   static tooManyRequests(retryAfter: number) {

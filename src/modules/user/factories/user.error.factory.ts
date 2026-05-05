@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories';
 import { USER_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories';
 
 export class UserErrorFactory extends BaseErrorFactory {
   static duplicateEmail(email: string) {

@@ -25,10 +25,7 @@ import { ListCategoriesUseCase } from './use-cases/list-categories/list-categori
 import { UpdateCategoryUseCase } from './use-cases/update-category/update-category.use-case';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Category], CONNECTIONS_NAMES.POSTGRES),
-    SharedModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Category], CONNECTIONS_NAMES.POSTGRES), SharedModule],
   controllers: [CategoryController],
   providers: [
     { provide: CATEGORY_REPOSITORY_PROVIDE, useClass: CategoryRepository },

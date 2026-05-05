@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { ProviderProfile } from './provider-profile.entity';
 
@@ -13,7 +22,10 @@ export class ProviderVerification {
   @Column({ name: 'provider_id' })
   providerId: string;
 
-  @ApiProperty({ example: 'UNDER_REVIEW', enum: ['PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'] })
+  @ApiProperty({
+    example: 'UNDER_REVIEW',
+    enum: ['PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'],
+  })
   @Column({ comment: 'PENDING, UNDER_REVIEW, APPROVED, REJECTED' })
   status: string;
 
@@ -25,7 +37,12 @@ export class ProviderVerification {
   reviewedAt: Date;
 
   @ApiPropertyOptional({ example: 'uuid-do-admin', nullable: true })
-  @Column({ name: 'reviewed_by', type: 'uuid', nullable: true, comment: 'ID do admin (Keycloak ou interno)' })
+  @Column({
+    name: 'reviewed_by',
+    type: 'uuid',
+    nullable: true,
+    comment: 'ID do admin (Keycloak ou interno)',
+  })
   reviewedBy: string;
 
   @ApiPropertyOptional({ example: 'Documentos incompletos', nullable: true })

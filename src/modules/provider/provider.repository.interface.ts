@@ -49,7 +49,11 @@ export interface ProviderRepositoryInterface {
   findById(id: string): Promise<ProviderProfile | null>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   listApproved(): Promise<ProviderProfile[]>;
-  listApprovedWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]>;
+  listApprovedWithDetails(
+    sort?: string,
+    limit?: number,
+    available?: boolean,
+  ): Promise<ProviderWithDetails[]>;
   update(id: string, params: UpdateProviderParams): Promise<ProviderProfile>;
 
   addService(params: AddProviderServiceParams): Promise<ProviderService>;

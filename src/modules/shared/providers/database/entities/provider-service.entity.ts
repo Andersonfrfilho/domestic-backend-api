@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { ProviderProfile } from './provider-profile.entity';
 import { Service } from './service.entity';
@@ -18,7 +27,7 @@ export class ProviderService {
   @Column({ name: 'service_id' })
   serviceId: string;
 
-  @ApiPropertyOptional({ example: 150.00, description: 'Preço base cobrado pelo prestador' })
+  @ApiPropertyOptional({ example: 150.0, description: 'Preço base cobrado pelo prestador' })
   @Column({ name: 'price_base', type: 'decimal', nullable: true })
   priceBase: number;
 

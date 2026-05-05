@@ -8,6 +8,7 @@ import { ProviderService } from '@modules/shared/providers/database/entities/pro
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
+import { ProviderErrorFactory } from './factories/provider.error.factory';
 import {
   AddProviderServiceParams,
   AddWorkLocationParams,
@@ -17,7 +18,6 @@ import {
   UpdateProviderParams,
   UpdateVerificationParams,
 } from './provider.repository.interface';
-import { ProviderErrorFactory } from './factories/provider.error.factory';
 
 export interface ProviderWithDetails {
   id: string;
@@ -90,7 +90,11 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       .getMany();
   }
 
-  async listApprovedWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]> {
+  async listApprovedWithDetails(
+    sort?: string,
+    limit?: number,
+    available?: boolean,
+  ): Promise<ProviderWithDetails[]> {
     let query = this.profileRepo
       .createQueryBuilder('p')
       .leftJoin(
@@ -112,10 +116,7 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       .leftJoin('addresses', 'a', 'a.id = pa.address_id')
       .leftJoin('provider_services', 'ps', 'ps.provider_id = p.id')
       .leftJoin('services', 's', 's.id = ps.service_id')
-      .addSelect([
-        'a.city', 'a.state', 'a.latitude', 'a.longitude',
-        's.id', 's.name',
-      ])
+      .addSelect(['a.city', 'a.state', 'a.latitude', 'a.longitude', 's.id', 's.name'])
       .addSelect('ps.price_base', 'ps_price_base')
       .addSelect('ps.price_type', 'ps_price_type')
       .where('v.status = :status', { status: 'APPROVED' });
@@ -221,7 +222,10 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     return this.serviceRepo.find({ where: { providerId } });
   }
 
-  async findProviderService(providerId: string, serviceId: string): Promise<ProviderService | null> {
+  async findProviderService(
+    providerId: string,
+    serviceId: string,
+  ): Promise<ProviderService | null> {
     return this.serviceRepo.findOne({ where: { providerId, serviceId } });
   }
 
@@ -238,7 +242,10 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     return this.workLocationRepo.find({ where: { providerId, isActive: true } });
   }
 
-  async findWorkLocation(providerId: string, locationId: string): Promise<ProviderWorkLocation | null> {
+  async findWorkLocation(
+    providerId: string,
+    locationId: string,
+  ): Promise<ProviderWorkLocation | null> {
     return this.workLocationRepo.findOne({ where: { id: locationId, providerId } });
   }
 
@@ -254,7 +261,10 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     return this.verificationRepo.save(verification);
   }
 
-  async updateVerification(id: string, params: UpdateVerificationParams): Promise<ProviderVerification> {
+  async updateVerification(
+    id: string,
+    params: UpdateVerificationParams,
+  ): Promise<ProviderVerification> {
     await this.verificationRepo.update(id, params);
     return this.verificationRepo.findOne({ where: { id } }) as Promise<ProviderVerification>;
   }

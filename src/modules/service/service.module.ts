@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
-import { SharedModule } from '@modules/shared/shared.module';
 import { CategoryModule } from '@modules/category/category.module';
+import { SharedModule } from '@modules/shared/shared.module';
 
 import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 

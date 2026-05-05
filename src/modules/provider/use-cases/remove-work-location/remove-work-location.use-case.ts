@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { REMOVE_WORK_LOCATION_LOG_MESSAGES } from './remove-work-location.constants';
 import {
@@ -31,7 +31,10 @@ export class RemoveWorkLocationUseCase implements RemoveWorkLocationUseCaseInter
       meta: { providerId: params.providerId, locationId: params.locationId },
     });
 
-    const location = await this.providerRepository.findWorkLocation(params.providerId, params.locationId);
+    const location = await this.providerRepository.findWorkLocation(
+      params.providerId,
+      params.locationId,
+    );
     if (!location) {
       this.logProvider.warn({
         message: REMOVE_WORK_LOCATION_LOG_MESSAGES.LOCATION_NOT_FOUND,

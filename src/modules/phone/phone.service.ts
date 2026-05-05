@@ -6,11 +6,8 @@ import { UserPhone } from '@modules/shared/providers/database/entities/user-phon
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
-import { type AddUserPhoneUseCaseInterface } from './use-cases/add-user-phone/add-user-phone.interface';
-import { type ListUserPhonesUseCaseInterface } from './use-cases/list-user-phones/list-user-phones.interface';
-import { type RemoveUserPhoneUseCaseInterface } from './use-cases/remove-user-phone/remove-user-phone.interface';
-import { type SendPhoneVerificationUseCaseInterface } from './use-cases/send-phone-verification/send-phone-verification.interface';
-import { type VerifyPhoneCodeUseCaseInterface } from './use-cases/verify-phone-code/verify-phone-code.interface';
+import { PHONE_SERVICE_LOG_MESSAGES } from './phone.service.constants';
+import { AddPhoneByKeycloakParams, PhoneServiceInterface } from './phone.service.interface';
 import {
   ADD_USER_PHONE_USE_CASE_PROVIDE,
   LIST_USER_PHONES_USE_CASE_PROVIDE,
@@ -18,8 +15,11 @@ import {
   SEND_PHONE_VERIFICATION_USE_CASE_PROVIDE,
   VERIFY_PHONE_CODE_USE_CASE_PROVIDE,
 } from './phone.token';
-import { AddPhoneByKeycloakParams, PhoneServiceInterface } from './phone.service.interface';
-import { PHONE_SERVICE_LOG_MESSAGES } from './phone.service.constants';
+import { type AddUserPhoneUseCaseInterface } from './use-cases/add-user-phone/add-user-phone.interface';
+import { type ListUserPhonesUseCaseInterface } from './use-cases/list-user-phones/list-user-phones.interface';
+import { type RemoveUserPhoneUseCaseInterface } from './use-cases/remove-user-phone/remove-user-phone.interface';
+import { type SendPhoneVerificationUseCaseInterface } from './use-cases/send-phone-verification/send-phone-verification.interface';
+import { type VerifyPhoneCodeUseCaseInterface } from './use-cases/verify-phone-code/verify-phone-code.interface';
 
 @Injectable()
 export class PhoneService implements PhoneServiceInterface {

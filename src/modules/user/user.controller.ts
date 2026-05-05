@@ -158,7 +158,7 @@ export class UserController {
     @AuthUser() keycloakId: string,
     @Body() body: AddUserAddressRequestDto,
   ): Promise<UserAddress> {
-    return this.userService.addUserAddressByKeycloakId(keycloakId, body as any);
+    return this.userService.addUserAddressByKeycloakId(keycloakId, body);
   }
 
   @Delete('me/addresses/:addressId')

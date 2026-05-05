@@ -18,8 +18,6 @@ export default class User1763256695093 implements MigrationInterface {
           { name: 'name', type: 'varchar' },
           { name: 'last_name', type: 'varchar' },
           { name: 'active', type: 'boolean', default: false },
-          { name: 'cpf', type: 'varchar' },
-          { name: 'rg', type: 'varchar' },
           { name: 'email', type: 'varchar' },
           { name: 'password_hash', type: 'varchar' },
           { name: 'gender', type: 'varchar' },

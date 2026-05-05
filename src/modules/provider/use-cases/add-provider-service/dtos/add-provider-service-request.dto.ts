@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+
 import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
 export class AddProviderServiceRequestDto {

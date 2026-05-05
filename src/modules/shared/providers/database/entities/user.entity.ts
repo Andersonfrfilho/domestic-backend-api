@@ -1,4 +1,15 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+import { UserDocument } from './user-document.entity';
 
 @Entity('users')
 export class User {
@@ -12,11 +23,11 @@ export class User {
   @Column({ name: 'full_name', nullable: true })
   fullName: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  document: string;
-
   @Column({ default: 'PENDING' })
   status: string;
+
+  @OneToMany(() => UserDocument, (userDocument) => userDocument.user)
+  documents: UserDocument[];
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

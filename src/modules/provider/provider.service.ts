@@ -5,23 +5,8 @@ import { ProviderService as ProviderServiceEntity } from '@modules/shared/provid
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
-import { type ProviderRepositoryInterface } from './provider.repository.interface';
 import { type ProviderWithDetails } from './provider.repository';
-
-import { type CreateProviderUseCaseInterface, CreateProviderUseCaseParams } from './use-cases/create-provider/create-provider.interface';
-import { type GetProviderByIdUseCaseInterface } from './use-cases/get-provider-by-id/get-provider-by-id.interface';
-import { type ListProvidersUseCaseInterface } from './use-cases/list-providers/list-providers.interface';
-import { type UpdateProviderUseCaseInterface, UpdateProviderUseCaseParams } from './use-cases/update-provider/update-provider.interface';
-import { type AddProviderServiceUseCaseInterface, AddProviderServiceUseCaseParams } from './use-cases/add-provider-service/add-provider-service.interface';
-import { type RemoveProviderServiceUseCaseInterface } from './use-cases/remove-provider-service/remove-provider-service.interface';
-import { type AddWorkLocationUseCaseInterface, AddWorkLocationUseCaseParams } from './use-cases/add-work-location/add-work-location.interface';
-import { type RemoveWorkLocationUseCaseInterface } from './use-cases/remove-work-location/remove-work-location.interface';
-import { type SubmitVerificationUseCaseInterface } from './use-cases/submit-verification/submit-verification.interface';
-import { type ApproveProviderUseCaseInterface, ApproveProviderUseCaseParams } from './use-cases/approve-provider/approve-provider.interface';
-import { type RejectProviderUseCaseInterface, RejectProviderUseCaseParams } from './use-cases/reject-provider/reject-provider.interface';
-import { type ListPendingProvidersUseCaseInterface } from './use-cases/list-pending-providers/list-pending-providers.interface';
-import { type GetProviderVerificationUseCaseInterface } from './use-cases/get-provider-verification/get-provider-verification.interface';
-
+import { type ProviderRepositoryInterface } from './provider.repository.interface';
 import {
   PROVIDER_ADD_SERVICE_USE_CASE_PROVIDE,
   PROVIDER_ADD_WORK_LOCATION_USE_CASE_PROVIDE,
@@ -38,13 +23,48 @@ import {
   PROVIDER_UPDATE_USE_CASE_PROVIDE,
   PROVIDER_REPOSITORY_PROVIDE,
 } from './provider.token';
+import {
+  type AddProviderServiceUseCaseInterface,
+  AddProviderServiceUseCaseParams,
+} from './use-cases/add-provider-service/add-provider-service.interface';
+import {
+  type AddWorkLocationUseCaseInterface,
+  AddWorkLocationUseCaseParams,
+} from './use-cases/add-work-location/add-work-location.interface';
+import {
+  type ApproveProviderUseCaseInterface,
+  ApproveProviderUseCaseParams,
+} from './use-cases/approve-provider/approve-provider.interface';
+import {
+  type CreateProviderUseCaseInterface,
+  CreateProviderUseCaseParams,
+} from './use-cases/create-provider/create-provider.interface';
+import { type GetProviderByIdUseCaseInterface } from './use-cases/get-provider-by-id/get-provider-by-id.interface';
+import { type GetProviderVerificationUseCaseInterface } from './use-cases/get-provider-verification/get-provider-verification.interface';
+import { type ListPendingProvidersUseCaseInterface } from './use-cases/list-pending-providers/list-pending-providers.interface';
+import { type ListProvidersUseCaseInterface } from './use-cases/list-providers/list-providers.interface';
+import {
+  type RejectProviderUseCaseInterface,
+  RejectProviderUseCaseParams,
+} from './use-cases/reject-provider/reject-provider.interface';
+import { type RemoveProviderServiceUseCaseInterface } from './use-cases/remove-provider-service/remove-provider-service.interface';
+import { type RemoveWorkLocationUseCaseInterface } from './use-cases/remove-work-location/remove-work-location.interface';
+import { type SubmitVerificationUseCaseInterface } from './use-cases/submit-verification/submit-verification.interface';
+import {
+  type UpdateProviderUseCaseInterface,
+  UpdateProviderUseCaseParams,
+} from './use-cases/update-provider/update-provider.interface';
 
 export interface ProviderServiceInterface {
   create(params: CreateProviderUseCaseParams): Promise<ProviderProfile>;
   findById(id: string): Promise<ProviderProfile>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   list(): Promise<ProviderProfile[]>;
-  listWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]>;
+  listWithDetails(
+    sort?: string,
+    limit?: number,
+    available?: boolean,
+  ): Promise<ProviderWithDetails[]>;
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile>;
   addService(params: AddProviderServiceUseCaseParams): Promise<ProviderServiceEntity>;
   removeService(providerId: string, serviceId: string): Promise<void>;
@@ -108,7 +128,11 @@ export class ProviderService implements ProviderServiceInterface {
     return this.listUseCase.execute();
   }
 
-  listWithDetails(sort?: string, limit?: number, available?: boolean): Promise<ProviderWithDetails[]> {
+  listWithDetails(
+    sort?: string,
+    limit?: number,
+    available?: boolean,
+  ): Promise<ProviderWithDetails[]> {
     return this.providerRepository.listApprovedWithDetails(sort, limit, available);
   }
 

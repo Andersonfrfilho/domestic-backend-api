@@ -21,10 +21,7 @@ export class TermsVersionRepository {
   }
 
   async findAll(): Promise<TermsVersion[]> {
-    return this.typeormRepo
-      .createQueryBuilder('tv')
-      .orderBy('tv.effective_date', 'DESC')
-      .getMany();
+    return this.typeormRepo.createQueryBuilder('tv').orderBy('tv.effective_date', 'DESC').getMany();
   }
 
   async findByVersion(version: string): Promise<TermsVersion | null> {
@@ -35,10 +32,7 @@ export class TermsVersionRepository {
   }
 
   async findById(id: string): Promise<TermsVersion | null> {
-    return this.typeormRepo
-      .createQueryBuilder('tv')
-      .where('tv.id = :id', { id })
-      .getOne();
+    return this.typeormRepo.createQueryBuilder('tv').where('tv.id = :id', { id }).getOne();
   }
 
   async create(data: {

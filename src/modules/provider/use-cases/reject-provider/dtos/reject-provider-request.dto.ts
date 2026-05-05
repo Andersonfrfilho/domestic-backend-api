@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
+
 import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
 export class RejectProviderRequestDto {

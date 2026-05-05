@@ -1,6 +1,14 @@
-import { Category } from '@app/modules/shared/providers/database/entities/category.entity';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { Category } from '@app/modules/shared/providers/database/entities/category.entity';
+
+import {
+  CATEGORY_CREATE_USE_CASE_PROVIDE,
+  CATEGORY_DELETE_USE_CASE_PROVIDE,
+  CATEGORY_GET_BY_ID_USE_CASE_PROVIDE,
+  CATEGORY_LIST_USE_CASE_PROVIDE,
+  CATEGORY_UPDATE_USE_CASE_PROVIDE,
+} from './category.token';
 import {
   type CreateCategoryUseCaseInterface,
   CreateCategoryUseCaseParams,
@@ -12,14 +20,6 @@ import {
   type UpdateCategoryUseCaseInterface,
   UpdateCategoryUseCaseParams,
 } from './use-cases/update-category/update-category.interface';
-
-import {
-  CATEGORY_CREATE_USE_CASE_PROVIDE,
-  CATEGORY_DELETE_USE_CASE_PROVIDE,
-  CATEGORY_GET_BY_ID_USE_CASE_PROVIDE,
-  CATEGORY_LIST_USE_CASE_PROVIDE,
-  CATEGORY_UPDATE_USE_CASE_PROVIDE,
-} from './category.token';
 
 export interface CategoryServiceInterface {
   create(params: CreateCategoryUseCaseParams): Promise<Category>;

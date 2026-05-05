@@ -2,15 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { ServiceRequest } from '@modules/shared/providers/database/entities/service-request.entity';
 
-import { type CreateServiceRequestUseCaseInterface, CreateServiceRequestUseCaseParams } from './use-cases/create-service-request/create-service-request.interface';
-import { type GetServiceRequestByIdUseCaseInterface } from './use-cases/get-service-request-by-id/get-service-request-by-id.interface';
-import { type ListServiceRequestsByUserUseCaseInterface } from './use-cases/list-service-requests-by-user/list-service-requests-by-user.interface';
-import { type ListServiceRequestsByProviderUseCaseInterface } from './use-cases/list-service-requests-by-provider/list-service-requests-by-provider.interface';
-import { type AcceptServiceRequestUseCaseInterface } from './use-cases/accept-service-request/accept-service-request.interface';
-import { type RejectServiceRequestUseCaseInterface } from './use-cases/reject-service-request/reject-service-request.interface';
-import { type CompleteServiceRequestUseCaseInterface } from './use-cases/complete-service-request/complete-service-request.interface';
-import { type CancelServiceRequestUseCaseInterface } from './use-cases/cancel-service-request/cancel-service-request.interface';
-
 import {
   SERVICE_REQUEST_ACCEPT_USE_CASE_PROVIDE,
   SERVICE_REQUEST_CANCEL_USE_CASE_PROVIDE,
@@ -21,6 +12,17 @@ import {
   SERVICE_REQUEST_LIST_BY_USER_USE_CASE_PROVIDE,
   SERVICE_REQUEST_REJECT_USE_CASE_PROVIDE,
 } from './service-request.token';
+import { type AcceptServiceRequestUseCaseInterface } from './use-cases/accept-service-request/accept-service-request.interface';
+import { type CancelServiceRequestUseCaseInterface } from './use-cases/cancel-service-request/cancel-service-request.interface';
+import { type CompleteServiceRequestUseCaseInterface } from './use-cases/complete-service-request/complete-service-request.interface';
+import {
+  type CreateServiceRequestUseCaseInterface,
+  CreateServiceRequestUseCaseParams,
+} from './use-cases/create-service-request/create-service-request.interface';
+import { type GetServiceRequestByIdUseCaseInterface } from './use-cases/get-service-request-by-id/get-service-request-by-id.interface';
+import { type ListServiceRequestsByProviderUseCaseInterface } from './use-cases/list-service-requests-by-provider/list-service-requests-by-provider.interface';
+import { type ListServiceRequestsByUserUseCaseInterface } from './use-cases/list-service-requests-by-user/list-service-requests-by-user.interface';
+import { type RejectServiceRequestUseCaseInterface } from './use-cases/reject-service-request/reject-service-request.interface';
 
 export interface ServiceRequestServiceInterface {
   create(params: CreateServiceRequestUseCaseParams): Promise<ServiceRequest>;

@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 import { Address } from './address.entity';
 import { ProviderProfile } from './provider-profile.entity';
@@ -43,7 +52,10 @@ export class ServiceRequest {
   @Column({ name: 'provider_confirmed', default: false })
   providerConfirmed: boolean;
 
-  @ApiPropertyOptional({ example: 'Preciso de faxina completa, incluindo banheiros', nullable: true })
+  @ApiPropertyOptional({
+    example: 'Preciso de faxina completa, incluindo banheiros',
+    nullable: true,
+  })
   @Column({ type: 'text', nullable: true })
   description: string;
 
@@ -51,7 +63,7 @@ export class ServiceRequest {
   @Column({ name: 'scheduled_at', type: 'timestamp', nullable: true })
   scheduledAt: Date;
 
-  @ApiPropertyOptional({ example: 200.00, nullable: true })
+  @ApiPropertyOptional({ example: 200.0, nullable: true })
   @Column({ name: 'price_final', type: 'decimal', nullable: true })
   priceFinal: number;
 

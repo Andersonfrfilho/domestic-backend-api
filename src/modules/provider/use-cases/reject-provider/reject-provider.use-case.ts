@@ -5,9 +5,9 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
 import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/producer/producer.token';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { REJECT_PROVIDER_LOG_MESSAGES } from './reject-provider.constants';
 import {
@@ -81,23 +81,29 @@ export class RejectProviderUseCase implements RejectProviderUseCaseInterface {
       meta: { providerId: provider.id, verificationId: updated.id, reason: params.reason },
     });
 
-    await this.producer.send(
-      ROUTING_KEY,
-      { body: { provider_id: provider.id, user_id: provider.userId, reason: params.reason } },
-      { exchange: EXCHANGE, routingKey: ROUTING_KEY },
-    ).then(() => {
-      this.logProvider.info({
-        message: REJECT_PROVIDER_LOG_MESSAGES.EVENT_PUBLISHED,
-        context: this.logContext,
-        meta: { providerId: provider.id, routingKey: ROUTING_KEY },
+    await this.producer
+      .send(
+        ROUTING_KEY,
+        { body: { provider_id: provider.id, user_id: provider.userId, reason: params.reason } },
+        { exchange: EXCHANGE, routingKey: ROUTING_KEY },
+      )
+      .then(() => {
+        this.logProvider.info({
+          message: REJECT_PROVIDER_LOG_MESSAGES.EVENT_PUBLISHED,
+          context: this.logContext,
+          meta: { providerId: provider.id, routingKey: ROUTING_KEY },
+        });
+      })
+      .catch((err: unknown) => {
+        this.logProvider.warn({
+          message: REJECT_PROVIDER_LOG_MESSAGES.EVENT_PUBLISH_FAILED,
+          context: this.logContext,
+          meta: {
+            providerId: provider.id,
+            error: err instanceof Error ? err.message : String(err),
+          },
+        });
       });
-    }).catch((err: unknown) => {
-      this.logProvider.warn({
-        message: REJECT_PROVIDER_LOG_MESSAGES.EVENT_PUBLISH_FAILED,
-        context: this.logContext,
-        meta: { providerId: provider.id, error: err instanceof Error ? err.message : String(err) },
-      });
-    });
 
     return updated;
   }

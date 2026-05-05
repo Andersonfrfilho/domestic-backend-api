@@ -25,8 +25,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { ROLES } from '@modules/shared/constants';
+import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 
 import { AddUserEmailRequestDto } from './dtos/add-user-email-request.dto';
 import { VerifyEmailCodeRequestDto } from './dtos/verify-email-code-request.dto';

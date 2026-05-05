@@ -1,6 +1,6 @@
+import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Inject, Injectable } from '@nestjs/common';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';

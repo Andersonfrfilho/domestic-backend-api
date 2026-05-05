@@ -7,9 +7,7 @@ import { USER_ADDRESS_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserAddressRepositoryInterface } from '../../user-address.repository.interface';
 
-import {
-  REMOVE_USER_ADDRESS_LOG_MESSAGES,
-} from './remove-user-address.constants';
+import { REMOVE_USER_ADDRESS_LOG_MESSAGES } from './remove-user-address.constants';
 import {
   RemoveUserAddressUseCaseInterface,
   RemoveUserAddressUseCaseParams,

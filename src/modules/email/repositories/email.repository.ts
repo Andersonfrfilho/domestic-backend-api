@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { Email } from '@modules/shared/providers/database/entities/email.entity';
 
-import { EmailErrorFactory } from '../factories/email.error.factory';
 import { CreateEmailParams, EmailRepositoryInterface } from '../email.repository.interface';
+import { EmailErrorFactory } from '../factories/email.error.factory';
 
 @Injectable()
 export class EmailRepository implements EmailRepositoryInterface {

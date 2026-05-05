@@ -11,9 +11,7 @@ import { ServiceRequestErrorFactory } from '../../factories/service-request.erro
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
-import {
-  CREATE_SERVICE_REQUEST_LOG_MESSAGES,
-} from './create-service-request.constants';
+import { CREATE_SERVICE_REQUEST_LOG_MESSAGES } from './create-service-request.constants';
 import {
   CreateServiceRequestUseCaseInterface,
   CreateServiceRequestUseCaseParams,

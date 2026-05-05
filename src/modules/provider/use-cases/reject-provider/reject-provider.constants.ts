@@ -1,4 +1,3 @@
-
 export const REJECT_PROVIDER_LOG_MESSAGES = {
   START_FLOW: 'Starting reject provider flow',
   PROVIDER_NOT_FOUND: 'Provider not found for rejection',

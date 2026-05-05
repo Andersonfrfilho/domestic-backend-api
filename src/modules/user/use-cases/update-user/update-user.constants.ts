@@ -1,4 +1,3 @@
-
 export const UPDATE_USER_LOG_MESSAGES = {
   START_FLOW: 'Starting update user flow',
   USER_NOT_FOUND: 'User not found for update',

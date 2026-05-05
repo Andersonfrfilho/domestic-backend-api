@@ -6,9 +6,7 @@ import { type LogProviderInterface } from '@modules/shared';
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
-import {
-  LIST_SERVICE_REQUESTS_BY_PROVIDER_LOG_MESSAGES,
-} from './list-service-requests-by-provider.constants';
+import { LIST_SERVICE_REQUESTS_BY_PROVIDER_LOG_MESSAGES } from './list-service-requests-by-provider.constants';
 import {
   ListServiceRequestsByProviderUseCaseInterface,
   ListServiceRequestsByProviderUseCaseParams,

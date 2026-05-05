@@ -9,8 +9,15 @@ export interface AddPhoneByKeycloakParams {
 
 export interface PhoneServiceInterface {
   listUserPhonesByKeycloakId(keycloakId: string): Promise<UserPhone[]>;
-  addUserPhoneByKeycloakId(keycloakId: string, params: AddPhoneByKeycloakParams): Promise<UserPhone>;
+  addUserPhoneByKeycloakId(
+    keycloakId: string,
+    params: AddPhoneByKeycloakParams,
+  ): Promise<UserPhone>;
   removeUserPhoneByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void>;
   sendPhoneVerificationByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void>;
-  verifyPhoneCodeByKeycloakId(keycloakId: string, userPhoneId: string, code: string): Promise<UserPhone>;
+  verifyPhoneCodeByKeycloakId(
+    keycloakId: string,
+    userPhoneId: string,
+    code: string,
+  ): Promise<UserPhone>;
 }

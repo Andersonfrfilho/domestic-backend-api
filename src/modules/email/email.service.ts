@@ -6,11 +6,8 @@ import { UserEmail } from '@modules/shared/providers/database/entities/user-emai
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
-import { type AddUserEmailUseCaseInterface } from './use-cases/add-user-email/add-user-email.interface';
-import { type ListUserEmailsUseCaseInterface } from './use-cases/list-user-emails/list-user-emails.interface';
-import { type RemoveUserEmailUseCaseInterface } from './use-cases/remove-user-email/remove-user-email.interface';
-import { type SendEmailVerificationUseCaseInterface } from './use-cases/send-email-verification/send-email-verification.interface';
-import { type VerifyEmailCodeUseCaseInterface } from './use-cases/verify-email-code/verify-email-code.interface';
+import { EMAIL_SERVICE_LOG_MESSAGES } from './email.service.constants';
+import { AddEmailByKeycloakParams, EmailServiceInterface } from './email.service.interface';
 import {
   ADD_USER_EMAIL_USE_CASE_PROVIDE,
   LIST_USER_EMAILS_USE_CASE_PROVIDE,
@@ -18,8 +15,11 @@ import {
   SEND_EMAIL_VERIFICATION_USE_CASE_PROVIDE,
   VERIFY_EMAIL_CODE_USE_CASE_PROVIDE,
 } from './email.token';
-import { AddEmailByKeycloakParams, EmailServiceInterface } from './email.service.interface';
-import { EMAIL_SERVICE_LOG_MESSAGES } from './email.service.constants';
+import { type AddUserEmailUseCaseInterface } from './use-cases/add-user-email/add-user-email.interface';
+import { type ListUserEmailsUseCaseInterface } from './use-cases/list-user-emails/list-user-emails.interface';
+import { type RemoveUserEmailUseCaseInterface } from './use-cases/remove-user-email/remove-user-email.interface';
+import { type SendEmailVerificationUseCaseInterface } from './use-cases/send-email-verification/send-email-verification.interface';
+import { type VerifyEmailCodeUseCaseInterface } from './use-cases/verify-email-code/verify-email-code.interface';
 
 @Injectable()
 export class EmailService implements EmailServiceInterface {

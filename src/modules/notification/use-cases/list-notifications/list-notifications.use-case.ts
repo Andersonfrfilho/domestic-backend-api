@@ -6,9 +6,7 @@ import type { LogProviderInterface } from '@app/modules/shared';
 import { type NotificationRepositoryInterface } from '../../notification.repository.interface';
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';
 
-import {
-  LIST_NOTIFICATIONS_LOG_MESSAGES,
-} from './list-notifications-constants';
+import { LIST_NOTIFICATIONS_LOG_MESSAGES } from './list-notifications-constants';
 import {
   ListNotificationsUseCaseInterface,
   ListNotificationsUseCaseParams,

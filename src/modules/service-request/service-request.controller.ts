@@ -97,10 +97,7 @@ export class ServiceRequestController {
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse({ description: 'Status inválido ou não autorizado' })
   @ApiNotFoundResponse()
-  async accept(
-    @Param('id') id: string,
-    @AuthUser() keycloakId: string,
-  ): Promise<ServiceRequest> {
+  async accept(@Param('id') id: string, @AuthUser() keycloakId: string): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const provider = await this.providerRepository.findByUserId(user.id);
     return this.serviceRequestService.accept(id, provider?.id ?? '');
@@ -115,10 +112,7 @@ export class ServiceRequestController {
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
-  async reject(
-    @Param('id') id: string,
-    @AuthUser() keycloakId: string,
-  ): Promise<ServiceRequest> {
+  async reject(@Param('id') id: string, @AuthUser() keycloakId: string): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const provider = await this.providerRepository.findByUserId(user.id);
     return this.serviceRequestService.reject(id, provider?.id ?? '');
@@ -132,10 +126,7 @@ export class ServiceRequestController {
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
-  async complete(
-    @Param('id') id: string,
-    @AuthUser() keycloakId: string,
-  ): Promise<ServiceRequest> {
+  async complete(@Param('id') id: string, @AuthUser() keycloakId: string): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.serviceRequestService.complete(id, user.id);
   }
@@ -148,10 +139,7 @@ export class ServiceRequestController {
   @ApiOkResponse({ type: ServiceRequest })
   @ApiBadRequestResponse()
   @ApiNotFoundResponse()
-  async cancel(
-    @Param('id') id: string,
-    @AuthUser() keycloakId: string,
-  ): Promise<ServiceRequest> {
+  async cancel(@Param('id') id: string, @AuthUser() keycloakId: string): Promise<ServiceRequest> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.serviceRequestService.cancel(id, user.id);
   }

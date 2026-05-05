@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories';
 import { DOCUMENT_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories';
 
 export class DocumentErrorFactory extends BaseErrorFactory {
   static notFound(id: string) {
@@ -7,6 +7,8 @@ export class DocumentErrorFactory extends BaseErrorFactory {
   }
 
   static invalidStatusTransition(current: string, target: string) {
-    return this.createBusinessLogic(DOCUMENT_ERROR_CONFIGS.invalidStatusTransition(current, target));
+    return this.createBusinessLogic(
+      DOCUMENT_ERROR_CONFIGS.invalidStatusTransition(current, target),
+    );
   }
 }

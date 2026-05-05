@@ -15,7 +15,8 @@ export class AppErrorDto {
   message: string;
 
   @ApiProperty({
-    description: 'Machine-readable domain error code — use this in the BFF for routing to specific screens',
+    description:
+      'Machine-readable domain error code — use this in the BFF for routing to specific screens',
     example: 'ACCOUNT_DELETED',
   })
   code: string;
@@ -23,7 +24,15 @@ export class AppErrorDto {
   @ApiProperty({
     description: 'Error category',
     example: 'CONFLICT',
-    enum: ['VALIDATION', 'AUTHENTICATION', 'AUTHORIZATION', 'NOT_FOUND', 'CONFLICT', 'BUSINESS_LOGIC', 'INTERNAL_SERVER'],
+    enum: [
+      'VALIDATION',
+      'AUTHENTICATION',
+      'AUTHORIZATION',
+      'NOT_FOUND',
+      'CONFLICT',
+      'BUSINESS_LOGIC',
+      'INTERNAL_SERVER',
+    ],
   })
   type: string;
 

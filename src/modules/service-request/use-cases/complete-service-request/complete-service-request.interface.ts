@@ -8,5 +8,7 @@ export interface CompleteServiceRequestUseCaseParams {
 export type CompleteServiceRequestUseCaseResponse = ServiceRequest;
 
 export interface CompleteServiceRequestUseCaseInterface {
-  execute(params: CompleteServiceRequestUseCaseParams): Promise<CompleteServiceRequestUseCaseResponse>;
+  execute(
+    params: CompleteServiceRequestUseCaseParams,
+  ): Promise<CompleteServiceRequestUseCaseResponse>;
 }

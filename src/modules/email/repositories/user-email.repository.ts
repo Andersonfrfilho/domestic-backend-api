@@ -5,7 +5,10 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 
-import { CreateUserEmailParams, UserEmailRepositoryInterface } from '../user-email.repository.interface';
+import {
+  CreateUserEmailParams,
+  UserEmailRepositoryInterface,
+} from '../user-email.repository.interface';
 
 @Injectable()
 export class UserEmailRepository implements UserEmailRepositoryInterface {

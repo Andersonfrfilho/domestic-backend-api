@@ -1,4 +1,3 @@
-
 export const ADD_WORK_LOCATION_LOG_MESSAGES = {
   START_FLOW: 'Starting add work location flow',
   PROVIDER_NOT_FOUND: 'Provider not found while adding work location',

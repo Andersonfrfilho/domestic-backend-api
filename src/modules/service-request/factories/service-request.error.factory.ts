@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories';
 import { SERVICE_REQUEST_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories';
 
 export class ServiceRequestErrorFactory extends BaseErrorFactory {
   static notFound(id: string) {
@@ -11,7 +11,9 @@ export class ServiceRequestErrorFactory extends BaseErrorFactory {
   }
 
   static invalidStatusTransition(current: string, target: string) {
-    return this.createBusinessLogic(SERVICE_REQUEST_ERROR_CONFIGS.invalidStatusTransition(current, target));
+    return this.createBusinessLogic(
+      SERVICE_REQUEST_ERROR_CONFIGS.invalidStatusTransition(current, target),
+    );
   }
 
   static notAuthorized() {

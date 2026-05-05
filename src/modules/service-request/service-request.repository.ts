@@ -5,11 +5,11 @@ import { Repository } from 'typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { ServiceRequest } from '@modules/shared/providers/database/entities/service-request.entity';
 
+import { ServiceRequestErrorFactory } from './factories/service-request.error.factory';
 import {
   CreateServiceRequestParams,
   ServiceRequestRepositoryInterface,
 } from './service-request.repository.interface';
-import { ServiceRequestErrorFactory } from './factories/service-request.error.factory';
 
 @Injectable()
 export class ServiceRequestRepository implements ServiceRequestRepositoryInterface {

@@ -1,4 +1,3 @@
-
 export const APPROVE_PROVIDER_LOG_MESSAGES = {
   START_FLOW: 'Starting approve provider flow',
   PROVIDER_NOT_FOUND: 'Provider not found for approval',

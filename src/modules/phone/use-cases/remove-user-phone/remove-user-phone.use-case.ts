@@ -4,8 +4,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
 import { PhoneErrorFactory } from '../../factories/phone.error.factory';
-import { type UserPhoneRepositoryInterface } from '../../user-phone.repository.interface';
 import { USER_PHONE_REPOSITORY_PROVIDE } from '../../phone.token';
+import { type UserPhoneRepositoryInterface } from '../../user-phone.repository.interface';
 
 import { REMOVE_USER_PHONE_LOG_MESSAGES } from './remove-user-phone.constants';
 import {

@@ -1,5 +1,5 @@
-import type { FastifyReply } from 'fastify';
 import { Controller, Get, Res, VERSION_NEUTRAL, Version } from '@nestjs/common';
+import type { FastifyReply } from 'fastify';
 import { register } from 'prom-client';
 
 @Controller('metrics')

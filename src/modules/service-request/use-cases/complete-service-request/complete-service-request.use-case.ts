@@ -9,9 +9,7 @@ import { ServiceRequestErrorFactory } from '../../factories/service-request.erro
 import { type ServiceRequestRepositoryInterface } from '../../service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '../../service-request.token';
 
-import {
-  COMPLETE_SERVICE_REQUEST_LOG_MESSAGES,
-} from './complete-service-request.constants';
+import { COMPLETE_SERVICE_REQUEST_LOG_MESSAGES } from './complete-service-request.constants';
 import {
   CompleteServiceRequestUseCaseInterface,
   CompleteServiceRequestUseCaseParams,

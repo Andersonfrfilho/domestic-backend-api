@@ -5,16 +5,15 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 import { UserErrorFactory } from '@modules/user/factories';
 import { USER_ADDRESS_REPOSITORY_PROVIDE, USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
-import { type UserRepositoryInterface } from '../../user.repository.interface';
 import { type UserAddressRepositoryInterface } from '../../user-address.repository.interface';
+import { type UserRepositoryInterface } from '../../user.repository.interface';
+
+import { LIST_USER_ADDRESSES_LOG_MESSAGES } from './list-user-addresses.constants';
 import {
   ListUserAddressesUseCaseInterface,
   ListUserAddressesUseCaseParams,
   ListUserAddressesUseCaseResponse,
 } from './list-user-addresses.interface';
-import {
-  LIST_USER_ADDRESSES_LOG_MESSAGES,
-} from './list-user-addresses.constants';
 
 @Injectable()
 export class ListUserAddressesUseCase implements ListUserAddressesUseCaseInterface {

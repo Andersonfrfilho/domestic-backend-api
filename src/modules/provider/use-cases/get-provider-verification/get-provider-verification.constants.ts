@@ -1,4 +1,3 @@
-
 export const GET_PROVIDER_VERIFICATION_LOG_MESSAGES = {
   START_FLOW: 'Starting get provider verification flow',
   PROVIDER_NOT_FOUND: 'Provider not found for verification query',

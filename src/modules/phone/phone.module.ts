@@ -9,13 +9,6 @@ import { UserModule } from '@modules/user/user.module';
 
 import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 
-import { PhoneRepository } from './repositories/phone.repository';
-import { UserPhoneRepository } from './repositories/user-phone.repository';
-import { AddUserPhoneUseCase } from './use-cases/add-user-phone/add-user-phone.use-case';
-import { ListUserPhonesUseCase } from './use-cases/list-user-phones/list-user-phones.use-case';
-import { RemoveUserPhoneUseCase } from './use-cases/remove-user-phone/remove-user-phone.use-case';
-import { SendPhoneVerificationUseCase } from './use-cases/send-phone-verification/send-phone-verification.use-case';
-import { VerifyPhoneCodeUseCase } from './use-cases/verify-phone-code/verify-phone-code.use-case';
 import { PhoneController } from './phone.controller';
 import { PhoneService } from './phone.service';
 import {
@@ -28,6 +21,13 @@ import {
   USER_PHONE_REPOSITORY_PROVIDE,
   VERIFY_PHONE_CODE_USE_CASE_PROVIDE,
 } from './phone.token';
+import { PhoneRepository } from './repositories/phone.repository';
+import { UserPhoneRepository } from './repositories/user-phone.repository';
+import { AddUserPhoneUseCase } from './use-cases/add-user-phone/add-user-phone.use-case';
+import { ListUserPhonesUseCase } from './use-cases/list-user-phones/list-user-phones.use-case';
+import { RemoveUserPhoneUseCase } from './use-cases/remove-user-phone/remove-user-phone.use-case';
+import { SendPhoneVerificationUseCase } from './use-cases/send-phone-verification/send-phone-verification.use-case';
+import { VerifyPhoneCodeUseCase } from './use-cases/verify-phone-code/verify-phone-code.use-case';
 
 @Module({
   imports: [

@@ -1,4 +1,3 @@
-
 export const REMOVE_PROVIDER_SERVICE_LOG_MESSAGES = {
   START_FLOW: 'Starting remove provider service flow',
   PROVIDER_NOT_FOUND: 'Provider not found while removing service',

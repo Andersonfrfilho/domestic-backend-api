@@ -17,13 +17,14 @@ import { ProviderWorkLocation } from '@app/modules/shared/providers/database/ent
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 import { ServiceRequest } from '@app/modules/shared/providers/database/entities/service-request.entity';
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
+import { TermsAcceptance } from '@app/modules/shared/providers/database/entities/terms-acceptance.entity';
+import { TermsVersion } from '@app/modules/shared/providers/database/entities/terms-version.entity';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
+import { UserDocument } from '@app/modules/shared/providers/database/entities/user-document.entity';
 import { UserEmail } from '@app/modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@app/modules/shared/providers/database/entities/user-phone.entity';
 import { User } from '@app/modules/shared/providers/database/entities/user.entity';
 import { VerificationCode } from '@app/modules/shared/providers/database/entities/verification-code.entity';
-import { TermsAcceptance } from '@app/modules/shared/providers/database/entities/terms-acceptance.entity';
-import { TermsVersion } from '@app/modules/shared/providers/database/entities/terms-version.entity';
 import { getDatabaseConfig } from '@config/database-config';
 
 import { migrations } from '../../migrations/index';
@@ -44,6 +45,7 @@ const PostgresDataSource = new DataSource({
     Address,
     Email,
     UserAddress,
+    UserDocument,
     UserEmail,
     UserPhone,
     ProviderProfile,

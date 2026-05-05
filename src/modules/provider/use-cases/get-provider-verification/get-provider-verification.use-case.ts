@@ -3,9 +3,9 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
+import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 import { type ProviderRepositoryInterface } from '../../provider.repository.interface';
 import { PROVIDER_REPOSITORY_PROVIDE } from '../../provider.token';
-import { ProviderErrorFactory } from '../../factories/provider.error.factory';
 
 import { GET_PROVIDER_VERIFICATION_LOG_MESSAGES } from './get-provider-verification.constants';
 import {
@@ -25,7 +25,9 @@ export class GetProviderVerificationUseCase implements GetProviderVerificationUs
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  async execute(params: GetProviderVerificationUseCaseParams): Promise<GetProviderVerificationUseCaseResponse> {
+  async execute(
+    params: GetProviderVerificationUseCaseParams,
+  ): Promise<GetProviderVerificationUseCaseResponse> {
     this.logProvider.info({
       message: GET_PROVIDER_VERIFICATION_LOG_MESSAGES.START_FLOW,
       context: this.logContext,
@@ -55,7 +57,11 @@ export class GetProviderVerificationUseCase implements GetProviderVerificationUs
     this.logProvider.info({
       message: GET_PROVIDER_VERIFICATION_LOG_MESSAGES.VERIFICATION_FOUND,
       context: this.logContext,
-      meta: { providerId: params.providerId, verificationId: verification.id, status: verification.status },
+      meta: {
+        providerId: params.providerId,
+        verificationId: verification.id,
+        status: verification.status,
+      },
     });
 
     return verification;

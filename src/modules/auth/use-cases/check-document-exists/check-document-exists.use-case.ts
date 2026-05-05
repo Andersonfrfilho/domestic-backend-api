@@ -1,8 +1,9 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
-import { User } from '@modules/shared/providers/database/entities/user.entity';
+import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 
 export interface CheckDocumentExistsParams {
   document: string;
@@ -11,18 +12,18 @@ export interface CheckDocumentExistsParams {
 @Injectable()
 export class CheckDocumentExistsUseCase {
   constructor(
-    @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userDocumentRepository: Repository<UserDocument>,
   ) {}
 
   async execute(params: CheckDocumentExistsParams): Promise<void> {
     const normalized = params.document.replace(/\D/g, '');
 
-    const user = await this.userRepository.findOne({
-      where: { document: normalized },
+    const userDocument = await this.userDocumentRepository.findOne({
+      where: { documentNumber: normalized },
     });
 
-    if (user) {
+    if (userDocument) {
       throw new ConflictException('Documento já está cadastrado');
     }
   }

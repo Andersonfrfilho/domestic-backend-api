@@ -1,24 +1,23 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import type { AcceptTermsParams } from './use-cases/accept-terms/accept-terms.interface';
+import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-case';
+import type { CheckDocumentExistsParams } from './use-cases/check-document-exists/check-document-exists.interface';
+import { CheckDocumentExistsUseCase } from './use-cases/check-document-exists/check-document-exists.use-case';
+import type { CheckEmailExistsParams } from './use-cases/check-email-exists/check-email-exists.interface';
+import { CheckEmailExistsUseCase } from './use-cases/check-email-exists/check-email-exists.use-case';
+import type { CheckPendingTermsParams } from './use-cases/check-pending-terms/check-pending-terms.interface';
+import { CheckPendingTermsUseCase } from './use-cases/check-pending-terms/check-pending-terms.use-case';
+import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
+import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
 import { SendVerificationCodeUseCase } from './use-cases/send-verification-code/send-verification-code.use-case';
 import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case';
-import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
-import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-case';
-import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
-import { CheckPendingTermsUseCase } from './use-cases/check-pending-terms/check-pending-terms.use-case';
 import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
-import { CheckEmailExistsUseCase } from './use-cases/check-email-exists/check-email-exists.use-case';
 import { CheckPhoneExistsUseCase } from './use-cases/check-phone-exists/check-phone-exists.use-case';
-import { CheckDocumentExistsUseCase } from './use-cases/check-document-exists/check-document-exists.use-case';
-
 import type { SendVerificationCodeParams } from './use-cases/send-verification-code/send-verification-code.interface';
 import type { VerifyCodeParams } from './use-cases/verify-code/verify-code.interface';
-import type { AcceptTermsParams } from './use-cases/accept-terms/accept-terms.interface';
-import type { CheckPendingTermsParams } from './use-cases/check-pending-terms/check-pending-terms.interface';
-import type { CheckEmailExistsParams } from './use-cases/check-email-exists/check-email-exists.interface';
 import type { CheckPhoneExistsParams } from './use-cases/check-phone-exists/check-phone-exists.interface';
-import type { CheckDocumentExistsParams } from './use-cases/check-document-exists/check-document-exists.interface';
 
 @ApiTags('Auth')
 @Controller('auth')

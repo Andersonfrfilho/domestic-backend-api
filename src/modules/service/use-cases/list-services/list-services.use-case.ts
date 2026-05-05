@@ -1,9 +1,9 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
-import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
-import { SERVICE_REPOSITORY_PROVIDE } from '@modules/service/service.token';
 import { type ServiceRepositoryInterface } from '@modules/service/service.repository.interface';
+import { SERVICE_REPOSITORY_PROVIDE } from '@modules/service/service.token';
+import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
 import { LIST_SERVICES_LOG_MESSAGES } from './list-services.constants';
 import {

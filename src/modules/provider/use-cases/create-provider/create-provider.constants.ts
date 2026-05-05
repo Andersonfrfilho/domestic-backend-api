@@ -1,4 +1,3 @@
-
 export const CREATE_PROVIDER_LOG_MESSAGES = {
   START_FLOW: 'Starting create provider flow',
   PROVIDER_ALREADY_EXISTS: 'Provider creation aborted: provider already exists for user',

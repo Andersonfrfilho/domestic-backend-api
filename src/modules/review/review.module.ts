@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { ServiceRequestModule } from '@modules/service-request/service-request.module';
 import { Review } from '@modules/shared/providers/database/entities/review.entity';
 import { SharedModule } from '@modules/shared/shared.module';
 import { UserModule } from '@modules/user/user.module';
-import { ServiceRequestModule } from '@modules/service-request/service-request.module';
 
 import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 

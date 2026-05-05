@@ -13,9 +13,7 @@ import {
 import { type UserAddressRepositoryInterface } from '../../user-address.repository.interface';
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
-import {
-  ADD_USER_ADDRESS_LOG_MESSAGES,
-} from './add-user-address.constants';
+import { ADD_USER_ADDRESS_LOG_MESSAGES } from './add-user-address.constants';
 import {
   AddUserAddressUseCaseInterface,
   AddUserAddressUseCaseParams,

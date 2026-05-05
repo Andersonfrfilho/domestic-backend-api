@@ -1,5 +1,5 @@
-import { BaseErrorFactory } from '@modules/error/factories';
 import { REVIEW_ERROR_CONFIGS } from '@modules/error/configs';
+import { BaseErrorFactory } from '@modules/error/factories';
 
 export class ReviewErrorFactory extends BaseErrorFactory {
   static notFound(id: string) {
@@ -11,6 +11,8 @@ export class ReviewErrorFactory extends BaseErrorFactory {
   }
 
   static serviceRequestNotCompleted(serviceRequestId: string) {
-    return this.createBusinessLogic(REVIEW_ERROR_CONFIGS.serviceRequestNotCompleted(serviceRequestId));
+    return this.createBusinessLogic(
+      REVIEW_ERROR_CONFIGS.serviceRequestNotCompleted(serviceRequestId),
+    );
   }
 }

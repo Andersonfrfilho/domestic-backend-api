@@ -9,13 +9,6 @@ import { UserModule } from '@modules/user/user.module';
 
 import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 
-import { EmailRepository } from './repositories/email.repository';
-import { UserEmailRepository } from './repositories/user-email.repository';
-import { AddUserEmailUseCase } from './use-cases/add-user-email/add-user-email.use-case';
-import { ListUserEmailsUseCase } from './use-cases/list-user-emails/list-user-emails.use-case';
-import { RemoveUserEmailUseCase } from './use-cases/remove-user-email/remove-user-email.use-case';
-import { SendEmailVerificationUseCase } from './use-cases/send-email-verification/send-email-verification.use-case';
-import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code/verify-email-code.use-case';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
 import {
@@ -28,6 +21,13 @@ import {
   USER_EMAIL_REPOSITORY_PROVIDE,
   VERIFY_EMAIL_CODE_USE_CASE_PROVIDE,
 } from './email.token';
+import { EmailRepository } from './repositories/email.repository';
+import { UserEmailRepository } from './repositories/user-email.repository';
+import { AddUserEmailUseCase } from './use-cases/add-user-email/add-user-email.use-case';
+import { ListUserEmailsUseCase } from './use-cases/list-user-emails/list-user-emails.use-case';
+import { RemoveUserEmailUseCase } from './use-cases/remove-user-email/remove-user-email.use-case';
+import { SendEmailVerificationUseCase } from './use-cases/send-email-verification/send-email-verification.use-case';
+import { VerifyEmailCodeUseCase } from './use-cases/verify-email-code/verify-email-code.use-case';
 
 @Module({
   imports: [

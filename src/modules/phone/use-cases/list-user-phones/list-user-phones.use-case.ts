@@ -3,11 +3,11 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
-import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 import { type UserRepositoryInterface } from '@modules/user/user.repository.interface';
+import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
-import { type UserPhoneRepositoryInterface } from '../../user-phone.repository.interface';
 import { USER_PHONE_REPOSITORY_PROVIDE } from '../../phone.token';
+import { type UserPhoneRepositoryInterface } from '../../user-phone.repository.interface';
 
 import { LIST_USER_PHONES_LOG_MESSAGES } from './list-user-phones.constants';
 import {

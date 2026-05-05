@@ -18,10 +18,10 @@ import {
   DOCUMENT_SERVICE_PROVIDE,
   DOCUMENT_UPLOAD_USE_CASE_PROVIDE,
 } from './document.token';
-import { UploadDocumentUseCase } from './use-cases/upload-document/upload-document.use-case';
-import { GetDocumentUrlUseCase } from './use-cases/get-document-url/get-document-url.use-case';
 import { ApproveDocumentUseCase } from './use-cases/approve-document/approve-document.use-case';
+import { GetDocumentUrlUseCase } from './use-cases/get-document-url/get-document-url.use-case';
 import { RejectDocumentUseCase } from './use-cases/reject-document/reject-document.use-case';
+import { UploadDocumentUseCase } from './use-cases/upload-document/upload-document.use-case';
 
 @Module({
   imports: [

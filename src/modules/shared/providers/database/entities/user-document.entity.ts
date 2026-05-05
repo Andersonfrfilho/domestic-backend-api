@@ -3,31 +3,35 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Address } from './address.entity';
 import { User } from './user.entity';
 
-@Entity('user_addresses')
-export class UserAddress {
+@Entity('user_documents')
+export class UserDocument {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ name: 'address_id' })
-  addressId: string;
+  @Column({ name: 'document_number', type: 'varchar' })
+  @Index('user_documents_number_idx')
+  documentNumber: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  label: string | null;
+  @Column({ name: 'document_type', type: 'varchar', comment: 'CPF, CNPJ, RG, etc' })
+  documentType: string;
 
-  @Column({ name: 'is_primary', default: false })
-  isPrimary: boolean;
+  @Column({ type: 'varchar', default: 'PENDING' })
+  status: string;
+
+  @Column({ name: 'verified_at', type: 'timestamp', nullable: true })
+  verifiedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
@@ -38,11 +42,7 @@ export class UserAddress {
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deletedAt: Date | null;
 
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.documents, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: User;
-
-  @ManyToOne(() => Address, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'address_id' })
-  address: Address;
 }

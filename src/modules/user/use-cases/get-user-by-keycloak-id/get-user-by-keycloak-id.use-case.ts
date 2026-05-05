@@ -7,9 +7,7 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
-import {
-  GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES,
-} from './get-user-by-keycloak-id.constants';
+import { GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES } from './get-user-by-keycloak-id.constants';
 import {
   GetUserByKeycloakIdUseCaseInterface,
   GetUserByKeycloakIdUseCaseParams,

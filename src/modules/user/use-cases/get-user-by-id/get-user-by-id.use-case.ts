@@ -7,9 +7,7 @@ import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
 
 import { type UserRepositoryInterface } from '../../user.repository.interface';
 
-import {
-  GET_USER_BY_ID_LOG_MESSAGES,
-} from './get-user-by-id.constants';
+import { GET_USER_BY_ID_LOG_MESSAGES } from './get-user-by-id.constants';
 import {
   GetUserByIdUseCaseInterface,
   GetUserByIdUseCaseParams,

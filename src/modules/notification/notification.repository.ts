@@ -15,10 +15,10 @@ export class NotificationRepository implements NotificationRepositoryInterface {
   ) {}
 
   async listByUser(userId: string): Promise<Notification[]> {
-    return this.repo.find({ where: { userId }, order: { createdAt: 'DESC' } } as any);
+    return this.repo.find({ where: { userId }, order: { createdAt: 'DESC' } });
   }
 
   async markAsRead(id: ObjectId): Promise<void> {
-    await this.repo.update({ _id: id } as any, { read: true });
+    await this.repo.update({ _id: id }, { read: true });
   }
 }

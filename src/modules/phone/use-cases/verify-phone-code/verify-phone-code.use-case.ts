@@ -6,11 +6,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
 import { PhoneErrorFactory } from '../../factories/phone.error.factory';
-import {
-  PHONE_REPOSITORY_PROVIDE,
-  USER_PHONE_REPOSITORY_PROVIDE,
-} from '../../phone.token';
 import { type PhoneRepositoryInterface } from '../../phone.repository.interface';
+import { PHONE_REPOSITORY_PROVIDE, USER_PHONE_REPOSITORY_PROVIDE } from '../../phone.token';
 import { type UserPhoneRepositoryInterface } from '../../user-phone.repository.interface';
 
 import { VERIFY_PHONE_CODE_LOG_MESSAGES } from './verify-phone-code.constants';
@@ -67,7 +64,12 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
     this.logProvider.info({
       message: VERIFY_PHONE_CODE_LOG_MESSAGES.DEV_CODE_RECEIVED,
       context: this.logContext,
-      meta: { userId: params.userId, userPhoneId: params.userPhoneId, received: params.code, stored: storedCode },
+      meta: {
+        userId: params.userId,
+        userPhoneId: params.userPhoneId,
+        received: params.code,
+        stored: storedCode,
+      },
     });
 
     if (!storedCode) {

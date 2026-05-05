@@ -9,9 +9,7 @@ import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.toke
 import { type DocumentRepositoryInterface } from '../../document.repository.interface';
 import { DOCUMENT_REPOSITORY_PROVIDE } from '../../document.token';
 
-import {
-  GET_DOCUMENT_URL_LOG_MESSAGES,
-} from './get-document-url.constants';
+import { GET_DOCUMENT_URL_LOG_MESSAGES } from './get-document-url.constants';
 import {
   GetDocumentUrlUseCaseInterface,
   GetDocumentUrlUseCaseParams,

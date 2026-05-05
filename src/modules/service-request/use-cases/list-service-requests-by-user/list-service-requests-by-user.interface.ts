@@ -7,5 +7,7 @@ export interface ListServiceRequestsByUserUseCaseParams {
 export type ListServiceRequestsByUserUseCaseResponse = ServiceRequest[];
 
 export interface ListServiceRequestsByUserUseCaseInterface {
-  execute(params: ListServiceRequestsByUserUseCaseParams): Promise<ListServiceRequestsByUserUseCaseResponse>;
+  execute(
+    params: ListServiceRequestsByUserUseCaseParams,
+  ): Promise<ListServiceRequestsByUserUseCaseResponse>;
 }

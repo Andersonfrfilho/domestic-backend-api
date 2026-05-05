@@ -7,5 +7,7 @@ export interface GetServiceRequestByIdUseCaseParams {
 export type GetServiceRequestByIdUseCaseResponse = ServiceRequest;
 
 export interface GetServiceRequestByIdUseCaseInterface {
-  execute(params: GetServiceRequestByIdUseCaseParams): Promise<GetServiceRequestByIdUseCaseResponse>;
+  execute(
+    params: GetServiceRequestByIdUseCaseParams,
+  ): Promise<GetServiceRequestByIdUseCaseResponse>;
 }

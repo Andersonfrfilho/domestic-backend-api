@@ -25,8 +25,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 import { ROLES } from '@modules/shared/constants';
+import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 
 import { AddUserPhoneRequestDto } from './dtos/add-user-phone-request.dto';
 import { VerifyPhoneCodeRequestDto } from './dtos/verify-phone-code-request.dto';

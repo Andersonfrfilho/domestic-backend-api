@@ -30,8 +30,8 @@ import { ProviderService as ProviderServiceEntity } from '@modules/shared/provid
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
-import { type ProviderServiceInterface } from './provider.service';
 import { type ProviderWithDetails } from './provider.repository';
+import { type ProviderServiceInterface } from './provider.service';
 import { PROVIDER_SERVICE_PROVIDE } from './provider.token';
 import { AddProviderServiceRequestDto } from './use-cases/add-provider-service/dtos/add-provider-service-request.dto';
 import { AddWorkLocationRequestDto } from './use-cases/add-work-location/dtos/add-work-location-request.dto';
@@ -191,7 +191,11 @@ export class ProviderController {
   @Roles(ROLES.SERVICE.MANAGER)
   @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Aprovar prestador (Admin)' })
-  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'Admin user JWT forwarded by Kong' })
+  @ApiHeader({
+    name: 'X-Access-Token',
+    required: true,
+    description: 'Admin user JWT forwarded by Kong',
+  })
   @ApiOkResponse({ type: ProviderVerification })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse({ description: 'Status de verificação inválido' })
@@ -206,7 +210,11 @@ export class ProviderController {
   @Roles(ROLES.SERVICE.MANAGER)
   @UseGuards(B2CGuard, RolesGuard)
   @ApiOperation({ summary: 'Rejeitar prestador (Admin)' })
-  @ApiHeader({ name: 'X-Access-Token', required: true, description: 'Admin user JWT forwarded by Kong' })
+  @ApiHeader({
+    name: 'X-Access-Token',
+    required: true,
+    description: 'Admin user JWT forwarded by Kong',
+  })
   @ApiOkResponse({ type: ProviderVerification })
   @ApiNotFoundResponse()
   @ApiBadRequestResponse()
