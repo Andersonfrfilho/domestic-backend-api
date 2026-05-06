@@ -17,7 +17,12 @@ import { ProviderWorkLocation } from '@app/modules/shared/providers/database/ent
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 import { ServiceRequest } from '@app/modules/shared/providers/database/entities/service-request.entity';
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
+import { CompanyAddress } from '@app/modules/shared/providers/database/entities/company-address.entity';
+import { CompanyBusinessHours } from '@app/modules/shared/providers/database/entities/company-business-hours.entity';
+import { CompanyEmail } from '@app/modules/shared/providers/database/entities/company-email.entity';
 import { CompanyMember } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { CompanyPhone } from '@app/modules/shared/providers/database/entities/company-phone.entity';
+import { CompanyProvider } from '@app/modules/shared/providers/database/entities/company-provider.entity';
 import { Company } from '@app/modules/shared/providers/database/entities/company.entity';
 import { TermsAcceptance } from '@app/modules/shared/providers/database/entities/terms-acceptance.entity';
 import { TermsVersion } from '@app/modules/shared/providers/database/entities/terms-version.entity';
@@ -69,6 +74,11 @@ const PostgresDataSource = new DataSource({
     TermsVersion,
     Company,
     CompanyMember,
+    CompanyAddress,
+    CompanyEmail,
+    CompanyPhone,
+    CompanyBusinessHours,
+    CompanyProvider,
   ],
   migrations,
   migrationsRun: false,
