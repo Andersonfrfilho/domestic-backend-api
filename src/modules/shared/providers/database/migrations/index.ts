@@ -24,7 +24,7 @@ import UpdatePhones1763600000018 from './1763600000018-update-phones';
 import AddIsActiveToCategories1763600000020 from './1763600000020-add-is-active-to-categories';
 import CreateVerificationCodesAndTermsAcceptances1763600000021 from './1763600000021-create-verification-codes-and-terms-acceptances';
 import CreateUserDocuments1763600000022 from './1763600000022-create-user-documents';
-import { CreateCompaniesAndCompanyMembers1778091112 } from './1778091112-create-companies-and-company-members';
+import { CreateCompaniesAndCompanyMembers1778091112000 } from './1778091112000-create-companies-and-company-members';
 import { CreateCompanyRelatedTables1778091959 } from './1778091959-create-company-related-tables';
 
 export const migrations = [
@@ -54,6 +54,6 @@ export const migrations = [
   AddIsActiveToCategories1763600000020,
   CreateVerificationCodesAndTermsAcceptances1763600000021,
   CreateUserDocuments1763600000022,
-  CreateCompaniesAndCompanyMembers1778091112,
+  CreateCompaniesAndCompanyMembers1778091112000,
   CreateCompanyRelatedTables1778091959,
 ];
