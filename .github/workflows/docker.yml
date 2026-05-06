@@ -38,6 +38,7 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
+            type=sha,format=short
             type=sha
 
       - name: Build and push Docker image
@@ -47,5 +48,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GIT_COMMIT_HASH=${{ github.sha }}
+            GIT_COMMIT_HASH_FULL=${{ github.sha }}
+            GIT_BRANCH=${{ github.ref_name }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
           no-cache: true
           cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}:buildcache,mode=max
