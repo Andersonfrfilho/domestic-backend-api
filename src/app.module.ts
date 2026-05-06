@@ -22,6 +22,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { PhoneModule } from './modules/phone/phone.module';
 import { ProviderModule } from './modules/provider/provider.module';
 import { ReviewModule } from './modules/review/review.module';
@@ -68,6 +69,7 @@ tsConfigPathsRegister({
     DocumentModule,
     AuthModule,
     CompanyModule,
+    OnboardingModule,
   ],
 })
 export class AppModule implements NestModule {
