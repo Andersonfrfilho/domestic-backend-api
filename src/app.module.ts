@@ -18,6 +18,7 @@ import * as tsConfig from '../tsconfig.json';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/category/category.module';
+import { CompanyModule } from './modules/company/company.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
 import { NotificationModule } from './modules/notification/notification.module';
@@ -66,6 +67,7 @@ tsConfigPathsRegister({
     NotificationModule,
     DocumentModule,
     AuthModule,
+    CompanyModule,
   ],
 })
 export class AppModule implements NestModule {

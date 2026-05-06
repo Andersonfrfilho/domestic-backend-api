@@ -17,6 +17,8 @@ import { ProviderWorkLocation } from '@app/modules/shared/providers/database/ent
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 import { ServiceRequest } from '@app/modules/shared/providers/database/entities/service-request.entity';
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
+import { CompanyMember } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { Company } from '@app/modules/shared/providers/database/entities/company.entity';
 import { TermsAcceptance } from '@app/modules/shared/providers/database/entities/terms-acceptance.entity';
 import { TermsVersion } from '@app/modules/shared/providers/database/entities/terms-version.entity';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
@@ -65,6 +67,8 @@ const PostgresDataSource = new DataSource({
     VerificationCode,
     TermsAcceptance,
     TermsVersion,
+    Company,
+    CompanyMember,
   ],
   migrations,
   migrationsRun: false,
