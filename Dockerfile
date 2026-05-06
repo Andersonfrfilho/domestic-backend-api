@@ -1,3 +1,9 @@
+# ===== Build Arguments =====
+ARG GIT_COMMIT_HASH="unknown"
+ARG GIT_COMMIT_HASH_FULL="unknown"
+ARG GIT_BRANCH="unknown"
+ARG BUILD_DATE="unknown"
+
 # ===== STAGE 1: Build =====
 FROM node:25-alpine AS builder
 
@@ -25,6 +31,18 @@ RUN if ls src/modules/shared/providers/database/migrations/*.ts 2>/dev/null; the
 
 # ===== STAGE 2: Runtime (Production) =====
 FROM node:25-alpine
+
+# Labels com informações de build
+ARG GIT_COMMIT_HASH
+ARG GIT_COMMIT_HASH_FULL
+ARG GIT_BRANCH
+ARG BUILD_DATE
+
+LABEL git.commit.hash="${GIT_COMMIT_HASH}" \
+      git.commit.hash.full="${GIT_COMMIT_HASH_FULL}" \
+      git.branch="${GIT_BRANCH}" \
+      build.date="${BUILD_DATE}" \
+      maintainer="Anderson"
 
 WORKDIR /app
 
