@@ -51,7 +51,7 @@ tsConfigPathsRegister({
       interceptorExcludedPaths: ['/health', '/metrics', '/v1/metrics'],
     }),
     CacheModule.forRoot({ isGlobal: true }),
-    HttpModule.forRoot({}, 'HTTP_PROVIDER'),
+    HttpModule.forRoot({}),
     SharedModule,
     ErrorModule,
     HealthModule,
