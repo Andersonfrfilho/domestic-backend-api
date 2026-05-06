@@ -2,6 +2,7 @@ import { UserEmail } from '@modules/shared/providers/database/entities/user-emai
 
 export interface VerifyEmailCodeUseCaseParams {
   userId: string;
+  keycloakId: string;
   userEmailId: string;
   code: string;
 }

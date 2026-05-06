@@ -6,4 +6,6 @@ export const VERIFY_EMAIL_CODE_LOG_MESSAGES = {
   CODE_INVALID: 'Verification code does not match',
   EMAIL_VERIFIED: 'Email verified successfully',
   CODE_RECEIVED: 'Verification code received',
+  EVENT_PUBLISHED: 'Email verified event published',
+  EVENT_PUBLISH_FAILED: 'Failed to publish email verified event',
 } as const;

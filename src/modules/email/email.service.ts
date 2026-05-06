@@ -131,6 +131,7 @@ export class EmailService implements EmailServiceInterface {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const userEmail = await this.verifyEmailCodeUseCase.execute({
       userId: user.id,
+      keycloakId,
       userEmailId,
       code,
     });

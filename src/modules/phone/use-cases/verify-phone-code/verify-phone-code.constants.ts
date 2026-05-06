@@ -6,4 +6,6 @@ export const VERIFY_PHONE_CODE_LOG_MESSAGES = {
   CODE_INVALID: 'Verification code does not match',
   PHONE_VERIFIED: 'Phone verified successfully',
   DEV_CODE_RECEIVED: 'Dev verification code received',
+  EVENT_PUBLISHED: 'Phone verified event published',
+  EVENT_PUBLISH_FAILED: 'Failed to publish phone verified event',
 } as const;
