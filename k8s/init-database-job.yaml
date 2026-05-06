@@ -1,0 +1,192 @@
+---
+# ConfigMap com o script de inicialização
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-database-script
+  namespace: domestic
+data:
+  init-database.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "=== Verificando se PostgreSQL está pronto ==="
+    until kubectl get pod postgres-0 -n domestic -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep -q "True"; do
+      echo "Aguardando PostgreSQL..."
+      sleep 5
+    done
+    echo "✓ PostgreSQL pronto"
+
+    echo ""
+    echo "=== Verificando se RabbitMQ está pronto ==="
+    until kubectl get pod rabbitmq-0 -n domestic -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' | grep -q "True"; do
+      echo "Aguardando RabbitMQ..."
+      sleep 5
+    done
+    echo "✓ RabbitMQ pronto"
+
+    echo ""
+    echo "=== Inicializando PostgreSQL ==="
+    kubectl exec -n domestic pod/postgres-0 -- psql -U domestic -d backend_database_postgres << 'PSQL'
+    -- Remover privilégios antes de deletar usuários
+    REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM domestic_api;
+    REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM domestic_cron;
+    REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM domestic_worker;
+    REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM domestic_api;
+    REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM domestic_cron;
+    REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM domestic_worker;
+
+    -- Deletar usuários
+    DROP USER IF EXISTS domestic_api;
+    DROP USER IF EXISTS domestic_cron;
+    DROP USER IF EXISTS domestic_worker;
+
+    -- Criar novos usuários com senha: backendapi123
+    CREATE USER domestic_api WITH PASSWORD 'backendapi123';
+    CREATE USER domestic_cron WITH PASSWORD 'backendapi123';
+    CREATE USER domestic_worker WITH PASSWORD 'backendapi123';
+
+    -- Conceder permissões
+    GRANT CONNECT ON DATABASE backend_database_postgres TO domestic_api;
+    GRANT CONNECT ON DATABASE backend_database_postgres TO domestic_cron;
+    GRANT CONNECT ON DATABASE backend_database_postgres TO domestic_worker;
+    GRANT USAGE ON SCHEMA public TO domestic_api;
+    GRANT USAGE ON SCHEMA public TO domestic_cron;
+    GRANT USAGE ON SCHEMA public TO domestic_worker;
+    GRANT CREATE ON SCHEMA public TO domestic_api;
+    GRANT CREATE ON SCHEMA public TO domestic_cron;
+    GRANT CREATE ON SCHEMA public TO domestic_worker;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO domestic_api;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO domestic_cron;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO domestic_worker;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_api;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_cron;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_worker;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_api;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_cron;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_worker;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_api;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_cron;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_worker;
+    PSQL
+    echo "✓ PostgreSQL inicializado"
+
+    echo ""
+    echo "=== Inicializando RabbitMQ ==="
+    kubectl exec -n domestic pod/rabbitmq-0 -- bash -c '
+    rabbitmqctl delete_user domestic_api 2>/dev/null || true
+    rabbitmqctl delete_user domestic_cron 2>/dev/null || true
+    rabbitmqctl delete_user domestic_worker 2>/dev/null || true
+
+    rabbitmqctl add_user domestic_api backendapi123
+    rabbitmqctl add_user domestic_cron backendapi123
+    rabbitmqctl add_user domestic_worker backendapi123
+
+    rabbitmqctl set_permissions -p / domestic_api ".*" ".*" ".*"
+    rabbitmqctl set_permissions -p / domestic_cron ".*" ".*" ".*"
+    rabbitmqctl set_permissions -p / domestic_worker ".*" ".*" ".*"
+    '
+    echo "✓ RabbitMQ inicializado"
+
+    echo ""
+    echo "=== ✓ Banco de dados pronto para usar ==="
+
+---
+# Job que executa o script de inicialização
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-database-job
+  namespace: domestic
+  labels:
+    app: init-database
+spec:
+  # Roda somente uma vez
+  completions: 1
+  parallelism: 1
+  # Tenta até 3 vezes se falhar
+  backoffLimit: 3
+  # Timeout de 10 minutos
+  activeDeadlineSeconds: 600
+
+  template:
+    metadata:
+      labels:
+        app: init-database
+    spec:
+      serviceAccountName: init-database
+      restartPolicy: Never
+
+      # Init container que aguarda os serviços
+      initContainers:
+      - name: wait-for-services
+        image: bitnami/kubectl:latest
+        command:
+          - sh
+          - -c
+          - |
+            echo "Aguardando PostgreSQL estar pronto..."
+            kubectl wait --for=condition=ready pod -l statefulset.kubernetes.io/pod-name=postgres-0 -n domestic --timeout=300s || true
+            echo "✓ PostgreSQL pronto"
+
+            echo "Aguardando RabbitMQ estar pronto..."
+            kubectl wait --for=condition=ready pod -l statefulset.kubernetes.io/pod-name=rabbitmq-0 -n domestic --timeout=300s || true
+            echo "✓ RabbitMQ pronto"
+
+            sleep 5
+
+      containers:
+      - name: init-script
+        image: bitnami/kubectl:latest
+        command:
+          - sh
+          - -c
+          - |
+            chmod +x /scripts/init-database.sh
+            /scripts/init-database.sh
+        volumeMounts:
+        - name: script-volume
+          mountPath: /scripts
+
+      volumes:
+      - name: script-volume
+        configMap:
+          name: init-database-script
+          defaultMode: 0755
+
+---
+# ServiceAccount com permissão para executar os comandos
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: init-database
+  namespace: domestic
+
+---
+# ClusterRole para permitir kubectl commands
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: init-database
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["create", "get"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: init-database
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: init-database
+subjects:
+- kind: ServiceAccount
+  name: init-database
+  namespace: domestic
