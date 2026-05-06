@@ -25,7 +25,7 @@ import AddIsActiveToCategories1763600000020 from './1763600000020-add-is-active-
 import CreateVerificationCodesAndTermsAcceptances1763600000021 from './1763600000021-create-verification-codes-and-terms-acceptances';
 import CreateUserDocuments1763600000022 from './1763600000022-create-user-documents';
 import { CreateCompaniesAndCompanyMembers1778091112000 } from './1778091112000-create-companies-and-company-members';
-import { CreateCompanyRelatedTables1778091959 } from './1778091959-create-company-related-tables';
+import { CreateCompanyRelatedTables1778091959000 } from './1778091959000-create-company-related-tables';
 
 export const migrations = [
   User1763256695093,
@@ -55,5 +55,5 @@ export const migrations = [
   CreateVerificationCodesAndTermsAcceptances1763600000021,
   CreateUserDocuments1763600000022,
   CreateCompaniesAndCompanyMembers1778091112000,
-  CreateCompanyRelatedTables1778091959,
+  CreateCompanyRelatedTables1778091959000,
 ];

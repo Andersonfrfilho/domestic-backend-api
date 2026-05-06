@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
 
-export class CreateCompanyRelatedTables1778091959 implements MigrationInterface {
-  name = 'CreateCompanyRelatedTables1778091959';
+export class CreateCompanyRelatedTables1778091959000 implements MigrationInterface {
+  name = 'CreateCompanyRelatedTables1778091959000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // company_addresses
