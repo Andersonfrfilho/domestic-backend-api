@@ -27,8 +27,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
+import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { ROLES } from '@modules/shared/constants';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { AddUserAddressRequestDto } from './use-cases/add-user-address/dtos/add-user-address-request.dto';
 import { type UserServiceInterface } from './use-cases/create-users/create-user.interface';
@@ -45,6 +49,8 @@ export class UserController {
   constructor(
     @Inject(USER_SERVICE_PROVIDE)
     private readonly userService: UserServiceInterface,
+    @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userDocumentRepository: Repository<UserDocument>,
   ) {}
 
   @Post()
@@ -174,5 +180,19 @@ export class UserController {
     @Param('addressId') addressId: string,
   ): Promise<void> {
     await this.userService.removeUserAddressByKeycloakId(keycloakId, addressId);
+  }
+
+  @Get('me/documents')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Listar documentos do usuário autenticado' })
+  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiOkResponse({ type: [UserDocument] })
+  async listDocuments(@AuthUser() keycloakId: string): Promise<UserDocument[]> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    return this.userDocumentRepository.find({
+      where: { userId: user.id },
+      order: { createdAt: 'DESC' },
+    });
   }
 }

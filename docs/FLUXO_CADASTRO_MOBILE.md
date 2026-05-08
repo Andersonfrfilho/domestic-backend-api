@@ -19,8 +19,8 @@ Enquanto o usuário digita, chamar:
 | Campo | Endpoint | O que checa |
 |-------|----------|-------------|
 | email | `POST /bff/onboarding/verify/email` | Keycloak + DB local |
-| phone | `POST /bff/onboarding/verify/phone` | DB local |
-| document | `POST /bff/onboarding/verify/document` | DB local |
+| phone | `POST /bff/onboarding/verify/phone` | DB local (phones) |
+| document | `POST /bff/onboarding/verify/document` | DB local (user_documents) |
 
 ### Etapa 3 — Criação de Conta
 `POST /bff/onboarding/register`
@@ -46,6 +46,16 @@ Enquanto o usuário digita, chamar:
 
 > ⚠️ A conta é criada com status `PENDING`. O usuário NÃO consegue acessar áreas restritas até verificar email E phone.
 
+### Documento salvo automaticamente
+O CPF/CNPJ digitado é salvo como `UserDocument` com `status: "PENDING"`:
+
+| Documento | Dígitos | `documentType` | `status` |
+|-----------|---------|----------------|----------|
+| CPF | 11 | `CPF` | `PENDING` |
+| CNPJ | 14 | `CNPJ` | `PENDING` |
+
+O documento precisa de **verificação com foto** futuramente (feature flag: `DOCUMENT_PHOTO_VERIFICATION`).
+
 ### Etapa 4 — Verificação de Email
 
 1. **Solicitar código:** `POST /bff/onboarding/verification/send`
@@ -66,7 +76,33 @@ Mesmo fluxo, alterando `type` para `"sms"`.
 
 ---
 
-## 2. Pular Verificação (Verificar Depois)
+## 2. Upload de Documento (Feature Flag)
+
+> ⚙️ **Feature flag:** `DOCUMENT_PHOTO_VERIFICATION` (desabilitada por padrão)
+
+Quando habilitada, o usuário precisa enviar foto do documento (RG, CNH) para verificação.
+
+### Fluxo:
+```
+[Criar Conta] → [Upload de Documento] → [Aguardar Verificação] → [Documento Verificado]
+```
+
+### Endpoints:
+| Método | Path | Descrição |
+|--------|------|-----------|
+| POST | `/bff/onboarding/documents/upload` | Enviar foto do documento (multipart) |
+| GET | `/v1/users/me/documents` | Listar documentos do usuário |
+
+### Status do documento:
+| Status | Significado |
+|--------|-------------|
+| `PENDING` | Aguardando verificação |
+| `VERIFIED` | Documento verificado (aprovado) |
+| `REJECTED` | Documento rejeitado (motivo no campo `rejectionReason`) |
+
+---
+
+## 3. Pular Verificação (Verificar Depois)
 
 O usuário pode optar por **"Verificar depois"** no cadastro. Nesse caso:
 
@@ -89,7 +125,7 @@ O usuário pode optar por **"Verificar depois"** no cadastro. Nesse caso:
 
 ---
 
-## 3. Lembrar Conta (Login Posterior)
+## 4. Lembrar Conta (Login Posterior)
 
 Se o usuário escolheu **"Lembrar conta"** e sai do app, ao retornar:
 
@@ -100,7 +136,7 @@ Se o usuário escolheu **"Lembrar conta"** e sai do app, ao retornar:
 
 ---
 
-## 4. Conflito de Cadastro (Conta Bloqueada)
+## 5. Conflito de Cadastro (Conta Bloqueada)
 
 Se durante a verificação de email ou phone for detectado que **já existe outro usuário com aquele email/phone verificado ativo**, e o usuário atual tentar ativar o mesmo:
 
@@ -119,16 +155,27 @@ Se durante a verificação de email ou phone for detectado que **já existe outr
 
 ---
 
-## 5. Endpoints Resumo
+## 6. Endpoints Resumo
 
-| Método | Path | Descrição |
-|--------|------|-----------|
-| POST | `/bff/onboarding/register` | Criar conta (Keycloak + DB) |
-| POST | `/bff/onboarding/verify/email` | Verificar se email existe |
-| POST | `/bff/onboarding/verify/phone` | Verificar se phone existe |
-| POST | `/bff/onboarding/verify/document` | Verificar se documento existe |
-| POST | `/bff/onboarding/verification/send` | Solicitar código |
-| POST | `/bff/onboarding/verification/verify` | Validar código |
-| POST | `/bff/onboarding/documents/upload` | Upload de documento |
-| GET | `/v1/users/me/verification-status` | Status da verificação |
-| GET | `/bff/app-config` | Config inicial (telas, versão) |
+| Método | Path | Descrição | Feature Flag |
+|--------|------|-----------|--------------|
+| POST | `/bff/onboarding/register` | Criar conta (Keycloak + DB + documento) | — |
+| POST | `/bff/onboarding/verify/email` | Verificar se email existe | — |
+| POST | `/bff/onboarding/verify/phone` | Verificar se phone existe | — |
+| POST | `/bff/onboarding/verify/document` | Verificar se documento existe | — |
+| POST | `/bff/onboarding/verification/send` | Solicitar código | — |
+| POST | `/bff/onboarding/verification/verify` | Validar código | — |
+| POST | `/bff/onboarding/documents/upload` | Upload de foto do documento | `DOCUMENT_PHOTO_VERIFICATION` |
+| GET | `/v1/users/me/verification-status` | Status da verificação | — |
+| GET | `/v1/users/me/documents` | Listar documentos | `DOCUMENT_PHOTO_VERIFICATION` |
+| GET | `/bff/app-config` | Config inicial (telas, flags) | — |
+
+### Feature flags retornadas em `GET /bff/app-config`:
+
+```json
+{
+  "features": {
+    "documentPhotoVerification": false
+  }
+}
+```
