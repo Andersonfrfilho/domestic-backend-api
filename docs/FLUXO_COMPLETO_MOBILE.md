@@ -66,7 +66,7 @@
 | 10 | `GET /bff/app-config` → `features.documentPhotoVerification` | Flag para upload de documento |
 | 11 | `GET /v1/users/me/verification-status` | Status de verificação do usuário |
 
-> **Nota:** `GET /v1/users/me/documents` e `GET /v1/users/me/verification-status` são endpoints diretos da API. Podem ser chamados via Kong em `/api/v1/users/me/documents` (requer JWT).
+> **Nota:** `GET /v1/users/me/documents`, `GET /v1/users/me/verification-status` e `GET /v1/users/me/account-status` são endpoints diretos da API. Podem ser chamados via Kong em `/api/v1/...` (requer JWT).
 
 ## Status da Conta
 
