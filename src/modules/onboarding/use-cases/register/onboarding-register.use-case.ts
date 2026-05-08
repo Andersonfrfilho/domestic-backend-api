@@ -1,10 +1,14 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
+import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { CompanyStatus } from '@app/modules/shared/providers/database/entities/company.entity';
 import { CompanyMemberRole } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 
 import { COMPANY_REPOSITORY_PROVIDE } from '@modules/company/company.token';
 import type { CompanyRepositoryInterface } from '@modules/company/company.repository.interface';
@@ -17,9 +21,17 @@ export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   KEYCLOAK_CREATED: 'Keycloak user created',
   KEYCLOAK_EXISTS: 'Keycloak user already exists with this email',
   USER_CREATED: 'Local user created',
+  DOCUMENT_SAVED: 'Document saved to user_documents',
   COMPANY_CREATED: 'Company created for CNPJ user',
   CNPJ_EXISTS: 'CNPJ already registered',
 } as const;
+
+function inferDocumentType(value: string): string | null {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length === 11) return 'CPF';
+  if (digits.length === 14) return 'CNPJ';
+  return null;
+}
 
 export interface OnboardingRegisterParams {
   email: string;
@@ -54,6 +66,8 @@ export class OnboardingRegisterUseCase {
     private readonly logProvider: LogProviderInterface,
     @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
+    @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userDocumentRepository: Repository<UserDocument>,
   ) {
     this.keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080';
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
@@ -97,7 +111,26 @@ export class OnboardingRegisterUseCase {
       meta: { userId: user.id, keycloakId },
     });
 
-    // 4. Se CNPJ, cria empresa
+    // 4. Salva documento (CPF/CNPJ/RG/Passaporte) como UserDocument
+    const documentValue = params.cpf || params.cnpj;
+    if (documentValue) {
+      const docType = inferDocumentType(documentValue);
+      if (docType) {
+        await this.userDocumentRepository.save({
+          userId: user.id,
+          documentNumber: documentValue.replace(/\D/g, ''),
+          documentType: docType,
+          status: 'PENDING',
+        });
+        this.logProvider.info({
+          message: ONBOARDING_REGISTER_LOG_MESSAGES.DOCUMENT_SAVED,
+          context: this.logContext,
+          meta: { userId: user.id, documentType: docType },
+        });
+      }
+    }
+
+    // 5. Se CNPJ, cria empresa
     if (params.cnpj) {
       const existingCompany = await this.companyRepository.findByDocument(params.cnpj);
       if (existingCompany) {
