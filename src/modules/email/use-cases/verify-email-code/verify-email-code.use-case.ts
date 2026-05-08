@@ -1,6 +1,7 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
@@ -37,6 +38,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     private readonly producer: QueueProducerMessageProviderInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 
   async execute(params: VerifyEmailCodeUseCaseParams): Promise<VerifyEmailCodeUseCaseResponse> {
@@ -108,6 +110,10 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
       meta: { userId: params.userId, userEmailId: params.userEmailId, emailId: userEmail.emailId },
     });
 
+    // Marca email como verificado no Keycloak com retry
+    await this.markEmailVerifiedInKeycloak(params.keycloakId);
+
+    // Publica evento como fallback para outros consumers
     await this.producer
       .send(
         ROUTING_KEY,
@@ -141,5 +147,37 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
       });
 
     return updated!;
+  }
+
+  private async markEmailVerifiedInKeycloak(keycloakId: string): Promise<void> {
+    const method = 'markEmailVerifiedInKeycloak';
+    const maxAttempts = 3;
+    const delayMs = 1000;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const { accessToken } = await this.keycloakAdmin.getAdminToken();
+        await this.keycloakAdmin.updateUser({
+          userId: keycloakId,
+          userData: { emailVerified: true },
+          adminToken: accessToken,
+        });
+        this.logProvider.info({
+          message: VERIFY_EMAIL_CODE_LOG_MESSAGES.KEYCLOAK_VERIFIED,
+          context: this.logContext,
+          meta: { keycloakId },
+        });
+        return;
+      } catch (err: unknown) {
+        this.logProvider.warn({
+          message: `${VERIFY_EMAIL_CODE_LOG_MESSAGES.KEYCLOAK_VERIFY_ATTEMPT_FAILED} (${attempt}/${maxAttempts})`,
+          context: this.logContext,
+          meta: { keycloakId, error: err instanceof Error ? err.message : String(err) },
+        });
+        if (attempt < maxAttempts) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs * attempt));
+        }
+      }
+    }
   }
 }

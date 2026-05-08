@@ -40,6 +40,17 @@ make clean-all              # Full teardown
 
 **Domain:** A service marketplace platform (consumer Users, Provider profiles, Services, ServiceRequests, Reviews, geo-based work locations).
 
+### BFF vs API — Responsabilidades
+
+A **API** é a única responsável por lógica de negócio, gerenciamento de contas e comunicação com Keycloak.
+O **BFF** nunca deve:
+- Criar, verificar ou gerenciar usuários no Keycloak
+- Gerar, armazenar ou validar códigos de verificação
+- Tomar decisões de negócio (IF/ELSE com lógica de domínio)
+- Escrever em PostgreSQL ou publicar em RabbitMQ
+
+O BFF apenas agrega, transforma e cacheia dados da API para o mobile.
+
 ### Module structure
 
 ```
