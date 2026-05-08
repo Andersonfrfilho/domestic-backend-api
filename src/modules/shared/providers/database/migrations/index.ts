@@ -26,6 +26,7 @@ import CreateVerificationCodesAndTermsAcceptances1763600000021 from './176360000
 import CreateUserDocuments1763600000022 from './1763600000022-create-user-documents';
 import { CreateCompaniesAndCompanyMembers1778091112000 } from './1778091112000-create-companies-and-company-members';
 import { CreateCompanyRelatedTables1778091959000 } from './1778091959000-create-company-related-tables';
+import { CreateAccountBlocks1778256000000 } from './1778256000000-create-account-blocks';
 
 export const migrations = [
   User1763256695093,
@@ -56,4 +57,5 @@ export const migrations = [
   CreateUserDocuments1763600000022,
   CreateCompaniesAndCompanyMembers1778091112000,
   CreateCompanyRelatedTables1778091959000,
+  CreateAccountBlocks1778256000000,
 ];

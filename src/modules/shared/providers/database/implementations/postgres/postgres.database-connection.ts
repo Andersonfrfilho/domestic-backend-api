@@ -20,6 +20,7 @@ import { Service } from '@app/modules/shared/providers/database/entities/service
 import { CompanyAddress } from '@app/modules/shared/providers/database/entities/company-address.entity';
 import { CompanyBusinessHours } from '@app/modules/shared/providers/database/entities/company-business-hours.entity';
 import { CompanyEmail } from '@app/modules/shared/providers/database/entities/company-email.entity';
+import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
 import { CompanyMember } from '@app/modules/shared/providers/database/entities/company-member.entity';
 import { CompanyPhone } from '@app/modules/shared/providers/database/entities/company-phone.entity';
 import { CompanyProvider } from '@app/modules/shared/providers/database/entities/company-provider.entity';
@@ -72,6 +73,7 @@ const PostgresDataSource = new DataSource({
     VerificationCode,
     TermsAcceptance,
     TermsVersion,
+    AccountBlock,
     Company,
     CompanyMember,
     CompanyAddress,

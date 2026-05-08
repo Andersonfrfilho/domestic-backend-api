@@ -17,6 +17,7 @@ import { MetricsModule } from '@modules/metrics/metrics.module';
 
 import * as tsConfig from '../tsconfig.json';
 
+import { AccountBlockModule } from './modules/account-block/account-block.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CompanyModule } from './modules/company/company.module';
@@ -77,6 +78,7 @@ tsConfigPathsRegister({
     AuthModule,
     CompanyModule,
     OnboardingModule,
+    AccountBlockModule,
   ],
 })
 export class AppModule implements NestModule {
