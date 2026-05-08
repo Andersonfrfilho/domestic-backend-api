@@ -28,47 +28,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const rawRequestId = request.headers['x-request-id'];
       const headerRequestId = (Array.isArray(rawRequestId) ? rawRequestId[0] : rawRequestId) ?? '';
       const exceptionMessage = exception instanceof Error ? exception.message : String(exception);
-      const resolvedStatus =
-        status ??
-        (typeof responseBody?.statusCode === 'number'
-          ? responseBody.statusCode
-          : HttpStatus.INTERNAL_SERVER_ERROR);
-      const responseMessageRaw = responseBody?.message;
-      let responseMessages: string[] = [exceptionMessage];
-      if (Array.isArray(responseMessageRaw)) {
-        responseMessages = responseMessageRaw.map(String);
-      } else if (typeof responseMessageRaw === 'string') {
-        responseMessages = [responseMessageRaw];
-      }
-
-      // try to extract origin (class.method) from stack trace when available
-      // prefer origin provided by AppError (set at factory time), fall back to parsing stack
-      let originLabel = '';
-      if (exception instanceof AppError && exception.origin) {
-        originLabel = exception.origin;
-      } else {
-        try {
-          if (exception instanceof Error && exception.stack) {
-            const stackLines = exception.stack
-              .split('\n')
-              .map((l) => l.trim())
-              .filter(Boolean);
-            // stackLines[0] is the error message, stackLines[1] usually contains the first frame
-            if (stackLines.length > 1) {
-              const m = /at\s+([^\s(]+)/.exec(stackLines[1]);
-              originLabel = m?.[1] ?? '';
-            }
-          }
-        } catch {
-          originLabel = '';
-        }
-      }
 
       this.logProvider.error({
-        message: 'Exception caught in filter',
-        context: `${originLabel ? originLabel + ' | ' : ''}HttpExceptionFilter.logResponse`,
-        requestId: headerRequestId,
+        message: `Exception caught in filter: ${exceptionMessage}`,
+        context: 'HttpExceptionFilter.logResponse',
         meta: {
+          requestId: headerRequestId,
           request: {
             path: request.url,
             method: request.method,
@@ -78,18 +43,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
             body: request.body,
           },
           response: {
-            status: resolvedStatus,
+            status: status ?? HttpStatus.INTERNAL_SERVER_ERROR,
             headers: responseHeaders ?? { 'x-request-id': headerRequestId },
-            messages: responseMessages,
+            messages: [exceptionMessage],
           },
           error: {
             type: exception instanceof AppError ? exception.type : 'Error',
             message: exceptionMessage,
-            status: resolvedStatus,
+            status: status ?? HttpStatus.INTERNAL_SERVER_ERROR,
             body: responseBody,
             details: exception instanceof AppError ? exception.details : undefined,
           },
-          origin: originLabel || undefined,
         },
       });
     } catch (logError) {
