@@ -1,25 +1,26 @@
+import { Logger } from '@nestjs/common';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-const LIFECYCLE_LOG_PREFIX = '🐰 RabbitMQ';
+const logger = new Logger('RabbitMQConnection');
 
 export const rabbitConnection = RabbitMQModule.forRootAsync({
   imports: [ConfigModule],
   useFactory: (configService: ConfigService) => {
-    console.log(`${LIFECYCLE_LOG_PREFIX} [INIT] Factory invoked - starting environment variable loading phase`);
+    logger.debug('Factory invoked - starting environment variable loading phase');
 
     const user = configService.get('QUEUE_RABBITMQ_USER');
     const pass = configService.get('QUEUE_RABBITMQ_PASS');
     const host = configService.get('QUEUE_RABBITMQ_HOST');
     const port = configService.get('QUEUE_RABBITMQ_PORT');
 
-    console.log(`${LIFECYCLE_LOG_PREFIX} [ENV] User loaded: ${user ? '✓ set' : '✗ not set'}`);
-    console.log(`${LIFECYCLE_LOG_PREFIX} [ENV] Pass loaded: ${pass ? '✓ set' : '✗ not set'}`);
-    console.log(`${LIFECYCLE_LOG_PREFIX} [ENV] Host loaded: ${host ? `✓ ${host}` : '✗ not set'}`);
-    console.log(`${LIFECYCLE_LOG_PREFIX} [ENV] Port loaded: ${port ? `✓ ${port}` : '✗ not set'}`);
+    logger.debug(`User loaded: ${user ? '✓ set' : '✗ not set'}`);
+    logger.debug(`Pass loaded: ${pass ? '✓ set' : '✗ not set'}`);
+    logger.debug(`Host loaded: ${host ? `✓ ${host}` : '✗ not set'}`);
+    logger.debug(`Port loaded: ${port ? `✓ ${port}` : '✗ not set'}`);
 
     const uri = `amqp://${user}:${pass}@${host}:${port}`;
-    console.log(`${LIFECYCLE_LOG_PREFIX} [URI] Constructed: amqp://***:***@${host}:${port}`);
+    logger.debug(`URI Constructed: amqp://***:***@${host}:${port}`);
 
     return {
       // ✅ EXCHANGES - Declaramos todas as exchanges que vamos usar

@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  Logger,
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
@@ -21,6 +22,8 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 @Catch()
 @Injectable()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(@Inject(LOGGER_PROVIDER) private readonly logProvider: LogProviderInterface) {}
 
   logResponse({ exception, request, status, responseBody, responseHeaders }: LogResponseParams) {
@@ -57,7 +60,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         },
       });
     } catch (logError) {
-      console.error('[HttpExceptionFilter] Logger failed:', String(logError));
+      this.logger.error(`Logging failed: ${String(logError)}`);
     }
   }
   private getRequestId(request: FastifyRequest): string {
@@ -183,12 +186,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         context: 'HttpExceptionFilter.handleFilterError',
       });
     } catch (logError) {
-      console.error(
-        '[HttpExceptionFilter] Failed to send response:',
-        String(sendError),
-        'Logging error:',
-        String(logError),
-      );
+      this.logger.error(`Failed to send response: ${String(sendError)}. Logging error: ${String(logError)}`);
     }
   }
 }

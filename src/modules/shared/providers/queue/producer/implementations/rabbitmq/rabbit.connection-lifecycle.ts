@@ -1,21 +1,20 @@
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import { Injectable, OnModuleInit } from '@nestjs/common';
-
-const LIFECYCLE_LOG_PREFIX = '🔌 RabbitMQ';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
 export class RabbitConnectionLifecycleListener implements OnModuleInit {
+  private readonly logger = new Logger(this.constructor.name);
   private connectionAttempts = 0;
   private lastConnectionAttemptTime: Date | null = null;
 
   constructor(private readonly amqpConnection: AmqpConnection) {}
 
   onModuleInit() {
-    console.log(`${LIFECYCLE_LOG_PREFIX} [LIFECYCLE] Module init started - setting up event listeners`);
+    this.logger.debug('Module init started - setting up event listeners');
 
     const connection = this.amqpConnection.managedConnection;
     if (!connection) {
-      console.log(`${LIFECYCLE_LOG_PREFIX} [LIFECYCLE] No managed connection available yet`);
+      this.logger.debug('No managed connection available yet');
       return;
     }
 
@@ -23,22 +22,22 @@ export class RabbitConnectionLifecycleListener implements OnModuleInit {
     connection.on('connection', () => {
       this.lastConnectionAttemptTime = new Date();
       this.connectionAttempts++;
-      console.log(`${LIFECYCLE_LOG_PREFIX} [CONNECT] Connection established (attempt #${this.connectionAttempts})`);
+      this.logger.log(`Connection established (attempt #${this.connectionAttempts})`);
     });
 
     connection.on('disconnect', (params: any) => {
-      console.log(`${LIFECYCLE_LOG_PREFIX} [DISCONNECT] Connection closed - error: ${params?.err?.message || 'clean close'}`);
+      this.logger.warn(`Connection closed - error: ${params?.err?.message || 'clean close'}`);
     });
 
     connection.on('blocked', (reason: string) => {
-      console.log(`${LIFECYCLE_LOG_PREFIX} [BLOCKED] Connection blocked: ${reason}`);
+      this.logger.warn(`Connection blocked: ${reason}`);
     });
 
     connection.on('unblocked', () => {
-      console.log(`${LIFECYCLE_LOG_PREFIX} [UNBLOCKED] Connection unblocked`);
+      this.logger.log('Connection unblocked');
     });
 
-    console.log(`${LIFECYCLE_LOG_PREFIX} [LIFECYCLE] Event listeners attached`);
+    this.logger.debug('Event listeners attached');
   }
 
   getConnectionStats() {

@@ -1,4 +1,4 @@
-import { Module, OnModuleDestroy } from '@nestjs/common';
+import { Logger, Module, OnModuleDestroy } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ConfigModule } from '@app/config/config.module';
@@ -7,6 +7,8 @@ import { CONNECTIONS_NAMES } from '../../database.constant';
 import { DATABASE_MONGO_SOURCE } from '../../database.token';
 
 import { MongoDataSource } from './mongo.database-conection';
+
+const logger = new Logger('MongoModule');
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { MongoDataSource } from './mongo.database-conection';
 
         // Use MONGO_URI_TEST_E2E for E2E tests if available
         if (isE2E && process.env.MONGO_URI_TEST_E2E) {
-          console.log('🔌 Using MONGO_URI_TEST_E2E for MongoDB E2E connection');
+          logger.debug('Using MONGO_URI_TEST_E2E for MongoDB E2E connection');
           return {
             type: 'mongodb',
             url: process.env.MONGO_URI_TEST_E2E,
@@ -31,7 +33,7 @@ import { MongoDataSource } from './mongo.database-conection';
 
         // Use MONGO_URI if available (recommended approach)
         if (process.env.MONGO_URI) {
-          console.log('🔌 Using MONGO_URI for MongoDB connection');
+          logger.debug('Using MONGO_URI for MongoDB connection');
           return {
             type: 'mongodb',
             url: process.env.MONGO_URI,
@@ -42,7 +44,7 @@ import { MongoDataSource } from './mongo.database-conection';
         }
 
         // Fallback to individual config values - only if MONGO_URI is not available
-        console.log('🔌 Using individual MongoDB config values');
+        logger.debug('Using individual MongoDB config values');
         if (!MongoDataSource.isInitialized) {
           await MongoDataSource.initialize();
         }
@@ -67,8 +69,7 @@ export class SharedProviderDatabaseImplementationsMongoModule implements OnModul
         await MongoDataSource.destroy();
       }
     } catch (error) {
-      // Ignore errors during module destruction
-      console.warn('⚠️  Error destroying MongoDataSource:', (error as Error).message);
+      logger.warn(`Error destroying MongoDataSource: ${(error as Error).message}`);
     }
   }
 }
