@@ -22,6 +22,23 @@ Enquanto o usuário digita, chamar:
 | phone | `POST /bff/onboarding/verify/phone` | DB local (phones) |
 | document | `POST /bff/onboarding/verify/document` | DB local (user_documents) |
 
+### Mapeamento de campos (importante!)
+
+O mobile **nunca deve usar `cpf` como nome do campo na API**. Usar sempre `document`:
+
+```typescript
+// useFieldVerification.ts
+const apiFieldMap: Record<string, string> = {
+  email: 'email',
+  phone: 'phone',
+  document: 'document',  // ← CPF, CNPJ, RG, Passport usam "document"
+};
+```
+
+O backend (`inferDocumentType()`) detecta o tipo automaticamente:
+- 11 dígitos → `CPF`
+- 14 dígitos → `CNPJ`
+
 ### Etapa 3 — Criação de Conta
 `POST /bff/onboarding/register`
 
