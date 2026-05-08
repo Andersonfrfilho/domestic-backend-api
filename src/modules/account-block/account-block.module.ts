@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
 import { EmailModule } from '@modules/email/email.module';
+import { SharedModule } from '@modules/shared/shared.module';
 import { UserModule } from '@modules/user/user.module';
 
 import { AccountBlockController } from './account-block.controller';
@@ -26,6 +27,7 @@ import { SelfUnlockVerifyUseCase } from './use-cases/self-unlock-verify/self-unl
   imports: [
     UserModule,
     EmailModule,
+    SharedModule,
     TypeOrmModule.forFeature([AccountBlock], CONNECTIONS_NAMES.POSTGRES),
   ],
   controllers: [AccountBlockController],
