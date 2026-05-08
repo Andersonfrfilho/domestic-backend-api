@@ -1,6 +1,6 @@
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CompanyStatus } from '@app/modules/shared/providers/database/entities/company.entity';
@@ -52,6 +52,7 @@ export class OnboardingRegisterUseCase {
     private readonly companyRepository: CompanyRepositoryInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
   ) {
     this.keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080';

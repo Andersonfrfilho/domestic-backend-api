@@ -1,6 +1,6 @@
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
@@ -26,6 +26,7 @@ export class CheckEmailExistsUseCase {
     private readonly emailRepository: EmailRepositoryInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 

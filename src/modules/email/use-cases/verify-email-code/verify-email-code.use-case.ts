@@ -1,7 +1,7 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
-import { KeycloakAdminClient } from '@adatechnology/keycloak-admin';
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
@@ -38,6 +38,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     private readonly producer: QueueProducerMessageProviderInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 
