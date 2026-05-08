@@ -10,6 +10,8 @@ import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/databa
 import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
 import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
 import { EMAIL_REPOSITORY_PROVIDE } from '@modules/email/email.token';
+import type { QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
+import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/producer/producer.token';
 
 import {
   SelfUnlockVerifyUseCaseInterface,
@@ -42,6 +44,8 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     private readonly cacheProvider: CacheProviderInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(QUEUE_PRODUCER_PROVIDER)
+    private readonly producer: QueueProducerMessageProviderInterface,
   ) {}
 
   async execute(params: SelfUnlockVerifyParams): Promise<SelfUnlockVerifyResult> {
@@ -113,6 +117,30 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
 
     await this.cacheProvider.del({ key: codeKey });
     await this.cacheProvider.del({ key: attemptsKey });
+
+    // Publica notificação para o antigo dono
+    this.producer
+      .send(
+        'notifications.email',
+        {
+          body: {
+            to: destination,
+            template_id: 'link_transferred',
+            variables: { resource: destination, newOwnerId: params.userId },
+          },
+        },
+        { exchange: 'zolve.events', routingKey: 'notifications.email' },
+      )
+      .then(() => {
+        this.logProvider.info({
+          message: 'Notification sent to previous link owner',
+          context: this.logContext,
+          meta: { destination },
+        });
+      })
+      .catch(() => {
+        // Fire-and-forget — não deve travar o fluxo
+      });
 
     this.logProvider.info({
       message: SELF_UNLOCK_VERIFY_LOG_MESSAGES.SUCCESS,
