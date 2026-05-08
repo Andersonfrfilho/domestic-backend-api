@@ -122,6 +122,11 @@ export const CREATE_FOO_LOG_MESSAGES = {
 
 **Service-level logs** — only on methods that orchestrate multiple use-cases (e.g., resolve by keycloakId then act). Simple single-use-case delegations do not need service-level logs.
 
+**Logging libraries** — NEVER use `console.log`, `console.error`, etc. directly:
+- Use `LOGGER_PROVIDER` from `@adatechnology/logger` in use-cases, services, filters
+- Use `Logger` from `@nestjs/common` in modules, infrastructure, lifecycle listeners
+- This ensures all logs pass through structured logging pipeline and can be collected centrally
+
 ### Flow tests (Spec-Driven)
 
 Every module must have a corresponding flow test in `scripts/flows/<module>.flow.js`. Flow tests verify end-to-end business behavior against a running environment.
