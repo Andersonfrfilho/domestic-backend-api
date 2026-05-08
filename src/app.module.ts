@@ -1,5 +1,6 @@
 import { CacheModule } from '@adatechnology/cache';
 import { HttpModule } from '@adatechnology/http-client';
+import { KeycloakAdminModule } from '@adatechnology/keycloak-admin';
 import {
   HTTP_LOGGING_INTERCEPTOR,
   LoggerModule,
@@ -54,6 +55,12 @@ tsConfigPathsRegister({
     }),
     CacheModule.forRoot({ isGlobal: true, excludedDebugKeys: ['health:*', 'metrics:*'] }),
     HttpModule.forRoot({}),
+    KeycloakAdminModule.forRoot({
+      baseUrl: process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080',
+      realm: process.env.KEYCLOAK_REALM || 'domestic',
+      adminUser: process.env.KEYCLOAK_ADMIN_USER || 'admin',
+      adminPassword: process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin',
+    }),
     SharedModule,
     ErrorModule,
     HealthModule,
