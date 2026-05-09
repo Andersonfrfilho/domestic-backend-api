@@ -28,6 +28,7 @@ tsConfigPathsRegister({
 });
 
 async function bootstrap() {
+  console.log('🚀 Starting Domestic API - Poller Test Build');
   const instanceFastify = new FastifyAdapter({
     bodyLimit: 52428800, // 50MB — permite upload de documentos
   });
