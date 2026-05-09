@@ -14,7 +14,7 @@ export class OnboardingController {
   @Post('register')
   @ApiOperation({ summary: 'Registro de usuário (com suporte a CNPJ/empresa)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
-  @ApiResponse({ status: 409, description: 'CNPJ já cadastrado' })
+  @ApiResponse({ status: 409, description: 'Documento já cadastrado' })
   async register(@Body() dto: OnboardingRegisterRequestDto) {
     return this.onboardingRegisterUseCase.execute({
       email: dto.email,
@@ -22,8 +22,7 @@ export class OnboardingController {
       lastName: dto.lastName,
       phone: dto.phone,
       password: dto.password,
-      cpf: dto.cpf,
-      cnpj: dto.cnpj,
+      document: dto.document,
       companyName: dto.companyName,
       tradeName: dto.tradeName,
     });

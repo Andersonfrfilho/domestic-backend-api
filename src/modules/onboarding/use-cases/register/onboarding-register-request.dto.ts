@@ -28,22 +28,17 @@ export class OnboardingRegisterRequestDto {
   @IsNotEmpty()
   phone: string;
 
-  @ApiProperty({ example: '12345678900', description: 'CPF (apenas números)', required: false })
+  @ApiProperty({ example: '12345678900', description: 'Documento (CPF 11 dígitos ou CNPJ 14 dígitos)', required: false })
   @IsString()
   @IsOptional()
-  cpf?: string;
+  document?: string;
 
-  @ApiProperty({ example: '12345678000195', description: 'CNPJ (apenas números)', required: false })
-  @IsString()
-  @IsOptional()
-  cnpj?: string;
-
-  @ApiProperty({ example: 'Empresa LTDA', description: 'Razão Social', required: false })
+  @ApiProperty({ example: 'Empresa LTDA', description: 'Razão Social (para CNPJ)', required: false })
   @IsString()
   @IsOptional()
   companyName?: string;
 
-  @ApiProperty({ example: 'Empresa', description: 'Nome Fantasia', required: false })
+  @ApiProperty({ example: 'Empresa', description: 'Nome Fantasia (para CNPJ)', required: false })
   @IsString()
   @IsOptional()
   tradeName?: string;

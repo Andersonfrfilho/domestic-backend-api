@@ -24,23 +24,38 @@
 |---|---------------|------------|-----------|------|
 | 4 | `POST /bff/onboarding/register` | `POST /bff/onboarding/register` | `POST /v1/onboarding/register` | Ver abaixo |
 
+**Body (Pessoa Física):**
 ```json
 {
   "email": "user@example.com",
   "firstName": "João",
   "lastName": "Silva",
   "phone": "16999999999",
-  "password": "***",
+  "password": "SecurePass123!",
   "cpf": "12345678900"
 }
 ```
 
-**Resposta:**
+**Body (Pessoa Jurídica):**
+```json
+{
+  "email": "empresa@example.com",
+  "firstName": "João",
+  "lastName": "Silva",
+  "phone": "16999999999",
+  "password": "SecurePass123!",
+  "cnpj": "12345678000195",
+  "companyName": "Empresa LTDA",
+  "tradeName": "Empresa"
+}
+```
+
+**Resposta (201 Created):**
 ```json
 { "userId": "uuid", "keycloakId": "uuid" }
 ```
 
-> A conta é criada como `PENDING`. O CPF/CNPJ é salvo como `UserDocument` com `status: "PENDING"`.
+> A conta é criada como `PENDING`. O CPF/CNPJ é salvo com `status: "PENDING"`.
 
 ### 3. Verificação de Email/SMS
 

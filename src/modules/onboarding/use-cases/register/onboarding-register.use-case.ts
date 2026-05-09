@@ -39,8 +39,7 @@ export interface OnboardingRegisterParams {
   lastName: string;
   phone: string;
   password: string;
-  cpf?: string;
-  cnpj?: string;
+  document?: string;
   companyName?: string;
   tradeName?: string;
 }
@@ -74,10 +73,11 @@ export class OnboardingRegisterUseCase {
   }
 
   async execute(params: OnboardingRegisterParams): Promise<OnboardingRegisterResult> {
+    const documentType = params.document ? inferDocumentType(params.document) : null;
     this.logProvider.info({
       message: ONBOARDING_REGISTER_LOG_MESSAGES.START_FLOW,
       context: this.logContext,
-      meta: { email: params.email, hasCnpj: Boolean(params.cnpj) },
+      meta: { email: params.email, documentType },
     });
 
     // 1. Obtém token admin
@@ -112,13 +112,12 @@ export class OnboardingRegisterUseCase {
     });
 
     // 4. Salva documento (CPF/CNPJ/RG/Passaporte) como UserDocument
-    const documentValue = params.cpf || params.cnpj;
-    if (documentValue) {
-      const docType = inferDocumentType(documentValue);
+    if (params.document) {
+      const docType = inferDocumentType(params.document);
       if (docType) {
         await this.userDocumentRepository.save({
           userId: user.id,
-          documentNumber: documentValue.replace(/\D/g, ''),
+          documentNumber: params.document.replace(/\D/g, ''),
           documentType: docType,
           status: 'PENDING',
         });
@@ -131,19 +130,19 @@ export class OnboardingRegisterUseCase {
     }
 
     // 5. Se CNPJ, cria empresa
-    if (params.cnpj) {
-      const existingCompany = await this.companyRepository.findByDocument(params.cnpj);
+    if (params.document && inferDocumentType(params.document) === 'CNPJ') {
+      const existingCompany = await this.companyRepository.findByDocument(params.document);
       if (existingCompany) {
         this.logProvider.warn({
           message: ONBOARDING_REGISTER_LOG_MESSAGES.CNPJ_EXISTS,
           context: this.logContext,
-          meta: { cnpj: params.cnpj, existingCompanyId: existingCompany.id },
+          meta: { document: params.document, existingCompanyId: existingCompany.id },
         });
-        throw new ConflictException(`CNPJ ${params.cnpj} já está cadastrado`);
+        throw new ConflictException(`CNPJ ${params.document} já está cadastrado`);
       }
 
       const company = await this.companyRepository.create({
-        document: params.cnpj,
+        document: params.document,
         companyName: params.companyName || `${params.firstName} ${params.lastName}`,
         tradeName: params.tradeName || null,
         email: params.email,
@@ -160,7 +159,7 @@ export class OnboardingRegisterUseCase {
       this.logProvider.info({
         message: ONBOARDING_REGISTER_LOG_MESSAGES.COMPANY_CREATED,
         context: this.logContext,
-        meta: { companyId: company.id, userId: user.id, cnpj: params.cnpj },
+        meta: { companyId: company.id, userId: user.id, document: params.document },
       });
 
       return { userId: user.id, keycloakId, companyId: company.id };
@@ -185,7 +184,7 @@ export class OnboardingRegisterUseCase {
         lastName: params.lastName,
         enabled: true,
         emailVerified: false,
-        ...(params.cpf ? { attributes: { cpf: [params.cpf] } } : {}),
+        ...(params.document ? { attributes: { document: [params.document] } } : {}),
         credentials: [
           {
             type: 'password',
