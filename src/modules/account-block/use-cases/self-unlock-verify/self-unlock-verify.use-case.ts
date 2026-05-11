@@ -30,6 +30,7 @@ export const SELF_UNLOCK_VERIFY_LOG_MESSAGES = {
 } as const;
 
 const MAX_ATTEMPTS = 3;
+const EMAIL_CONFLICT = 'EMAIL_CONFLICT';
 
 @Injectable()
 export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface {
@@ -108,7 +109,7 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     await this.accountBlockRepository.save(block);
 
     const destination = (block.metadata as any)?.conflictingResource ?? '';
-    if (destination && block.reason === 'EMAIL_CONFLICT') {
+    if (destination && block.reason === EMAIL_CONFLICT) {
       const existing = await this.emailRepository.findByEmail(destination);
       // Email verification status tracking removed — Email entity doesn't have isVerified property
     }
