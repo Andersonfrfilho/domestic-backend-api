@@ -49,20 +49,6 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
       throw PhoneErrorFactory.userPhoneNotFound(params.userPhoneId);
     }
 
-    // Phone verification status check removed - Phone entity doesn't track verification state
-    if (false) {
-      this.logProvider.warn({
-        message: SEND_PHONE_VERIFICATION_LOG_MESSAGES.ALREADY_VERIFIED,
-        context: this.logContext,
-        meta: {
-          userId: params.userId,
-          userPhoneId: params.userPhoneId,
-          phoneId: userPhone.phoneId,
-        },
-      });
-      throw PhoneErrorFactory.alreadyVerified(userPhone.phoneId);
-    }
-
     const isProduction = process.env.NODE_ENV === 'production';
     const code = isProduction
       ? this.generateRandomCode(PHONE_VERIFICATION_CODE_LENGTH)

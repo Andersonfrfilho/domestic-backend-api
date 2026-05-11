@@ -49,20 +49,6 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
       throw EmailErrorFactory.userEmailNotFound(params.userEmailId);
     }
 
-    // Email verification status check removed - Email entity doesn't track verification state
-    if (false) {
-      this.logProvider.warn({
-        message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.ALREADY_VERIFIED,
-        context: this.logContext,
-        meta: {
-          userId: params.userId,
-          userEmailId: params.userEmailId,
-          emailId: userEmail.emailId,
-        },
-      });
-      throw EmailErrorFactory.alreadyVerified(userEmail.emailId);
-    }
-
     const isProduction = process.env.NODE_ENV === 'production';
     const code = isProduction ? this.generateRandomCode() : EMAIL_VERIFICATION_DEV_CODE;
     const cacheKey = `email:verification:${params.userEmailId}`;
