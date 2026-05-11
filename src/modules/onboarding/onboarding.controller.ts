@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IsIn, IsString } from 'class-validator';
 import type { Request } from 'express';
 
 import { OnboardingRegisterRequestDto } from './use-cases/register/onboarding-register-request.dto';
@@ -8,13 +9,21 @@ import { SendVerificationCodeUseCase } from './use-cases/verification/send-verif
 import { VerifyCodeUseCase } from './use-cases/verification/verify-code.use-case';
 
 class VerificationSendDto {
+  @IsIn(['email', 'phone', 'sms'])
   type: 'email' | 'phone' | 'sms';
+
+  @IsString()
   destination: string;
 }
 
 class VerificationVerifyDto {
+  @IsIn(['email', 'phone', 'sms'])
   type: 'email' | 'phone' | 'sms';
+
+  @IsString()
   destination: string;
+
+  @IsString()
   code: string;
 }
 
