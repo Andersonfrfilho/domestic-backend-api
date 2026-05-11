@@ -5,24 +5,24 @@ import { Inject, Injectable, NotFoundException, ConflictException } from '@nestj
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
 import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
 import { EMAIL_REPOSITORY_PROVIDE } from '@modules/email/email.token';
+import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import type { QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
 import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/producer/producer.token';
 
-import {
-  SelfUnlockVerifyUseCaseInterface,
-  SelfUnlockVerifyParams,
-  SelfUnlockVerifyResult,
-} from './self-unlock-verify.interface';
 import {
   SELF_UNLOCK_VERIFY_LOG_MESSAGES,
   MAX_ATTEMPTS,
   EMAIL_CONFLICT,
 } from './self-unlock-verify.constants';
+import {
+  SelfUnlockVerifyUseCaseInterface,
+  SelfUnlockVerifyParams,
+  SelfUnlockVerifyResult,
+} from './self-unlock-verify.interface';
 
 @Injectable()
 export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface {
@@ -84,7 +84,11 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     }
 
     if (storedCode !== params.code) {
-      await this.cacheProvider.set({ key: attemptsKey, value: String(attempts + 1), ttlInSeconds: 3600 });
+      await this.cacheProvider.set({
+        key: attemptsKey,
+        value: String(attempts + 1),
+        ttlInSeconds: 3600,
+      });
 
       this.logProvider.warn({
         message: SELF_UNLOCK_VERIFY_LOG_MESSAGES.ATTEMPT_FAILED,
@@ -100,10 +104,10 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     block.resolvedBy = params.userId;
     await this.accountBlockRepository.save(block);
 
-    const destination = (block.metadata as any)?.conflictingResource ?? '';
+    const destination = (block.metadata as Record<string, unknown>)?.conflictingResource ?? '';
     if (destination && block.reason === EMAIL_CONFLICT) {
-      const existing = await this.emailRepository.findByEmail(destination);
       // Email verification status tracking removed — Email entity doesn't have isVerified property
+      await this.emailRepository.findByEmail(destination as string);
     }
 
     await this.cacheProvider.del({ key: codeKey });
