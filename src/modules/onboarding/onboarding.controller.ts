@@ -22,6 +22,7 @@ export class OnboardingController {
       lastName: dto.lastName,
       phone: dto.phone,
       password: dto.password,
+      termsAccepted: dto.termsAccepted,
       document: dto.document,
       companyName: dto.companyName,
       tradeName: dto.tradeName,

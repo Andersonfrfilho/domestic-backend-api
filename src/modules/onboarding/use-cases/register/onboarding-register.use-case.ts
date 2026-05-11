@@ -8,7 +8,13 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { CompanyStatus } from '@app/modules/shared/providers/database/entities/company.entity';
 import { CompanyMemberRole } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { Email } from '@modules/shared/providers/database/entities/email.entity';
+import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
+import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
+import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
+import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
+import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 
 import { COMPANY_REPOSITORY_PROVIDE } from '@modules/company/company.token';
 import type { CompanyRepositoryInterface } from '@modules/company/company.repository.interface';
@@ -21,6 +27,10 @@ export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   KEYCLOAK_CREATED: 'Keycloak user created',
   KEYCLOAK_EXISTS: 'Keycloak user already exists with this email',
   USER_CREATED: 'Local user created',
+  EMAIL_SAVED: 'Email saved to emails + user_emails',
+  PHONE_SAVED: 'Phone saved to phones + user_phones',
+  TERMS_ACCEPTED: 'Terms acceptance saved',
+  TERMS_VERSION_NOT_FOUND: 'No active terms version found — skipping terms acceptance',
   DOCUMENT_SAVED: 'Document saved to user_documents',
   COMPANY_CREATED: 'Company created for CNPJ user',
   CNPJ_EXISTS: 'CNPJ already registered',
@@ -39,6 +49,8 @@ export interface OnboardingRegisterParams {
   lastName: string;
   phone: string;
   password: string;
+  termsAccepted?: boolean;
+  ipAddress?: string;
   document?: string;
   companyName?: string;
   tradeName?: string;
@@ -65,6 +77,18 @@ export class OnboardingRegisterUseCase {
     private readonly logProvider: LogProviderInterface,
     @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
+    @InjectRepository(Email, CONNECTIONS_NAMES.POSTGRES)
+    private readonly emailRepository: Repository<Email>,
+    @InjectRepository(Phone, CONNECTIONS_NAMES.POSTGRES)
+    private readonly phoneRepository: Repository<Phone>,
+    @InjectRepository(UserEmail, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userEmailRepository: Repository<UserEmail>,
+    @InjectRepository(UserPhone, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userPhoneRepository: Repository<UserPhone>,
+    @InjectRepository(TermsAcceptance, CONNECTIONS_NAMES.POSTGRES)
+    private readonly termsAcceptanceRepository: Repository<TermsAcceptance>,
+    @InjectRepository(TermsVersion, CONNECTIONS_NAMES.POSTGRES)
+    private readonly termsVersionRepository: Repository<TermsVersion>,
     @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
     private readonly userDocumentRepository: Repository<UserDocument>,
   ) {
@@ -80,7 +104,7 @@ export class OnboardingRegisterUseCase {
       meta: { email: params.email, documentType },
     });
 
-    // 1. Obtém token admin
+    // 1. Token admin
     const { accessToken } = await this.keycloakAdmin.getAdminToken();
 
     // 2. Cria usuário no Keycloak
@@ -98,7 +122,7 @@ export class OnboardingRegisterUseCase {
       meta: { keycloakId, email: params.email },
     });
 
-    // 3. Cria no banco local
+    // 3. Cria usuário local
     const user = await this.userRepository.create({
       fullName: `${params.firstName} ${params.lastName}`,
       keycloakId,
@@ -111,7 +135,18 @@ export class OnboardingRegisterUseCase {
       meta: { userId: user.id, keycloakId },
     });
 
-    // 4. Salva documento (CPF/CNPJ/RG/Passaporte) como UserDocument
+    // 4. Salva email → emails + user_emails
+    await this.saveEmail(user.id, params.email);
+
+    // 5. Salva telefone → phones + user_phones
+    await this.savePhone(user.id, params.phone);
+
+    // 6. Salva aceite dos termos
+    if (params.termsAccepted) {
+      await this.saveTermsAcceptance(user.id, params.ipAddress ?? null);
+    }
+
+    // 7. Salva documento (CPF/CNPJ/RG/Passaporte)
     if (params.document) {
       const docType = inferDocumentType(params.document);
       if (docType) {
@@ -129,7 +164,7 @@ export class OnboardingRegisterUseCase {
       }
     }
 
-    // 5. Se CNPJ, cria empresa
+    // 8. Se CNPJ, cria empresa
     if (params.document && inferDocumentType(params.document) === 'CNPJ') {
       const existingCompany = await this.companyRepository.findByDocument(params.document);
       if (existingCompany) {
@@ -166,6 +201,83 @@ export class OnboardingRegisterUseCase {
     }
 
     return { userId: user.id, keycloakId };
+  }
+
+  private async saveEmail(userId: string, emailAddress: string): Promise<void> {
+    let emailRecord = await this.emailRepository.findOne({ where: { email: emailAddress } });
+    if (!emailRecord) {
+      emailRecord = await this.emailRepository.save({ email: emailAddress, isVerified: false });
+    }
+
+    await this.userEmailRepository.save({
+      userId,
+      emailId: emailRecord.id,
+      isPrimary: true,
+      label: null,
+    });
+
+    this.logProvider.info({
+      message: ONBOARDING_REGISTER_LOG_MESSAGES.EMAIL_SAVED,
+      context: this.logContext,
+      meta: { userId, emailId: emailRecord.id },
+    });
+  }
+
+  private async savePhone(userId: string, phoneNumber: string): Promise<void> {
+    let phoneRecord = await this.phoneRepository.findOne({ where: { number: phoneNumber } });
+    if (!phoneRecord) {
+      phoneRecord = await this.phoneRepository.save({
+        number: phoneNumber,
+        type: 'MOBILE',
+        isVerified: false,
+      });
+    }
+
+    await this.userPhoneRepository.save({
+      userId,
+      phoneId: phoneRecord.id,
+      isPrimary: true,
+      label: null,
+    });
+
+    this.logProvider.info({
+      message: ONBOARDING_REGISTER_LOG_MESSAGES.PHONE_SAVED,
+      context: this.logContext,
+      meta: { userId, phoneId: phoneRecord.id },
+    });
+  }
+
+  private async saveTermsAcceptance(userId: string, ipAddress: string | null): Promise<void> {
+    const activeVersion = await this.termsVersionRepository.findOne({
+      where: { isActive: true },
+      order: { effectiveDate: 'DESC' },
+    });
+
+    if (!activeVersion) {
+      this.logProvider.error({
+        message: ONBOARDING_REGISTER_LOG_MESSAGES.TERMS_VERSION_NOT_FOUND,
+        context: this.logContext,
+        meta: {
+          userId,
+          action: 'terms_acceptance_skipped',
+          reason: 'No active terms_version found in database — check terms_versions table',
+        },
+      });
+      return;
+    }
+
+    await this.termsAcceptanceRepository.save({
+      userId,
+      termsVersion: activeVersion,
+      acceptedAt: new Date(),
+      ipAddress,
+    });
+
+    this.logProvider.info({
+      message: ONBOARDING_REGISTER_LOG_MESSAGES.TERMS_ACCEPTED,
+      context: this.logContext,
+      meta: { userId, termsVersionId: activeVersion.id, version: activeVersion.version },
+    });
   }
 
   private async createKeycloakUser(token: string, params: OnboardingRegisterParams): Promise<string> {

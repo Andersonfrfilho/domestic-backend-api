@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class OnboardingRegisterRequestDto {
   @ApiProperty({ example: 'user@example.com', description: 'E-mail do usuário' })
@@ -42,4 +42,9 @@ export class OnboardingRegisterRequestDto {
   @IsString()
   @IsOptional()
   tradeName?: string;
+
+  @ApiProperty({ example: true, description: 'Aceite dos termos de uso' })
+  @IsBoolean()
+  @IsOptional()
+  termsAccepted?: boolean;
 }

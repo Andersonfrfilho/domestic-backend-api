@@ -4,7 +4,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { CompanyModule } from '@modules/company/company.module';
 import { UserModule } from '@modules/user/user.module';
+import { Email } from '@modules/shared/providers/database/entities/email.entity';
+import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
+import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
+import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
+import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
+import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 
 import { OnboardingController } from './onboarding.controller';
 import { OnboardingRegisterUseCase } from './use-cases/register/onboarding-register.use-case';
@@ -13,7 +19,10 @@ import { OnboardingRegisterUseCase } from './use-cases/register/onboarding-regis
   imports: [
     UserModule,
     CompanyModule,
-    TypeOrmModule.forFeature([UserDocument], CONNECTIONS_NAMES.POSTGRES),
+    TypeOrmModule.forFeature(
+      [Email, Phone, TermsAcceptance, TermsVersion, UserDocument, UserEmail, UserPhone],
+      CONNECTIONS_NAMES.POSTGRES,
+    ),
   ],
   controllers: [OnboardingController],
   providers: [OnboardingRegisterUseCase],
