@@ -18,19 +18,11 @@ import {
   SelfUnlockVerifyParams,
   SelfUnlockVerifyResult,
 } from './self-unlock-verify.interface';
-
-export const SELF_UNLOCK_VERIFY_LOG_MESSAGES = {
-  START_FLOW: 'Starting self-unlock verify flow',
-  BLOCK_NOT_FOUND: 'Active block not found',
-  CODE_INVALID: 'Invalid verification code',
-  CODE_EXPIRED: 'Verification code expired',
-  MAX_ATTEMPTS: 'Maximum verification attempts reached',
-  SUCCESS: 'Self-unlock successful — block resolved and link transferred',
-  ATTEMPT_FAILED: 'Verification attempt failed',
-} as const;
-
-const MAX_ATTEMPTS = 3;
-const EMAIL_CONFLICT = 'EMAIL_CONFLICT';
+import {
+  SELF_UNLOCK_VERIFY_LOG_MESSAGES,
+  MAX_ATTEMPTS,
+  EMAIL_CONFLICT,
+} from './self-unlock-verify.constants';
 
 @Injectable()
 export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface {
