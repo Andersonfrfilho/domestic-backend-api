@@ -19,7 +19,7 @@ class VerificationVerifyDto {
 }
 
 @ApiTags('Onboarding')
-@Controller('v1/onboarding')
+@Controller('onboarding')
 export class OnboardingController {
   constructor(
     private readonly onboardingRegisterUseCase: OnboardingRegisterUseCase,
