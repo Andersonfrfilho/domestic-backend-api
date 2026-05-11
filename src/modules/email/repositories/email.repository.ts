@@ -28,15 +28,6 @@ export class EmailRepository implements EmailRepositoryInterface {
     return this.typeormRepo.findOne({ where: { email } });
   }
 
-  async update(id: string, params: Partial<Pick<Email, 'isVerified'>>): Promise<Email> {
-    await this.typeormRepo.update(id, params);
-    const updated = await this.typeormRepo.findOne({ where: { id } });
-    if (!updated) {
-      throw EmailErrorFactory.notFound(id);
-    }
-    return updated;
-  }
-
   async delete(id: string): Promise<void> {
     await this.typeormRepo.delete(id);
   }

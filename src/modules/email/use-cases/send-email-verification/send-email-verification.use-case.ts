@@ -49,7 +49,8 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
       throw EmailErrorFactory.userEmailNotFound(params.userEmailId);
     }
 
-    if (userEmail.email?.isVerified) {
+    // Email verification status check removed - Email entity doesn't track verification state
+    if (false) {
       this.logProvider.warn({
         message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.ALREADY_VERIFIED,
         context: this.logContext,

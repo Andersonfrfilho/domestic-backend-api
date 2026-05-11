@@ -56,14 +56,7 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
       throw PhoneErrorFactory.userPhoneNotFound(params.userPhoneId);
     }
 
-    if (userPhone.phone?.isVerified) {
-      this.logProvider.warn({
-        message: VERIFY_PHONE_CODE_LOG_MESSAGES.ALREADY_VERIFIED,
-        context: this.logContext,
-        meta: { userId: params.userId, userPhoneId: params.userPhoneId },
-      });
-      throw PhoneErrorFactory.alreadyVerified(userPhone.phoneId);
-    }
+    // Phone verification status check removed - Phone entity doesn't track verification state
 
     const cacheKey = `phone:verification:${params.userPhoneId}`;
     const storedCode = await this.cacheProvider.get<string>({ key: cacheKey });

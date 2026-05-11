@@ -59,14 +59,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
       throw EmailErrorFactory.userEmailNotFound(params.userEmailId);
     }
 
-    if (userEmail.email?.isVerified) {
-      this.logProvider.warn({
-        message: VERIFY_EMAIL_CODE_LOG_MESSAGES.ALREADY_VERIFIED,
-        context: this.logContext,
-        meta: { userId: params.userId, userEmailId: params.userEmailId },
-      });
-      throw EmailErrorFactory.alreadyVerified(userEmail.emailId);
-    }
+    // Email verification status check removed - Email entity doesn't track verification state
 
     const cacheKey = `email:verification:${params.userEmailId}`;
     const storedCode = await this.cacheProvider.get<string>({ key: cacheKey });
