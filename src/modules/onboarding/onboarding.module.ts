@@ -9,6 +9,7 @@ import { Phone } from '@modules/shared/providers/database/entities/phone.entity'
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
 import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
+import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
@@ -23,7 +24,7 @@ import { VerifyCodeUseCase } from './use-cases/verification/verify-code.use-case
     UserModule,
     CompanyModule,
     TypeOrmModule.forFeature(
-      [Email, Phone, TermsAcceptance, TermsVersion, UserDocument, UserEmail, UserPhone, VerificationCode],
+      [Email, Phone, TermsAcceptance, TermsVersion, User, UserDocument, UserEmail, UserPhone, VerificationCode],
       CONNECTIONS_NAMES.POSTGRES,
     ),
   ],

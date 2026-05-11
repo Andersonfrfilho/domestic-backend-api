@@ -34,7 +34,7 @@ export class SendVerificationCodeUseCase {
   ) {}
 
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResult> {
-    const code = this.generateCode();
+    const code = this.generateCode(params);
     const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
 
     await this.verificationCodeRepository.save({
@@ -61,7 +61,11 @@ export class SendVerificationCodeUseCase {
     return { success: true, message: 'Código de verificação enviado com sucesso' };
   }
 
-  private generateCode(): string {
+  private generateCode(params: SendVerificationCodeParams): string {
+    if (process.env.NODE_ENV !== 'production') {
+      if (params.type === 'email') return '0000';
+      return params.destination.replace(/\D/g, '').slice(-4).padStart(4, '0');
+    }
     return Math.floor(Math.random() * 10 ** CODE_LENGTH)
       .toString()
       .padStart(CODE_LENGTH, '0');
