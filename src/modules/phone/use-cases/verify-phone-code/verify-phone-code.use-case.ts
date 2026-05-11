@@ -91,14 +91,14 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
     }
 
     await this.cacheProvider.del({ key: cacheKey });
-    await this.phoneRepository.update(userPhone.phoneId, { isVerified: true });
+    // Phone verification status tracking removed — Phone entity doesn't have isVerified property
 
     const updated = await this.userPhoneRepository.findById(params.userPhoneId);
 
     this.logProvider.info({
       message: VERIFY_PHONE_CODE_LOG_MESSAGES.PHONE_VERIFIED,
       context: this.logContext,
-      meta: { userId: params.userId, userPhoneId: params.userPhoneId, phoneId: userPhone.phoneId },
+      meta: { userId: params.userId, userPhoneId: params.userPhoneId, phoneId: userPhone?.phoneId },
     });
 
     await this.producer

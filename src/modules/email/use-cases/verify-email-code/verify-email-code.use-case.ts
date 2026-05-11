@@ -94,14 +94,14 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     }
 
     await this.cacheProvider.del({ key: cacheKey });
-    await this.emailRepository.update(userEmail.emailId, { isVerified: true });
+    // Email verification status tracking removed — Email entity doesn't have isVerified property
 
     const updated = await this.userEmailRepository.findById(params.userEmailId);
 
     this.logProvider.info({
       message: VERIFY_EMAIL_CODE_LOG_MESSAGES.EMAIL_VERIFIED,
       context: this.logContext,
-      meta: { userId: params.userId, userEmailId: params.userEmailId, emailId: userEmail.emailId },
+      meta: { userId: params.userId, userEmailId: params.userEmailId, emailId: userEmail?.emailId },
     });
 
     // Marca email como verificado no Keycloak com retry

@@ -110,9 +110,7 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     const destination = (block.metadata as any)?.conflictingResource ?? '';
     if (destination && block.reason === 'EMAIL_CONFLICT') {
       const existing = await this.emailRepository.findByEmail(destination);
-      if (existing) {
-        await this.emailRepository.update(existing.id, { isVerified: true });
-      }
+      // Email verification status tracking removed — Email entity doesn't have isVerified property
     }
 
     await this.cacheProvider.del({ key: codeKey });
