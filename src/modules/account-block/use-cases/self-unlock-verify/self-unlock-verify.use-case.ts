@@ -16,6 +16,7 @@ import { QUEUE_PRODUCER_PROVIDER } from '@modules/shared/providers/queue/produce
 import {
   SELF_UNLOCK_VERIFY_LOG_MESSAGES,
   MAX_ATTEMPTS,
+  ATTEMPTS_CACHE_TTL_SECONDS,
   EMAIL_CONFLICT,
 } from './self-unlock-verify.constants';
 import {
@@ -87,7 +88,7 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
       await this.cacheProvider.set({
         key: attemptsKey,
         value: String(attempts + 1),
-        ttlInSeconds: 3600,
+        ttlInSeconds: ATTEMPTS_CACHE_TTL_SECONDS,
       });
 
       this.logProvider.warn({

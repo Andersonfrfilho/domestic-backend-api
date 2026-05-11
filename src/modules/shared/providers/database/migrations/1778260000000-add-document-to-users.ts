@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner, TableColumn, TableIndex } from 'typeorm';
 
 export class AddDocumentToUsers1778260000000 implements MigrationInterface {
   name = 'AddDocumentToUsers1778260000000';
@@ -16,11 +16,11 @@ export class AddDocumentToUsers1778260000000 implements MigrationInterface {
 
     await queryRunner.createIndex(
       'users',
-      {
+      new TableIndex({
+        name: 'idx_users_document_unique',
         columnNames: ['document'],
         isUnique: true,
-        name: 'idx_users_document_unique',
-      },
+      }),
     );
   }
 

@@ -9,4 +9,5 @@ export const SELF_UNLOCK_VERIFY_LOG_MESSAGES = {
 } as const;
 
 export const MAX_ATTEMPTS = 3;
+export const ATTEMPTS_CACHE_TTL_SECONDS = 3600;
 export const EMAIL_CONFLICT = 'EMAIL_CONFLICT';
