@@ -14,7 +14,6 @@ export default class Emails1763600000000 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           { name: 'email', type: 'varchar', isUnique: true },
-          { name: 'is_verified', type: 'boolean', default: false },
           {
             name: 'created_at',
             type: 'timestamp',

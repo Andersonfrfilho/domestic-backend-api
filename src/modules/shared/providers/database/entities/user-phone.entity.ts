@@ -29,6 +29,9 @@ export class UserPhone {
   @Column({ name: 'is_primary', default: false })
   isPrimary: boolean;
 
+  @Column({ name: 'verified_at', type: 'timestamp', nullable: true })
+  verifiedAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

@@ -28,7 +28,7 @@ export default class CreateVerificationCodesAndTermsAcceptances1763600000021 imp
           {
             name: 'code',
             type: 'varchar',
-            length: '6',
+            length: '4',
             isNullable: false,
           },
           {

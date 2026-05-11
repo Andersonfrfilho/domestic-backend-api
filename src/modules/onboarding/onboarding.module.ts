@@ -11,20 +11,23 @@ import { TermsVersion } from '@modules/shared/providers/database/entities/terms-
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
+import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
 
 import { OnboardingController } from './onboarding.controller';
 import { OnboardingRegisterUseCase } from './use-cases/register/onboarding-register.use-case';
+import { SendVerificationCodeUseCase } from './use-cases/verification/send-verification-code.use-case';
+import { VerifyCodeUseCase } from './use-cases/verification/verify-code.use-case';
 
 @Module({
   imports: [
     UserModule,
     CompanyModule,
     TypeOrmModule.forFeature(
-      [Email, Phone, TermsAcceptance, TermsVersion, UserDocument, UserEmail, UserPhone],
+      [Email, Phone, TermsAcceptance, TermsVersion, UserDocument, UserEmail, UserPhone, VerificationCode],
       CONNECTIONS_NAMES.POSTGRES,
     ),
   ],
   controllers: [OnboardingController],
-  providers: [OnboardingRegisterUseCase],
+  providers: [OnboardingRegisterUseCase, SendVerificationCodeUseCase, VerifyCodeUseCase],
 })
 export class OnboardingModule {}

@@ -27,11 +27,6 @@ export default class UpdatePhones1763600000018 implements MigrationInterface {
         isNullable: true,
         comment: 'MOBILE, LANDLINE, WHATSAPP',
       }),
-      new TableColumn({
-        name: 'is_verified',
-        type: 'boolean',
-        default: false,
-      }),
     ]);
 
     // Make number unique
@@ -47,10 +42,7 @@ export default class UpdatePhones1763600000018 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.dropUniqueConstraint('phones', 'UQ_phones_number');
 
-    const columnsToDrop = ['type', 'is_verified'];
-    for (const col of columnsToDrop) {
-      await queryRunner.dropColumn('phones', col);
-    }
+    await queryRunner.dropColumn('phones', 'type');
 
     // Restore old columns
     await queryRunner.addColumns('phones', [

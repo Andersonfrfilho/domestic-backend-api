@@ -11,7 +11,7 @@ export class VerificationCode {
   @Column({ name: 'type', type: 'varchar', length: 10 })
   type: 'email' | 'phone';
 
-  @Column({ name: 'code', type: 'varchar', length: 6 })
+  @Column({ name: 'code', type: 'varchar', length: 4 })
   code: string;
 
   @Column({ name: 'expires_at', type: 'timestamp' })

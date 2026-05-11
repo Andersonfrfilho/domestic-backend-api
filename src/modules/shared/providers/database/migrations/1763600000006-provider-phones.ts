@@ -17,6 +17,7 @@ export default class ProviderPhones1763600000006 implements MigrationInterface {
           { name: 'phone_id', type: 'uuid' },
           { name: 'label', type: 'varchar', isNullable: true },
           { name: 'is_primary', type: 'boolean', default: false },
+          { name: 'verified_at', type: 'timestamp', isNullable: true },
           { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
           { name: 'updated_at', type: 'timestamp', isNullable: true },
           { name: 'deleted_at', type: 'timestamp', isNullable: true },

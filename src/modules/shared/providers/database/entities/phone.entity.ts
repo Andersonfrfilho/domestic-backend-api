@@ -18,9 +18,6 @@ export class Phone {
   @Column({ nullable: true, comment: 'MOBILE, LANDLINE, WHATSAPP' })
   type: string;
 
-  @Column({ name: 'is_verified', default: false })
-  isVerified: boolean;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

@@ -15,9 +15,6 @@ export class Email {
   @Column({ unique: true })
   email: string;
 
-  @Column({ name: 'is_verified', default: false })
-  isVerified: boolean;
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
