@@ -1,6 +1,10 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
+import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.token';
+import { randomUUID } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -12,6 +16,7 @@ import { Email } from '@modules/shared/providers/database/entities/email.entity'
 import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
 import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
+import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
@@ -44,6 +49,8 @@ function inferDocumentType(value: string): string | null {
   const digits = value.replace(/\D/g, '');
   if (digits.length === 11) return 'CPF';
   if (digits.length === 14) return 'CNPJ';
+  if (digits.length >= 6 && digits.length <= 9 && /^\d+$/.test(digits)) return 'RG';
+  if (/^[A-Z0-9]{6,9}$/i.test(value)) return 'PASSPORT';
   return null;
 }
 
@@ -95,6 +102,10 @@ export class OnboardingRegisterUseCase {
     private readonly termsVersionRepository: Repository<TermsVersion>,
     @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
     private readonly userDocumentRepository: Repository<UserDocument>,
+    @InjectRepository(Document, CONNECTIONS_NAMES.POSTGRES)
+    private readonly documentRepository: Repository<Document>,
+    @Inject(STORAGE_PROVIDER)
+    private readonly storage: StorageProviderInterface,
   ) {
     this.keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080';
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
@@ -208,6 +219,28 @@ export class OnboardingRegisterUseCase {
     }
 
     return { userId: user.id, keycloakId };
+  }
+
+  async saveDocumentToUser(
+    userId: string,
+    documentType: string,
+    file: Express.Multer.File,
+  ): Promise<{ documentId: string; url: string }> {
+    const bucket = this.configService.get<string>('STORAGE_MINIO_BUCKET') ?? 'documents';
+    const ext = file.originalname.split('.').pop() ?? 'bin';
+    const objectName = `${userId}/${documentType}/${randomUUID()}.${ext}`;
+
+    const stream = require('stream').Readable.from(file.buffer);
+    await this.storage.upload({ bucket, objectName, stream, size: file.size, contentType: file.mimetype });
+
+    const doc = await this.documentRepository.save({
+      userId,
+      documentType,
+      documentUrl: objectName,
+      status: 'PENDING',
+    });
+
+    return { documentId: doc.id, url: objectName };
   }
 
   private async saveEmail(userId: string, emailAddress: string): Promise<void> {

@@ -1,5 +1,6 @@
-import { Body, ConflictException, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, ConflictException, Controller, Headers, HttpCode, HttpException, HttpStatus, Inject, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import type { Request } from 'express';
 
@@ -157,5 +158,25 @@ export class OnboardingController {
       longitude: dto.longitude,
       isPrimary: true,
     });
+  }
+
+  @Post('documents')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Upload de documento (onboarding — sem autenticação)',
+    description: 'Recebe keycloakId via header X-User-Id. Salva em documents + user_documents.',
+  })
+  @ApiHeader({ name: 'X-User-Id', required: true, description: 'keycloakId do usuário' })
+  @ApiResponse({ status: 201, description: 'Documento salvo.' })
+  @ApiResponse({ status: 400, description: 'Nenhum arquivo enviado.' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  async uploadDocument(@UploadedFile() file: Express.Multer.File, @Body('documentType') documentType: string, @Req() req: Request) {
+    if (!file) throw new HttpException('Nenhum arquivo enviado', HttpStatus.BAD_REQUEST);
+    const keycloakId = (req.headers['x-user-id'] as string) || (req.headers['x-user-id'.toLowerCase()] as string);
+    if (!keycloakId) throw new HttpException('X-User-Id não informado', HttpStatus.BAD_REQUEST);
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    return this.onboardingRegisterUseCase.saveDocumentToUser(user.id, documentType, file);
   }
 }

@@ -28,7 +28,7 @@ export class OnboardingRegisterRequestDto {
   @IsNotEmpty()
   phone: string;
 
-  @ApiProperty({ example: '12345678900', description: 'Documento (CPF 11 dígitos ou CNPJ 14 dígitos)', required: false })
+  @ApiProperty({ example: '12345678900', description: 'Documento (CPF 11 dígitos, CNPJ 14 dígitos, RG 6-9 dígitos, ou Passaporte)', required: false })
   @IsString()
   @IsOptional()
   document?: string;

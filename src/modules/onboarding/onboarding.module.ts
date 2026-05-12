@@ -1,3 +1,4 @@
+import { DocumentModule } from '@modules/document/document.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -21,6 +22,7 @@ import { VerifyCodeUseCase } from './use-cases/verification/verify-code.use-case
 
 @Module({
   imports: [
+    DocumentModule,
     UserModule,
     CompanyModule,
     TypeOrmModule.forFeature(
