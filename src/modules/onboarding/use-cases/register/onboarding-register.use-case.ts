@@ -3,6 +3,8 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
+
+type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
 import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
 import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.token';
 import { randomUUID } from 'node:crypto';
@@ -226,7 +228,7 @@ export class OnboardingRegisterUseCase {
   async saveDocumentToUser(
     userId: string,
     documentType: string,
-    file: Express.Multer.File,
+    file: UploadedFile,
   ): Promise<{ documentId: string; url: string }> {
     const bucket = this.configService.get<string>('STORAGE_MINIO_BUCKET') ?? 'documents';
     const ext = file.originalname.split('.').pop() ?? 'bin';

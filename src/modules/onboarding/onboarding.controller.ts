@@ -4,6 +4,8 @@ import { ApiConsumes, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nes
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import type { Request } from 'express';
 
+type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
+
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
@@ -172,7 +174,7 @@ export class OnboardingController {
   @ApiResponse({ status: 201, description: 'Documento salvo.' })
   @ApiResponse({ status: 400, description: 'Nenhum arquivo enviado.' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
-  async uploadDocument(@UploadedFile() file: Express.Multer.File, @Body('documentType') documentType: string, @Req() req: Request) {
+  async uploadDocument(@UploadedFile() file: UploadedFile, @Body('documentType') documentType: string, @Req() req: Request) {
     if (!file) throw new HttpException('Nenhum arquivo enviado', HttpStatus.BAD_REQUEST);
     const keycloakId = (req.headers['x-user-id'] as string) || (req.headers['x-user-id'.toLowerCase()] as string);
     if (!keycloakId) throw new HttpException('X-User-Id não informado', HttpStatus.BAD_REQUEST);
