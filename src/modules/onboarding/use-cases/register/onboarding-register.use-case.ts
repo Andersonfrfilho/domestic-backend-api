@@ -2,6 +2,7 @@ import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycl
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Readable } from 'stream';
 import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
 import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.token';
 import { randomUUID } from 'node:crypto';
@@ -106,6 +107,7 @@ export class OnboardingRegisterUseCase {
     private readonly documentRepository: Repository<Document>,
     @Inject(STORAGE_PROVIDER)
     private readonly storage: StorageProviderInterface,
+    private readonly configService: ConfigService,
   ) {
     this.keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080';
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
@@ -230,7 +232,7 @@ export class OnboardingRegisterUseCase {
     const ext = file.originalname.split('.').pop() ?? 'bin';
     const objectName = `${userId}/${documentType}/${randomUUID()}.${ext}`;
 
-    const stream = require('stream').Readable.from(file.buffer);
+    const stream = Readable.from(file.buffer);
     await this.storage.upload({ bucket, objectName, stream, size: file.size, contentType: file.mimetype });
 
     const doc = await this.documentRepository.save({

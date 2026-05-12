@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { CompanyModule } from '@modules/company/company.module';
 import { UserModule } from '@modules/user/user.module';
+import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { Email } from '@modules/shared/providers/database/entities/email.entity';
 import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
@@ -26,7 +27,7 @@ import { VerifyCodeUseCase } from './use-cases/verification/verify-code.use-case
     UserModule,
     CompanyModule,
     TypeOrmModule.forFeature(
-      [Email, Phone, TermsAcceptance, TermsVersion, User, UserDocument, UserEmail, UserPhone, VerificationCode],
+      [Document, Email, Phone, TermsAcceptance, TermsVersion, User, UserDocument, UserEmail, UserPhone, VerificationCode],
       CONNECTIONS_NAMES.POSTGRES,
     ),
   ],
