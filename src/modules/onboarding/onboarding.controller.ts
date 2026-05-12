@@ -1,7 +1,10 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IsIn, IsString } from 'class-validator';
+import { Body, ConflictException, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import type { Request } from 'express';
+
+import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
+import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
 import { OnboardingRegisterRequestDto } from './use-cases/register/onboarding-register-request.dto';
 import { OnboardingRegisterUseCase } from './use-cases/register/onboarding-register.use-case';
@@ -27,6 +30,48 @@ class VerificationVerifyDto {
   code: string;
 }
 
+class OnboardingAddressDto {
+  @IsString()
+  @IsNotEmpty()
+  keycloakId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsNotEmpty()
+  number: string;
+
+  @IsString()
+  @IsOptional()
+  complement?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  neighborhood: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  state: string;
+
+  @IsString()
+  @IsNotEmpty()
+  zipCode: string;
+
+  @IsString()
+  @IsOptional()
+  latitude?: string;
+
+  @IsString()
+  @IsOptional()
+  longitude?: string;
+}
+
 @ApiTags('Onboarding')
 @Controller('onboarding')
 export class OnboardingController {
@@ -34,6 +79,8 @@ export class OnboardingController {
     private readonly onboardingRegisterUseCase: OnboardingRegisterUseCase,
     private readonly sendVerificationCodeUseCase: SendVerificationCodeUseCase,
     private readonly verifyCodeUseCase: VerifyCodeUseCase,
+    @Inject(USER_SERVICE_PROVIDE)
+    private readonly userService: UserServiceInterface,
   ) {}
 
   @Post('register')
@@ -81,6 +128,34 @@ export class OnboardingController {
       type: channel,
       destination: dto.destination,
       code: dto.code,
+    });
+  }
+
+  @Post('address')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Salvar endereço do usuário (onboarding — sem autenticação)',
+    description: 'Aceita keycloakId no corpo. Permite apenas 1 endereço por este endpoint.',
+  })
+  @ApiResponse({ status: 201, description: 'Endereço salvo.' })
+  @ApiResponse({ status: 409, description: 'Usuário já possui endereço cadastrado.' })
+  async saveAddress(@Body() dto: OnboardingAddressDto) {
+    const existing = await this.userService.listUserAddressesByKeycloakId(dto.keycloakId);
+    if (existing.length > 0) {
+      throw new ConflictException('Usuário já possui endereço cadastrado');
+    }
+
+    return this.userService.addUserAddressByKeycloakId(dto.keycloakId, {
+      street: dto.street,
+      number: dto.number,
+      complement: dto.complement,
+      neighborhood: dto.neighborhood,
+      city: dto.city,
+      state: dto.state,
+      zipCode: dto.zipCode,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      isPrimary: true,
     });
   }
 }

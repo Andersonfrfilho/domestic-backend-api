@@ -177,22 +177,24 @@ export class ProviderRepository implements ProviderRepositoryInterface {
 
     const providers = Array.from(providerMap.values());
 
-    const reviewCounts = await this.profileRepo
-      .createQueryBuilder('p')
-      .select('p.id', 'id')
-      .addSelect('COUNT(r.id)', 'count')
-      .leftJoin('reviews', 'r', 'r.provider_id = p.id')
-      .where('p.id IN (:...ids)', { ids: providers.map((p) => p.id) })
-      .groupBy('p.id')
-      .getRawMany();
+    if (providers.length > 0) {
+      const reviewCounts = await this.profileRepo
+        .createQueryBuilder('p')
+        .select('p.id', 'id')
+        .addSelect('COUNT(r.id)', 'count')
+        .leftJoin('reviews', 'r', 'r.provider_id = p.id')
+        .where('p.id IN (:...ids)', { ids: providers.map((p) => p.id) })
+        .groupBy('p.id')
+        .getRawMany();
 
-    const countMap = new Map<string, number>();
-    for (const rc of reviewCounts) {
-      countMap.set(rc.id, Number(rc.count));
-    }
+      const countMap = new Map<string, number>();
+      for (const rc of reviewCounts) {
+        countMap.set(rc.id, Number(rc.count));
+      }
 
-    for (const provider of providers) {
-      provider.reviewCount = countMap.get(provider.id) ?? 0;
+      for (const provider of providers) {
+        provider.reviewCount = countMap.get(provider.id) ?? 0;
+      }
     }
 
     return providers;
