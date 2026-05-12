@@ -26,6 +26,8 @@ export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   KEYCLOAK_CREATING: 'Creating Keycloak user...',
   KEYCLOAK_CREATED: 'Keycloak user created',
   KEYCLOAK_EXISTS: 'Keycloak user already exists with this email',
+  KEYCLOAK_ROLE_ASSIGNED: 'Keycloak realm role assigned',
+  KEYCLOAK_ROLE_FAILED: 'Failed to assign Keycloak realm role (non-fatal)',
   USER_CREATED: 'Local user created',
   EMAIL_SAVED: 'Email saved to emails + user_emails',
   PHONE_SAVED: 'Phone saved to phones + user_phones',
@@ -35,6 +37,8 @@ export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   COMPANY_CREATED: 'Company created for CNPJ user',
   CNPJ_EXISTS: 'CNPJ already registered',
 } as const;
+
+const USER_MANAGER_ROLE = 'user-manager';
 
 function inferDocumentType(value: string): string | null {
   const digits = value.replace(/\D/g, '');
@@ -121,6 +125,9 @@ export class OnboardingRegisterUseCase {
       context: this.logContext,
       meta: { keycloakId, email: params.email },
     });
+
+    // 2b. Atribui role user-manager no Keycloak
+    await this.assignRealmRole(accessToken, keycloakId, USER_MANAGER_ROLE);
 
     // 3. Cria usuário local
     const user = await this.userRepository.create({
@@ -278,6 +285,60 @@ export class OnboardingRegisterUseCase {
       context: this.logContext,
       meta: { userId, termsVersionId: activeVersion.id, version: activeVersion.version },
     });
+  }
+
+  private async assignRealmRole(token: string, keycloakId: string, roleName: string): Promise<void> {
+    try {
+      // 1. Lookup the role ID
+      const rolesUrl = `${this.keycloakBaseUrl}/admin/realms/${this.keycloakRealm}/roles/${roleName}`;
+      const roleResponse = await fetch(rolesUrl, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!roleResponse.ok) {
+        this.logProvider.warn({
+          message: ONBOARDING_REGISTER_LOG_MESSAGES.KEYCLOAK_ROLE_FAILED,
+          context: this.logContext,
+          meta: { keycloakId, roleName, status: roleResponse.status },
+        });
+        return;
+      }
+
+      const role = await roleResponse.json();
+
+      // 2. Assign the role to the user
+      const assignUrl = `${this.keycloakBaseUrl}/admin/realms/${this.keycloakRealm}/users/${keycloakId}/role-mappings/realm`;
+      const assignResponse = await fetch(assignUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{ id: role.id, name: role.name }]),
+      });
+
+      if (!assignResponse.ok) {
+        this.logProvider.warn({
+          message: ONBOARDING_REGISTER_LOG_MESSAGES.KEYCLOAK_ROLE_FAILED,
+          context: this.logContext,
+          meta: { keycloakId, roleName, status: assignResponse.status },
+        });
+        return;
+      }
+
+      this.logProvider.info({
+        message: ONBOARDING_REGISTER_LOG_MESSAGES.KEYCLOAK_ROLE_ASSIGNED,
+        context: this.logContext,
+        meta: { keycloakId, roleName },
+      });
+    } catch (error) {
+      // Non-fatal: log and continue — the user was created; role can be fixed manually
+      this.logProvider.warn({
+        message: ONBOARDING_REGISTER_LOG_MESSAGES.KEYCLOAK_ROLE_FAILED,
+        context: this.logContext,
+        meta: { keycloakId, roleName, error: error?.message },
+      });
+    }
   }
 
   private async createKeycloakUser(token: string, params: OnboardingRegisterParams): Promise<string> {
