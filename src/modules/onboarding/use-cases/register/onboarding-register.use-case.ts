@@ -250,7 +250,7 @@ export class OnboardingRegisterUseCase {
   private async saveEmail(userId: string, emailAddress: string): Promise<void> {
     let emailRecord = await this.emailRepository.findOne({ where: { email: emailAddress } });
     if (!emailRecord) {
-      emailRecord = await this.emailRepository.save({ email: emailAddress, isVerified: false });
+      emailRecord = await this.emailRepository.save({ email: emailAddress });
     }
 
     await this.userEmailRepository.save({
@@ -273,7 +273,6 @@ export class OnboardingRegisterUseCase {
       phoneRecord = await this.phoneRepository.save({
         number: phoneNumber,
         type: 'MOBILE',
-        isVerified: false,
       });
     }
 
