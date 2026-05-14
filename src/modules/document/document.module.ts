@@ -38,5 +38,6 @@ import { UploadDocumentUseCase } from './use-cases/upload-document/upload-docume
     { provide: DOCUMENT_REJECT_USE_CASE_PROVIDE, useClass: RejectDocumentUseCase },
     { provide: DOCUMENT_SERVICE_PROVIDE, useClass: DocumentService },
   ],
+  exports: [SharedModule],
 })
 export class DocumentModule {}
