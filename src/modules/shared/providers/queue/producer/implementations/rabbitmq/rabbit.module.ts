@@ -1,7 +1,8 @@
 import { LoggerModule } from '@adatechnology/logger';
 import { Module } from '@nestjs/common';
 
-import { QUEUE_PRODUCER_PROVIDER } from '../../producer.token';
+import { MESSAGE_PRODUCER, QUEUE_PRODUCER_PROVIDER } from '../../producer.token';
+import { messageProducerProvider } from '../../producer.provider';
 import { rabbitConnection } from './rabbit.connection';
 import { RabbitConnectionLifecycleListener } from './rabbit.connection-lifecycle';
 import { RabbitMQMessageProducer } from './rabbit.provider';
@@ -10,11 +11,12 @@ import { RabbitMQMessageProducer } from './rabbit.provider';
   imports: [rabbitConnection, LoggerModule],
   providers: [
     RabbitConnectionLifecycleListener,
+    messageProducerProvider,
     {
       provide: QUEUE_PRODUCER_PROVIDER,
       useClass: RabbitMQMessageProducer,
     },
   ],
-  exports: [QUEUE_PRODUCER_PROVIDER],
+  exports: [MESSAGE_PRODUCER, QUEUE_PRODUCER_PROVIDER],
 })
 export class SharedInfrastructureProviderQueueProducerImplementationsRabbitMqModule {}
