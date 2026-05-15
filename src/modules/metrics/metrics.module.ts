@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import {
-  PrometheusModule,
   makeCounterProvider,
   makeHistogramProvider,
 } from '@willsoto/nestjs-prometheus';
@@ -10,12 +9,6 @@ import { HttpMetricsInterceptor } from './http-metrics.interceptor';
 import { PrometheusMetricsController } from './metrics.controller';
 
 @Module({
-  imports: [
-    PrometheusModule.register({
-      defaultMetrics: { enabled: true },
-      controller: false,
-    }),
-  ],
   controllers: [PrometheusMetricsController],
   providers: [
     makeHistogramProvider({
