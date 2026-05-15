@@ -13,6 +13,7 @@ import { PrometheusMetricsController } from './metrics.controller';
   imports: [
     PrometheusModule.register({
       defaultMetrics: { enabled: true },
+      controller: false,
     }),
   ],
   controllers: [PrometheusMetricsController],
