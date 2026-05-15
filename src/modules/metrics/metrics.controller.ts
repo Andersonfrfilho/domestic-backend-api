@@ -1,11 +1,10 @@
-import { Controller, Get, VERSION_NEUTRAL, Version } from '@nestjs/common';
-import { PrometheusController } from '@willsoto/nestjs-prometheus';
+import { Controller, Get } from '@nestjs/common';
+import { register } from 'prom-client';
 
 @Controller('metrics')
-export class PrometheusMetricsController extends PrometheusController {
+export class PrometheusMetricsController {
   @Get()
-  @Version([VERSION_NEUTRAL, '1', '2', '3', '4', '5'])
-  index(response: unknown) {
-    return super.index(response);
+  async metrics(): Promise<string> {
+    return register.metrics();
   }
 }

@@ -13,9 +13,9 @@ import { PrometheusMetricsController } from './metrics.controller';
   imports: [
     PrometheusModule.register({
       defaultMetrics: { enabled: true },
-      controller: PrometheusMetricsController,
     }),
   ],
+  controllers: [PrometheusMetricsController],
   providers: [
     makeHistogramProvider({
       name: 'http_request_duration_seconds',
