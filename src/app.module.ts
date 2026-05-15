@@ -52,7 +52,6 @@ tsConfigPathsRegister({
     ConfigModule,
     LoggerModule.forRoot({
       level: process.env.LOG_LEVEL || 'info',
-      interceptorExcludedPaths: ['/health', '/metrics', '/v1/metrics', '**/metrics'],
     }),
     CacheModule.forRoot({ isGlobal: true, excludedDebugKeys: ['health:*', 'metrics:*'] }),
     HttpModule.forRoot({}),
