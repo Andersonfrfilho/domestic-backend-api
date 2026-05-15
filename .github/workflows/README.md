@@ -178,3 +178,4 @@ Verifique se `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados nos secrets.
 # v2 - GitOps automation fixed
 # v3 - Using annotations to trigger updates
 # with improved logging
+# final test with annotations
