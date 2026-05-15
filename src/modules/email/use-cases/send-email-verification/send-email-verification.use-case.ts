@@ -100,7 +100,7 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
         template_id: 'email-verification',
         variables: {
           code,
-          name: userEmail.user?.name || 'Usuário',
+          name: userEmail.user?.fullName || 'Usuário',
         },
       },
       metadata: {
