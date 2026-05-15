@@ -3,6 +3,8 @@ import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { MESSAGE_PRODUCER } from '@modules/shared/providers/queue/producer/producer.token';
+import type { QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
 import { USER_EMAIL_REPOSITORY_PROVIDE } from '../../email.token';
@@ -30,6 +32,8 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
     private readonly cacheProvider: CacheProviderInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(MESSAGE_PRODUCER)
+    private readonly messageProducer: QueueProducerMessageProviderInterface,
   ) {}
 
   async execute(params: SendEmailVerificationUseCaseParams): Promise<void> {
@@ -80,11 +84,41 @@ export class SendEmailVerificationUseCase implements SendEmailVerificationUseCas
       return;
     }
 
-    // TODO: integrate with email/notification provider to actually send the code
+    const emailAddress = userEmail.email?.email;
+    if (!emailAddress) {
+      this.logProvider.warn({
+        message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.USER_EMAIL_NOT_FOUND,
+        context: this.logContext,
+        meta: { userId: params.userId, userEmailId: params.userEmailId },
+      });
+      throw EmailErrorFactory.userEmailNotFound(params.userEmailId);
+    }
+
+    const emailPayload = {
+      body: {
+        to: emailAddress,
+        template_id: 'email-verification',
+        variables: {
+          code,
+          name: userEmail.user?.name || 'Usuário',
+        },
+      },
+      metadata: {
+        userId: params.userId,
+        source: 'send-email-verification',
+      },
+    };
+
+    await this.messageProducer.send('notifications', emailPayload, {
+      exchange: 'zolve.events',
+      routingKey: 'notifications.email',
+      persistent: true,
+    });
+
     this.logProvider.info({
       message: SEND_EMAIL_VERIFICATION_LOG_MESSAGES.CODE_SENT,
       context: this.logContext,
-      meta: { userId: params.userId, userEmailId: params.userEmailId },
+      meta: { userId: params.userId, userEmailId: params.userEmailId, to: emailAddress },
     });
   }
 

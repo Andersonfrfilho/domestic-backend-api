@@ -25,7 +25,7 @@ export class UserEmailRepository implements UserEmailRepositoryInterface {
   async findById(id: string): Promise<UserEmail | null> {
     return this.typeormRepo.findOne({
       where: { id },
-      relations: ['email'],
+      relations: ['email', 'user'],
     });
   }
 
