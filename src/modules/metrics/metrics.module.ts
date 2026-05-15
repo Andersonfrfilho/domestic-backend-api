@@ -7,11 +7,13 @@ import {
 } from '@willsoto/nestjs-prometheus';
 
 import { HttpMetricsInterceptor } from './http-metrics.interceptor';
+import { PrometheusMetricsController } from './metrics.controller';
 
 @Module({
   imports: [
     PrometheusModule.register({
       defaultMetrics: { enabled: true },
+      controller: PrometheusMetricsController,
     }),
   ],
   providers: [
