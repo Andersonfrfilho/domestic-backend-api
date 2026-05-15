@@ -174,3 +174,4 @@ npm run test:all
 ### SonarQube não conectando
 
 Verifique se `SONAR_TOKEN` e `SONAR_HOST_URL` estão configurados nos secrets.
+# Test trigger for GitOps
