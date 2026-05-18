@@ -1,8 +1,6 @@
-import { Body, ConflictException, Controller, Headers, HttpCode, HttpException, HttpStatus, Inject, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Body, ConflictException, Controller, HttpCode, HttpException, HttpStatus, Inject, Post, Req } from '@nestjs/common';
 import { ApiConsumes, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import type { Request } from 'express';
 
 type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
 
@@ -90,9 +88,9 @@ export class OnboardingController {
   @ApiOperation({ summary: 'Registro de usuário (com suporte a CNPJ/empresa)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 409, description: 'Documento já cadastrado' })
-  async register(@Body() dto: OnboardingRegisterRequestDto, @Req() req: Request) {
+  async register(@Body() dto: OnboardingRegisterRequestDto, @Req() req: any) {
     const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-      ?? req.socket.remoteAddress
+      ?? req.socket?.remoteAddress
       ?? null;
 
     return this.onboardingRegisterUseCase.execute({
@@ -164,7 +162,6 @@ export class OnboardingController {
 
   @Post('documents')
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Upload de documento (onboarding — sem autenticação)',
@@ -174,10 +171,22 @@ export class OnboardingController {
   @ApiResponse({ status: 201, description: 'Documento salvo.' })
   @ApiResponse({ status: 400, description: 'Nenhum arquivo enviado.' })
   @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
-  async uploadDocument(@UploadedFile() file: UploadedFile, @Body('documentType') documentType: string, @Req() req: Request) {
-    if (!file) throw new HttpException('Nenhum arquivo enviado', HttpStatus.BAD_REQUEST);
-    const keycloakId = (req.headers['x-user-id'] as string) || (req.headers['x-user-id'.toLowerCase()] as string);
+  async uploadDocument(@Req() req: any): Promise<{ documentId: string; url: string }> {
+    const keycloakId = req.headers['x-user-id'] as string;
     if (!keycloakId) throw new HttpException('X-User-Id não informado', HttpStatus.BAD_REQUEST);
+
+    const data = await req.file();
+    if (!data) throw new HttpException('Nenhum arquivo enviado', HttpStatus.BAD_REQUEST);
+
+    const documentType = (data.fields?.documentType?.value as string) ?? 'UNKNOWN';
+    const buffer = await data.toBuffer();
+    const file: UploadedFile = {
+      originalname: data.filename,
+      buffer,
+      size: buffer.length,
+      mimetype: data.mimetype,
+    };
+
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     return this.onboardingRegisterUseCase.saveDocumentToUser(user.id, documentType, file);
   }
