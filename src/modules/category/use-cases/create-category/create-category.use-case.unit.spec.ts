@@ -20,7 +20,7 @@ describe('CreateCategoryUseCase', () => {
     mockRepo.create.mockResolvedValue(category);
     const result = await useCase.execute({ name: 'Limpeza', slug: 'limpeza' });
     expect(result).toEqual(category);
-    expect(mockCache.del).toHaveBeenCalledWith('api:categories');
+    expect(mockCache.del).toHaveBeenCalledWith({ key: 'api:categories' });
   });
 
   it('throws conflict when slug already exists', async () => {

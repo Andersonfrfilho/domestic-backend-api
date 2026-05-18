@@ -21,8 +21,7 @@ describe('UserAddressErrorFactory - Unit Tests', () => {
 
     it('should include error code in details', () => {
       const error = UserAddressErrorFactory.notFound();
-      expect(error.details).toHaveProperty('code');
-      expect(error.details?.code).toBe(UserAddressErrorCode.NOT_FOUND);
+      expect(error.code).toBe(UserAddressErrorCode.NOT_FOUND);
     });
   });
 

@@ -28,6 +28,6 @@ describe('ListCategoriesUseCase', () => {
     const result = await useCase.execute();
     expect(result).toEqual(categories);
     expect(mockRepo.listActive).toHaveBeenCalled();
-    expect(mockCache.set).toHaveBeenCalledWith('api:categories', categories, 300);
+    expect(mockCache.set).toHaveBeenCalledWith({ key: 'api:categories', value: categories, ttlInSeconds: 300 });
   });
 });
