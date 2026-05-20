@@ -195,4 +195,36 @@ export class UserController {
       order: { createdAt: 'DESC' },
     });
   }
+
+  @Get('me/onboarding-status')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Status do onboarding do usuário autenticado' })
+  @ApiHeader({ name: 'X-Access-Token', description: 'User JWT forwarded by Kong', required: true })
+  @ApiOkResponse({
+    schema: {
+      type: 'object',
+      properties: {
+        hasAddress: { type: 'boolean' },
+        hasDocument: { type: 'boolean' },
+      },
+    },
+  })
+  async getOnboardingStatus(
+    @AuthUser() keycloakId: string,
+  ): Promise<{ hasAddress: boolean; hasDocument: boolean }> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const [addresses, documents] = await Promise.all([
+      this.userService.listUserAddressesByKeycloakId(keycloakId),
+      this.userDocumentRepository.find({
+        where: { userId: user.id },
+        select: ['id'],
+        take: 1,
+      }),
+    ]);
+    return {
+      hasAddress: addresses.length > 0,
+      hasDocument: documents.length > 0,
+    };
+  }
 }
