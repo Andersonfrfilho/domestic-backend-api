@@ -10,6 +10,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 
+import { PackageContextMiddleware } from '@app/shared/middleware/package-context.middleware';
 import { ConfigModule } from '@config/config.module';
 import { ErrorModule } from '@modules/error/error.module';
 import { HealthModule } from '@modules/health/health.module';
@@ -84,6 +85,6 @@ tsConfigPathsRegister({
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestContextMiddleware).forRoutes('*');
+    consumer.apply(RequestContextMiddleware, PackageContextMiddleware).forRoutes('*');
   }
 }
