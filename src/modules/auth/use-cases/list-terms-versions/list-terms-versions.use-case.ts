@@ -1,6 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/shared';
+import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { TermsVersionRepository } from '@modules/shared/providers/database/repositories/terms-version.repository';

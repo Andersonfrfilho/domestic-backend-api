@@ -1,6 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/shared';
+import { TraceMethod } from '@adatechnology/logger';
 
 import { ServiceErrorFactory } from '@modules/service/factories/service.error.factory';
 import { type ServiceRepositoryInterface } from '@modules/service/service.repository.interface';

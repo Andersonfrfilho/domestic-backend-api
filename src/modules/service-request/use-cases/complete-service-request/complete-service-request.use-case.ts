@@ -1,6 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/shared';
+import { TraceMethod } from '@adatechnology/logger';
 
 import { type LogProviderInterface } from '@modules/shared';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';

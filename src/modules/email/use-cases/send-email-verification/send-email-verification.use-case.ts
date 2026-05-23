@@ -2,7 +2,7 @@ import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/shared';
+import { TraceMethod } from '@adatechnology/logger';
 
 import { MESSAGE_PRODUCER } from '@modules/shared/providers/queue/producer/producer.token';
 import type { QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';

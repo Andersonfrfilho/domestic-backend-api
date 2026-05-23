@@ -53,7 +53,6 @@ tsConfigPathsRegister({
     LoggerModule.forRoot({
       level: process.env.LOG_LEVEL || 'info',
       interceptorExcludedPaths: ['/health', '/metrics'],
-      enableTraceStack: true,
     }),
     CacheModule.forRoot({ isGlobal: true, excludedDebugKeys: ['health:*', 'metrics:*'] }),
     HttpModule.forRoot({}),
