@@ -48,10 +48,10 @@
     "seed": "DOTENV_CONFIG_PATH=.env.dev.local ts-node -r tsconfig-paths/register -r dotenv/config scripts/seeds/index.ts"
   },
   "dependencies": {
-    "@adatechnology/auth-keycloak": "^0.1.9",
+    "@adatechnology/auth-keycloak": "^0.1.10",
     "@adatechnology/cache": "^0.0.12",
     "@adatechnology/http-client": "^0.0.15",
-    "@adatechnology/keycloak-admin": "^0.1.7",
+    "@adatechnology/keycloak-admin": "^0.1.8",
     "@adatechnology/logger": "^0.0.11",
     "@faker-js/faker": "^10.1.0",
     "@fastify/helmet": "^13.0.2",
