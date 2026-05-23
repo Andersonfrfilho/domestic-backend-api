@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';
@@ -23,7 +22,6 @@ export class CheckPendingTermsUseCase implements CheckPendingTermsUseCaseInterfa
     private readonly termsAcceptanceRepo: TermsAcceptanceRepository,
   ) {}
 
-  @TraceMethod()
   async execute(params: CheckPendingTermsParams): Promise<CheckPendingTermsResponse> {
     const activeVersion = await this.termsVersionRepo.findActiveVersion();
     const lastAcceptance = await this.termsAcceptanceRepo.findLatestByUserId(params.userId);

@@ -2,7 +2,6 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
@@ -34,7 +33,6 @@ export class SendVerificationCodeUseCase {
     private readonly verificationCodeRepository: Repository<VerificationCode>,
   ) {}
 
-  @TraceMethod()
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResult> {
     const code = this.generateCode(params);
     const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);

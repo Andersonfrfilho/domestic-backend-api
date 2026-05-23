@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -25,7 +24,6 @@ export class RemoveUserPhoneUseCase implements RemoveUserPhoneUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: RemoveUserPhoneUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: REMOVE_USER_PHONE_LOG_MESSAGES.START_FLOW,

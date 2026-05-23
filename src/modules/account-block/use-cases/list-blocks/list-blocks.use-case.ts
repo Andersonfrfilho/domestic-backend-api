@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
@@ -19,7 +18,6 @@ export class ListAccountBlocksUseCase implements ListAccountBlocksUseCaseInterfa
     private readonly accountBlockRepository: Repository<AccountBlock>,
   ) {}
 
-  @TraceMethod()
   async execute(params: ListAccountBlocksParams): Promise<ListAccountBlocksResult> {
     const where: any = {};
     if (params.onlyActive) where.resolvedAt = null;

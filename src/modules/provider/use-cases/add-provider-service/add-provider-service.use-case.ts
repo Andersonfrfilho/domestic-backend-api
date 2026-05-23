@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -26,7 +25,6 @@ export class AddProviderServiceUseCase implements AddProviderServiceUseCaseInter
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(
     params: AddProviderServiceUseCaseParams,
   ): Promise<AddProviderServiceUseCaseResponse> {

@@ -2,7 +2,6 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
@@ -30,7 +29,6 @@ export class CreateAccountBlockUseCase implements CreateAccountBlockUseCaseInter
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: CreateAccountBlockParams): Promise<CreateAccountBlockResult> {
     this.logProvider.info({
       message: CREATE_BLOCK_LOG_MESSAGES.START_FLOW,

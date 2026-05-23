@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
@@ -26,7 +25,6 @@ export class GetUserByKeycloakIdUseCase implements GetUserByKeycloakIdUseCaseInt
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(
     params: GetUserByKeycloakIdUseCaseParams,
   ): Promise<GetUserByKeycloakIdUseCaseResponse> {

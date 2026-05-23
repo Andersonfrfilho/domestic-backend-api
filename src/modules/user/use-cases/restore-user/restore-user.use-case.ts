@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { User } from '@modules/shared/providers/database/entities/user.entity';
@@ -23,7 +22,6 @@ export class RestoreUserUseCase implements RestoreUserUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: RestoreUserUseCaseParams): Promise<User> {
     this.logProvider.info({
       message: RESTORE_USER_LOG_MESSAGES.START_FLOW,

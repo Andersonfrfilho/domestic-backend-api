@@ -2,7 +2,6 @@ import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -33,7 +32,6 @@ export class SendPhoneVerificationUseCase implements SendPhoneVerificationUseCas
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: SendPhoneVerificationUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: SEND_PHONE_VERIFICATION_LOG_MESSAGES.START_FLOW,

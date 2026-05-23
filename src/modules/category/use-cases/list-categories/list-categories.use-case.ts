@@ -2,7 +2,6 @@ import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -31,7 +30,6 @@ export class ListCategoriesUseCase implements ListCategoriesUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(): Promise<ListCategoriesUseCaseResponse> {
     this.logProvider.info({
       message: LIST_CATEGORIES_LOG_MESSAGES.START_FLOW,

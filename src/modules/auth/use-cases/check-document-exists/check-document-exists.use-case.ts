@@ -2,7 +2,6 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
@@ -29,7 +28,6 @@ export class CheckDocumentExistsUseCase {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: CheckDocumentExistsParams): Promise<void> {
     this.logProvider.info({
       message: CHECK_DOCUMENT_EXISTS_LOG_MESSAGES.START_FLOW,

@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { type LogProviderInterface } from '@modules/shared';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
@@ -33,7 +32,6 @@ export class CompleteServiceRequestUseCase implements CompleteServiceRequestUseC
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(
     params: CompleteServiceRequestUseCaseParams,
   ): Promise<CompleteServiceRequestUseCaseResponse> {

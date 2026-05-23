@@ -4,7 +4,6 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { AccountBlock } from '@app/modules/shared/providers/database/entities/account-block.entity';
@@ -43,7 +42,6 @@ export class SelfUnlockVerifyUseCase implements SelfUnlockVerifyUseCaseInterface
     private readonly producer: QueueProducerMessageProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: SelfUnlockVerifyParams): Promise<SelfUnlockVerifyResult> {
     this.logProvider.info({
       message: SELF_UNLOCK_VERIFY_LOG_MESSAGES.START_FLOW,

@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -26,7 +25,6 @@ export class GetCategoryByIdUseCase implements GetCategoryByIdUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: GetCategoryByIdUseCaseParams): Promise<GetCategoryByIdUseCaseResponse> {
     this.logProvider.info({
       message: GET_CATEGORY_BY_ID_LOG_MESSAGES.START_FLOW,

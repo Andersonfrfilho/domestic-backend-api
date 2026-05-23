@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import type { PhoneRepositoryInterface } from '@modules/phone/phone.repository.interface';
@@ -27,7 +26,6 @@ export class CheckPhoneExistsUseCase {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: CheckPhoneExistsParams): Promise<void> {
     this.logProvider.info({
       message: CHECK_PHONE_EXISTS_LOG_MESSAGES.START_FLOW,

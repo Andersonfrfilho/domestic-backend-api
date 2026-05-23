@@ -2,7 +2,6 @@ import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
@@ -40,7 +39,6 @@ export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: VerifyPhoneCodeUseCaseParams): Promise<VerifyPhoneCodeUseCaseResponse> {
     this.logProvider.info({
       message: VERIFY_PHONE_CODE_LOG_MESSAGES.START_FLOW,

@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
@@ -22,7 +21,6 @@ export class DeleteUserUseCase implements DeleteUserUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: DeleteUserUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: DELETE_USER_LOG_MESSAGES.START_FLOW,

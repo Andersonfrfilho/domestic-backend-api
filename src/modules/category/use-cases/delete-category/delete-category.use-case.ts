@@ -2,7 +2,6 @@ import type { CacheProviderInterface } from '@adatechnology/cache';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -31,7 +30,6 @@ export class DeleteCategoryUseCase implements DeleteCategoryUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: DeleteCategoryUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: DELETE_CATEGORY_LOG_MESSAGES.START_FLOW,

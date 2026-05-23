@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
@@ -33,7 +32,6 @@ export class UploadDocumentUseCase implements UploadDocumentUseCaseInterface {
     private readonly configService: ConfigService,
   ) {}
 
-  @TraceMethod()
   async execute(params: UploadDocumentUseCaseParams): Promise<UploadDocumentUseCaseResponse> {
     this.logProvider.info({
       message: UPLOAD_DOCUMENT_LOG_MESSAGES.START_FLOW,

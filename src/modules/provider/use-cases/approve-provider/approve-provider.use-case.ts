@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
@@ -33,7 +32,6 @@ export class ApproveProviderUseCase implements ApproveProviderUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: ApproveProviderUseCaseParams): Promise<ApproveProviderUseCaseResponse> {
     this.logProvider.info({
       message: APPROVE_PROVIDER_LOG_MESSAGES.START_FLOW,

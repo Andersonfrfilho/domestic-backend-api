@@ -1,11 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { LookupCepResponse, LookupCepUseCaseInterface } from './lookup-cep.interface';
 
 @Injectable()
 export class LookupCepUseCase implements LookupCepUseCaseInterface {
-  @TraceMethod()
   async execute(cep: string): Promise<LookupCepResponse> {
     const cleanCep = cep.replace(/\D/g, '');
 

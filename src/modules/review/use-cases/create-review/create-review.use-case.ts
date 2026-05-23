@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import { type ServiceRequestRepositoryInterface } from '@modules/service-request/service-request.repository.interface';
 import { SERVICE_REQUEST_REPOSITORY_PROVIDE } from '@modules/service-request/service-request.token';
@@ -30,7 +29,6 @@ export class CreateReviewUseCase implements CreateReviewUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: CreateReviewUseCaseParams): Promise<CreateReviewUseCaseResponse> {
     this.logProvider.info({
       message: CREATE_REVIEW_LOG_MESSAGES.START_FLOW,

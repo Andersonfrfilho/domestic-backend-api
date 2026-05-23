@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 
@@ -30,7 +29,6 @@ export class SetCompanyBusinessHoursUseCase implements SetCompanyBusinessHoursUs
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: SetCompanyBusinessHoursUseCaseParams): Promise<SetCompanyBusinessHoursUseCaseResponse> {
     this.logProvider.info({
       message: SET_BUSINESS_HOURS_LOG_MESSAGES.START_FLOW,

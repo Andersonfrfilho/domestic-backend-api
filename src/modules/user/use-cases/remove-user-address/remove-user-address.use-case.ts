@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserAddressErrorFactory } from '@modules/user/factories/user-address.error.factory';
@@ -25,7 +24,6 @@ export class RemoveUserAddressUseCase implements RemoveUserAddressUseCaseInterfa
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async execute(params: RemoveUserAddressUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: REMOVE_USER_ADDRESS_LOG_MESSAGES.START_FLOW,

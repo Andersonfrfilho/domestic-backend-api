@@ -1,6 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@adatechnology/logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { TermsVersionRepository } from '@modules/shared/providers/database/repositories/terms-version.repository';
@@ -20,7 +19,6 @@ export class ListTermsVersionsUseCase implements ListTermsVersionsUseCaseInterfa
     private readonly termsVersionRepo: TermsVersionRepository,
   ) {}
 
-  @TraceMethod()
   async execute(): Promise<ListTermsVersionsResponse[]> {
     const versions = await this.termsVersionRepo.findAll();
 
