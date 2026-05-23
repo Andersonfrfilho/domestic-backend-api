@@ -52,7 +52,7 @@
     "@adatechnology/cache": "^0.0.12",
     "@adatechnology/http-client": "^0.0.15",
     "@adatechnology/keycloak-admin": "^0.1.8",
-    "@adatechnology/logger": "^0.0.12",
+    "@adatechnology/logger": "file:../backend-package-nestjs/packages/logger",
     "@adatechnology/shared": "file:../backend-package-nestjs/packages/shared",
     "@faker-js/faker": "^10.1.0",
     "@fastify/helmet": "^13.0.2",
