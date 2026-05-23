@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import { type LogProviderInterface } from '@modules/shared';
 
@@ -25,6 +26,7 @@ export class RejectDocumentUseCase implements RejectDocumentUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: RejectDocumentUseCaseParams): Promise<RejectDocumentUseCaseResponse> {
     this.logProvider.info({
       message: REJECT_DOCUMENT_LOG_MESSAGES.START_FLOW,

@@ -4,6 +4,7 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
@@ -37,6 +38,7 @@ export class SelfUnlockInitiateUseCase implements SelfUnlockInitiateUseCaseInter
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: SelfUnlockInitiateParams): Promise<SelfUnlockInitiateResult> {
     this.logProvider.info({
       message: SELF_UNLOCK_INITIATE_LOG_MESSAGES.START_FLOW,

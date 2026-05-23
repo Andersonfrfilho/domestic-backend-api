@@ -1,6 +1,7 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Inject, Injectable, Optional } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
@@ -23,6 +24,7 @@ export class SendVerificationCodeUseCase implements SendVerificationCodeUseCaseI
     @Optional() private readonly amqpConnection?: AmqpConnection,
   ) {}
 
+  @TraceMethod()
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResponse> {
     this.logProvider.info({
       message: SEND_VERIFICATION_CODE_LOG_MESSAGES.START_FLOW,

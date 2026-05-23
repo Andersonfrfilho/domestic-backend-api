@@ -1,6 +1,7 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import type { EmailRepositoryInterface } from '@modules/email/email.repository.interface';
@@ -30,6 +31,7 @@ export class CheckEmailExistsUseCase {
     private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 
+  @TraceMethod()
   async execute(params: CheckEmailExistsParams): Promise<void> {
     this.logProvider.info({
       message: CHECK_EMAIL_EXISTS_LOG_MESSAGES.START_FLOW,

@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
@@ -25,6 +26,7 @@ export class UserApplicationCreateUseCase implements UserCreateUseCaseInterface 
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: UserCreateUseCaseParams): Promise<UserCreateUseCaseResponse> {
     this.logProvider.info({
       message: CREATE_USER_LOG_MESSAGES.START_FLOW,

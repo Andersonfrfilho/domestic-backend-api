@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import { type ServiceRepositoryInterface } from '@modules/service/service.repository.interface';
 import { SERVICE_REPOSITORY_PROVIDE } from '@modules/service/service.token';
@@ -23,6 +24,7 @@ export class ListServicesUseCase implements ListServicesUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: ListServicesUseCaseParams): Promise<ListServicesUseCaseResponse> {
     this.logProvider.info({
       message: LIST_SERVICES_LOG_MESSAGES.START_FLOW,

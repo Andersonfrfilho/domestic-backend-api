@@ -1,6 +1,7 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@app/modules/shared';
 
@@ -24,6 +25,7 @@ export class MarkNotificationReadUseCase implements MarkNotificationReadUseCaseI
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: MarkNotificationReadUseCaseParams): Promise<void> {
     this.logProvider.info({
       message: MARK_NOTIFICATION_READ_LOG_MESSAGES.START_FLOW,

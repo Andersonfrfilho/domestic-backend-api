@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import { type CategoryRepositoryInterface } from '@modules/category/category.repository.interface';
 import { CATEGORY_REPOSITORY_PROVIDE } from '@modules/category/category.token';
@@ -28,6 +29,7 @@ export class UpdateServiceUseCase implements UpdateServiceUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: UpdateServiceUseCaseParams): Promise<UpdateServiceUseCaseResponse> {
     const { id, ...updateData } = params;
 

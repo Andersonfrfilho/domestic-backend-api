@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
@@ -33,6 +34,7 @@ export class AddUserEmailUseCase implements AddUserEmailUseCaseInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: AddUserEmailUseCaseParams): Promise<AddUserEmailUseCaseResponse> {
     this.logProvider.info({
       message: ADD_USER_EMAIL_LOG_MESSAGES.START_FLOW,

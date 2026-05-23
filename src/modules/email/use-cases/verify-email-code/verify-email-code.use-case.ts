@@ -3,6 +3,7 @@ import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { type QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
@@ -42,6 +43,7 @@ export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
     private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 
+  @TraceMethod()
   async execute(params: VerifyEmailCodeUseCaseParams): Promise<VerifyEmailCodeUseCaseResponse> {
     this.logProvider.info({
       message: VERIFY_EMAIL_CODE_LOG_MESSAGES.START_FLOW,

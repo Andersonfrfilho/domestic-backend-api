@@ -1,6 +1,7 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TraceMethod } from '@adatechnology/shared';
 
 import { type LogProviderInterface } from '@modules/shared';
 import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
@@ -32,6 +33,7 @@ export class GetDocumentUrlUseCase implements GetDocumentUrlUseCaseInterface {
     private readonly configService: ConfigService,
   ) {}
 
+  @TraceMethod()
   async execute(params: GetDocumentUrlUseCaseParams): Promise<GetDocumentUrlUseCaseResponse> {
     this.logProvider.info({
       message: GET_DOCUMENT_URL_LOG_MESSAGES.START_FLOW,

@@ -3,6 +3,7 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
@@ -53,6 +54,7 @@ export class VerifyCodeUseCase {
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
   }
 
+  @TraceMethod()
   async execute(params: VerifyCodeParams): Promise<VerifyCodeResult> {
     const activeCode = await this.verificationCodeRepository
       .createQueryBuilder('vc')

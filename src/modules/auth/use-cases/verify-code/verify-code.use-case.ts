@@ -1,5 +1,6 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@adatechnology/shared';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { VerificationCodeRepository } from '@modules/shared/providers/database/repositories/verification-code.repository';
@@ -20,6 +21,7 @@ export class VerifyCodeUseCase implements VerifyCodeUseCaseInterface {
     private readonly verificationCodeRepo: VerificationCodeRepository,
   ) {}
 
+  @TraceMethod()
   async execute(params: VerifyCodeParams): Promise<VerifyCodeResponse> {
     const activeCode = await this.verificationCodeRepo.findActiveCode(
       params.destination,

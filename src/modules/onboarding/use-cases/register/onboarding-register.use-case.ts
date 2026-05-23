@@ -3,6 +3,7 @@ import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
+import { TraceMethod } from '@adatechnology/shared';
 
 type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
 import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
@@ -115,6 +116,7 @@ export class OnboardingRegisterUseCase {
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
   }
 
+  @TraceMethod()
   async execute(params: OnboardingRegisterParams): Promise<OnboardingRegisterResult> {
     const documentType = params.document ? inferDocumentType(params.document) : null;
     this.logProvider.info({
