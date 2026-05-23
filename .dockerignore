@@ -19,3 +19,4 @@ jest.config.*
 makefile
 make.bat
 *.tsbuildinfo
+backend-package-nestjs
