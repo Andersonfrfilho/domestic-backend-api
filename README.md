@@ -4,6 +4,11 @@
 $ npm install
 ```
 
+**Note:** TraceStack logging is enabled in production for full call hierarchy visibility.
+
+## Auto-sync test
+Testing ArgoCD automatic synchronization (2026-05-24)
+
 ## Compile and run the project
 
 ```bash
