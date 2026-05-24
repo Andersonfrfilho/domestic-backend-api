@@ -1,6 +1,8 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
 import { USER_ADDRESS_REPOSITORY_PROVIDE, USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
@@ -10,9 +12,9 @@ import { type UserRepositoryInterface } from '../../user.repository.interface';
 
 import { LIST_USER_ADDRESSES_LOG_MESSAGES } from './list-user-addresses.constants';
 import {
-  ListUserAddressesUseCaseInterface,
-  ListUserAddressesUseCaseParams,
-  ListUserAddressesUseCaseResponse,
+  type ListUserAddressesUseCaseInterface,
+  type ListUserAddressesUseCaseParams,
+  type ListUserAddressesUseCaseResponse,
 } from './list-user-addresses.interface';
 
 @Injectable()
@@ -27,6 +29,7 @@ export class ListUserAddressesUseCase implements ListUserAddressesUseCaseInterfa
     @Inject(LOGGER_PROVIDER) private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: ListUserAddressesUseCaseParams): Promise<ListUserAddressesUseCaseResponse> {
     this.logProvider.info({
       message: LIST_USER_ADDRESSES_LOG_MESSAGES.START_FLOW,

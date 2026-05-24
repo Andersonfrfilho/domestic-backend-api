@@ -1,6 +1,8 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { ConfigService } from '@nestjs/config';
 import { Readable } from 'stream';
 
@@ -115,6 +117,7 @@ export class OnboardingRegisterUseCase {
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
   }
 
+  @TraceMethod()
   async execute(params: OnboardingRegisterParams): Promise<OnboardingRegisterResult> {
     const documentType = params.document ? inferDocumentType(params.document) : null;
     this.logProvider.info({

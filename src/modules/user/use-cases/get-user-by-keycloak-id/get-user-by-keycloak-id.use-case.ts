@@ -1,6 +1,8 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { UserErrorFactory } from '@modules/user/factories';
 import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
@@ -9,9 +11,9 @@ import { type UserRepositoryInterface } from '../../user.repository.interface';
 
 import { GET_USER_BY_KEYCLOAK_ID_LOG_MESSAGES } from './get-user-by-keycloak-id.constants';
 import {
-  GetUserByKeycloakIdUseCaseInterface,
-  GetUserByKeycloakIdUseCaseParams,
-  GetUserByKeycloakIdUseCaseResponse,
+  type GetUserByKeycloakIdUseCaseInterface,
+  type GetUserByKeycloakIdUseCaseParams,
+  type GetUserByKeycloakIdUseCaseResponse,
 } from './get-user-by-keycloak-id.interface';
 
 @Injectable()
@@ -25,6 +27,7 @@ export class GetUserByKeycloakIdUseCase implements GetUserByKeycloakIdUseCaseInt
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(
     params: GetUserByKeycloakIdUseCaseParams,
   ): Promise<GetUserByKeycloakIdUseCaseResponse> {

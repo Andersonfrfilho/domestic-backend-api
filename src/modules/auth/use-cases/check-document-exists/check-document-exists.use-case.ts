@@ -1,5 +1,7 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
+
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -28,6 +30,7 @@ export class CheckDocumentExistsUseCase {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async execute(params: CheckDocumentExistsParams): Promise<void> {
     this.logProvider.info({
       message: CHECK_DOCUMENT_EXISTS_LOG_MESSAGES.START_FLOW,

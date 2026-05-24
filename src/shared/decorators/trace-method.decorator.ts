@@ -1,34 +1,26 @@
 import { pushToTraceStack, popFromTraceStack } from '@adatechnology/logger';
 
+/**
+ * Rastreia a hierarquia de chamadas entre classes no log.
+ *
+ * Adicione este decorator aos métodos de use-cases e services.
+ * O logger exibirá o histórico completo de chamadas:
+ *
+ * [reqId][timestamp][app:ver][UseCase.execute][Service.method][LEVEL] - msg
+ *
+ * Requerimento: LoggerModule.forRoot({ enableTraceStack: true }) no app.module.ts
+ */
 export function TraceMethod() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const methodName = `${target.constructor.name}.${propertyKey}`;
 
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = async function (...args: any[]) {
       pushToTraceStack(methodName);
       try {
-        const result = originalMethod.apply(this, args);
-
-        // Se retorna uma Promise, aguarda e popula após resolução
-        if (result && typeof result.then === 'function') {
-          return result
-            .then((value: any) => {
-              popFromTraceStack();
-              return value;
-            })
-            .catch((error: any) => {
-              popFromTraceStack();
-              throw error;
-            });
-        }
-
-        // Se é síncrono, popula imediatamente
+        return await originalMethod.apply(this, args);
+      } finally {
         popFromTraceStack();
-        return result;
-      } catch (error) {
-        popFromTraceStack();
-        throw error;
       }
     };
 
