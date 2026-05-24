@@ -1,3 +1,4 @@
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { ServiceRequest } from '@modules/shared/providers/database/entities/service-request.entity';
@@ -25,18 +26,27 @@ import { type ListServiceRequestsByUserUseCaseInterface } from './use-cases/list
 import { type RejectServiceRequestUseCaseInterface } from './use-cases/reject-service-request/reject-service-request.interface';
 
 export interface ServiceRequestServiceInterface {
+  @TraceMethod()
   create(params: CreateServiceRequestUseCaseParams): Promise<ServiceRequest>;
+  @TraceMethod()
   findById(id: string): Promise<ServiceRequest>;
+  @TraceMethod()
   listByContractor(contractorId: string): Promise<ServiceRequest[]>;
+  @TraceMethod()
   listByProvider(providerId: string): Promise<ServiceRequest[]>;
+  @TraceMethod()
   accept(id: string, providerId: string): Promise<ServiceRequest>;
+  @TraceMethod()
   reject(id: string, providerId: string): Promise<ServiceRequest>;
+  @TraceMethod()
   complete(id: string, contractorId: string): Promise<ServiceRequest>;
+  @TraceMethod()
   cancel(id: string, contractorId: string): Promise<ServiceRequest>;
 }
 
 @Injectable()
 export class ServiceRequestService implements ServiceRequestServiceInterface {
+  @TraceMethod()
   constructor(
     @Inject(SERVICE_REQUEST_CREATE_USE_CASE_PROVIDE)
     private readonly createUseCase: CreateServiceRequestUseCaseInterface,
@@ -56,34 +66,42 @@ export class ServiceRequestService implements ServiceRequestServiceInterface {
     private readonly cancelUseCase: CancelServiceRequestUseCaseInterface,
   ) {}
 
+  @TraceMethod()
   create(params: CreateServiceRequestUseCaseParams): Promise<ServiceRequest> {
     return this.createUseCase.execute(params);
   }
 
+  @TraceMethod()
   findById(id: string): Promise<ServiceRequest> {
     return this.getByIdUseCase.execute({ id });
   }
 
+  @TraceMethod()
   listByContractor(contractorId: string): Promise<ServiceRequest[]> {
     return this.listByUserUseCase.execute({ contractorId });
   }
 
+  @TraceMethod()
   listByProvider(providerId: string): Promise<ServiceRequest[]> {
     return this.listByProviderUseCase.execute({ providerId });
   }
 
+  @TraceMethod()
   accept(id: string, providerId: string): Promise<ServiceRequest> {
     return this.acceptUseCase.execute({ id, providerId });
   }
 
+  @TraceMethod()
   reject(id: string, providerId: string): Promise<ServiceRequest> {
     return this.rejectUseCase.execute({ id, providerId });
   }
 
+  @TraceMethod()
   complete(id: string, contractorId: string): Promise<ServiceRequest> {
     return this.completeUseCase.execute({ id, contractorId });
   }
 
+  @TraceMethod()
   cancel(id: string, contractorId: string): Promise<ServiceRequest> {
     return this.cancelUseCase.execute({ id, contractorId });
   }

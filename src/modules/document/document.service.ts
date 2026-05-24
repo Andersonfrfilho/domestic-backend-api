@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { Document } from '@modules/shared/providers/database/entities/document.entity';
@@ -41,18 +42,22 @@ export class DocumentService implements DocumentServiceInterface {
     private readonly rejectUseCase: RejectDocumentUseCaseInterface,
   ) {}
 
+  @TraceMethod()
   upload(params: UploadDocumentUseCaseParams): Promise<Document> {
     return this.uploadUseCase.execute(params);
   }
 
+  @TraceMethod()
   getUrl(id: string): Promise<GetDocumentUrlUseCaseResponse> {
     return this.getUrlUseCase.execute({ id });
   }
 
+  @TraceMethod()
   approve(id: string): Promise<Document> {
     return this.approveUseCase.execute({ id });
   }
 
+  @TraceMethod()
   reject(id: string): Promise<Document> {
     return this.rejectUseCase.execute({ id });
   }
