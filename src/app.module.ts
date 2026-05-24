@@ -10,7 +10,6 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { register as tsConfigPathsRegister } from 'tsconfig-paths';
 
-import { PackageContextMiddleware } from '@app/shared/middleware/package-context.middleware';
 import { ConfigModule } from '@config/config.module';
 import { ErrorModule } from '@modules/error/error.module';
 import { HealthModule } from '@modules/health/health.module';
@@ -55,6 +54,8 @@ tsConfigPathsRegister({
       enableTraceStack: true,
       colorize: true,
       isProduction: false,
+      appName: 'backend-api',
+      appVersion: '0.0.1',
       level: process.env.LOG_LEVEL || 'info',
       interceptorExcludedPaths: ['/health', '/metrics'],
     }),
@@ -87,6 +88,6 @@ tsConfigPathsRegister({
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestContextMiddleware, PackageContextMiddleware).forRoutes('*');
+    consumer.apply(RequestContextMiddleware).forRoutes('*');
   }
 }
