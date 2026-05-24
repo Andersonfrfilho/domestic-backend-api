@@ -1,8 +1,7 @@
 name: CI/CD Pipeline
 
-# on:
-#   pull_request:
-#     branches: [main, develop]
+on: {}
+# DISABLED: ci-cd workflow is disabled. Use docker.yml instead.
 
 jobs:
   lint:
