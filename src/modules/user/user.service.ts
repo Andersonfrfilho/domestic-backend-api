@@ -3,6 +3,7 @@ import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
 import type { LogProviderInterface } from '@modules/shared';
@@ -11,9 +12,9 @@ import { type AddUserAddressUseCaseInterface } from './use-cases/add-user-addres
 import {
   AddUserAddressParams,
   type UserCreateUseCaseInterface,
-  UserServiceInterface,
-  UserServiceParams,
-  UserServiceResponse,
+  type UserServiceInterface,
+  type UserServiceParams,
+  type UserServiceResponse,
 } from './use-cases/create-users/create-user.interface';
 import { type DeleteUserUseCaseInterface } from './use-cases/delete-user/delete-user.interface';
 import { type GetUserByIdUseCaseInterface } from './use-cases/get-user-by-id/get-user-by-id.interface';
@@ -69,6 +70,7 @@ export class UserService implements UserServiceInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async createUser(params: UserServiceParams): Promise<UserServiceResponse> {
     const user = await this.userCreateUseCase.execute(params);
     // invalidate users:list cache and log the operation
@@ -95,10 +97,12 @@ export class UserService implements UserServiceInterface {
     return user;
   }
 
+  @TraceMethod()
   async getUserById(id: string): Promise<UserServiceResponse> {
     return this.getUserByIdUseCase.execute({ id });
   }
 
+  @TraceMethod()
   async getUserByKeycloakId(keycloakId: string): Promise<UserServiceResponse> {
     return this.getUserByKeycloakIdUseCase.execute({ keycloakId });
   }

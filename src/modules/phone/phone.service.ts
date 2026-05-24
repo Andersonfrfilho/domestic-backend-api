@@ -1,14 +1,15 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
-import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
+import type { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
 import { PHONE_SERVICE_LOG_MESSAGES } from './phone.service.constants';
-import { AddPhoneByKeycloakParams, PhoneServiceInterface } from './phone.service.interface';
+import { type AddPhoneByKeycloakParams, type PhoneServiceInterface } from './phone.service.interface';
 import {
   ADD_USER_PHONE_USE_CASE_PROVIDE,
   LIST_USER_PHONES_USE_CASE_PROVIDE,
@@ -44,6 +45,7 @@ export class PhoneService implements PhoneServiceInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
+  @TraceMethod()
   async listUserPhonesByKeycloakId(keycloakId: string): Promise<UserPhone[]> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.LIST_PHONES_BY_KEYCLOAK_START,
@@ -63,6 +65,7 @@ export class PhoneService implements PhoneServiceInterface {
     return phones;
   }
 
+  @TraceMethod()
   async addUserPhoneByKeycloakId(
     keycloakId: string,
     params: AddPhoneByKeycloakParams,
@@ -85,6 +88,7 @@ export class PhoneService implements PhoneServiceInterface {
     return userPhone;
   }
 
+  @TraceMethod()
   async removeUserPhoneByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.REMOVE_PHONE_BY_KEYCLOAK_START,
@@ -102,6 +106,7 @@ export class PhoneService implements PhoneServiceInterface {
     });
   }
 
+  @TraceMethod()
   async sendPhoneVerificationByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.SEND_VERIFICATION_BY_KEYCLOAK_START,
@@ -119,6 +124,7 @@ export class PhoneService implements PhoneServiceInterface {
     });
   }
 
+  @TraceMethod()
   async verifyPhoneCodeByKeycloakId(
     keycloakId: string,
     userPhoneId: string,

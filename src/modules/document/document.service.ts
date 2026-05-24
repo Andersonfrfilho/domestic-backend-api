@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 
 import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import { Document } from '@modules/shared/providers/database/entities/document.entity';
 
@@ -14,12 +15,12 @@ import {
 import { type ApproveDocumentUseCaseInterface } from './use-cases/approve-document/approve-document.interface';
 import {
   type GetDocumentUrlUseCaseInterface,
-  GetDocumentUrlUseCaseResponse,
+  type GetDocumentUrlUseCaseResponse,
 } from './use-cases/get-document-url/get-document-url.interface';
 import { type RejectDocumentUseCaseInterface } from './use-cases/reject-document/reject-document.interface';
 import {
   type UploadDocumentUseCaseInterface,
-  UploadDocumentUseCaseParams,
+  type UploadDocumentUseCaseParams,
 } from './use-cases/upload-document/upload-document.interface';
 
 export interface DocumentServiceInterface {
