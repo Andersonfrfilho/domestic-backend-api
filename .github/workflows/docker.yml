@@ -73,14 +73,6 @@ jobs:
             docker push "$tag"
             echo "Pushed: $tag"
           done
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            GIT_COMMIT_HASH=${{ github.sha }}
-            GIT_COMMIT_HASH_FULL=${{ github.sha }}
-            GIT_BRANCH=${{ github.ref_name }}
-            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          no-cache: true
-          cache-to: type=registry,ref=ghcr.io/${{ env.REPO_LC }}:buildcache,mode=max
 
       - name: Update Kubernetes deployment
         if: github.ref == 'refs/heads/main'
