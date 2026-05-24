@@ -1,4 +1,3 @@
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { Review } from '@modules/shared/providers/database/entities/review.entity';
@@ -14,15 +13,12 @@ import {
 import { type ListReviewsByProviderUseCaseInterface } from './use-cases/list-reviews-by-provider/list-reviews-by-provider.interface';
 
 export interface ReviewServiceInterface {
-  @TraceMethod()
   create(params: CreateReviewUseCaseParams): Promise<Review>;
-  @TraceMethod()
   listByProvider(providerId: string): Promise<Review[]>;
 }
 
 @Injectable()
 export class ReviewService implements ReviewServiceInterface {
-  @TraceMethod()
   constructor(
     @Inject(REVIEW_CREATE_USE_CASE_PROVIDE)
     private readonly createUseCase: CreateReviewUseCaseInterface,
@@ -30,12 +26,10 @@ export class ReviewService implements ReviewServiceInterface {
     private readonly listByProviderUseCase: ListReviewsByProviderUseCaseInterface,
   ) {}
 
-  @TraceMethod()
   create(params: CreateReviewUseCaseParams): Promise<Review> {
     return this.createUseCase.execute(params);
   }
 
-  @TraceMethod()
   listByProvider(providerId: string): Promise<Review[]> {
     return this.listByProviderUseCase.execute({ providerId });
   }

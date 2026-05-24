@@ -1,5 +1,4 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
@@ -25,7 +24,6 @@ const ROUTING_KEY = 'user.phone.verified';
 
 @Injectable()
 export class VerifyPhoneCodeUseCase implements VerifyPhoneCodeUseCaseInterface {
-  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

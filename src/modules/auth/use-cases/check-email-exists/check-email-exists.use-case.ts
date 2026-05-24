@@ -1,5 +1,4 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
@@ -20,7 +19,6 @@ export const CHECK_EMAIL_EXISTS_LOG_MESSAGES = {
 
 @Injectable()
 export class CheckEmailExistsUseCase {
-  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

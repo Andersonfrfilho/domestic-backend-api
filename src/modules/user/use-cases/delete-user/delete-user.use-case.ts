@@ -1,5 +1,4 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
@@ -13,7 +12,6 @@ import { DeleteUserUseCaseInterface, DeleteUserUseCaseParams } from './delete-us
 
 @Injectable()
 export class DeleteUserUseCase implements DeleteUserUseCaseInterface {
-  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

@@ -1,4 +1,3 @@
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { Notification } from '@modules/shared/providers/database/entities/notification.entity';
@@ -11,15 +10,12 @@ import { type ListNotificationsUseCaseInterface } from './use-cases/list-notific
 import { type MarkNotificationReadUseCaseInterface } from './use-cases/mark-notification-read/mark-notification-read.interface';
 
 export interface NotificationServiceInterface {
-  @TraceMethod()
   list(userId: string): Promise<Notification[]>;
-  @TraceMethod()
   markAsRead(id: string): Promise<void>;
 }
 
 @Injectable()
 export class NotificationService implements NotificationServiceInterface {
-  @TraceMethod()
   constructor(
     @Inject(NOTIFICATION_LIST_USE_CASE_PROVIDE)
     private readonly listUseCase: ListNotificationsUseCaseInterface,
@@ -27,12 +23,10 @@ export class NotificationService implements NotificationServiceInterface {
     private readonly markReadUseCase: MarkNotificationReadUseCaseInterface,
   ) {}
 
-  @TraceMethod()
   list(userId: string): Promise<Notification[]> {
     return this.listUseCase.execute({ userId });
   }
 
-  @TraceMethod()
   markAsRead(id: string): Promise<void> {
     return this.markReadUseCase.execute({ id });
   }

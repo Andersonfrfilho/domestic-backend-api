@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import {
   COMPANY_ADD_ADDRESS_USE_CASE_PROVIDE,
@@ -49,7 +48,6 @@ export class CompanyService {
     private readonly getDetailsUseCase: GetCompanyDetailsUseCaseInterface,
   ) {}
 
-  @TraceMethod()
   async createCompany(params: Parameters<CreateCompanyUseCaseInterface['execute']>[0]) {
     return this.createCompanyUseCase.execute(params);
   }

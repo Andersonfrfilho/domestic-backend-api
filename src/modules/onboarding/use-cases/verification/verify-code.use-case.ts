@@ -1,5 +1,4 @@
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,7 +27,6 @@ export interface VerifyCodeResult {
 
 @Injectable()
 export class VerifyCodeUseCase {
-  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
   private readonly keycloakBaseUrl: string;
   private readonly keycloakRealm: string;

@@ -1,5 +1,4 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
@@ -26,7 +25,6 @@ const ROUTING_KEY = 'user.email.verified';
 
 @Injectable()
 export class VerifyEmailCodeUseCase implements VerifyEmailCodeUseCaseInterface {
-  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

@@ -1,7 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import type { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
@@ -25,7 +23,6 @@ import { type VerifyPhoneCodeUseCaseInterface } from './use-cases/verify-phone-c
 
 @Injectable()
 export class PhoneService implements PhoneServiceInterface {
-  @TraceMethod()
   private readonly logContext = this.constructor.name;
 
   constructor(
@@ -45,7 +42,6 @@ export class PhoneService implements PhoneServiceInterface {
     private readonly logProvider: LogProviderInterface,
   ) {}
 
-  @TraceMethod()
   async listUserPhonesByKeycloakId(keycloakId: string): Promise<UserPhone[]> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.LIST_PHONES_BY_KEYCLOAK_START,
@@ -65,7 +61,6 @@ export class PhoneService implements PhoneServiceInterface {
     return phones;
   }
 
-  @TraceMethod()
   async addUserPhoneByKeycloakId(
     keycloakId: string,
     params: AddPhoneByKeycloakParams,
@@ -88,7 +83,6 @@ export class PhoneService implements PhoneServiceInterface {
     return userPhone;
   }
 
-  @TraceMethod()
   async removeUserPhoneByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.REMOVE_PHONE_BY_KEYCLOAK_START,
@@ -106,7 +100,6 @@ export class PhoneService implements PhoneServiceInterface {
     });
   }
 
-  @TraceMethod()
   async sendPhoneVerificationByKeycloakId(keycloakId: string, userPhoneId: string): Promise<void> {
     this.logProvider.info({
       message: PHONE_SERVICE_LOG_MESSAGES.SEND_VERIFICATION_BY_KEYCLOAK_START,
@@ -124,7 +117,6 @@ export class PhoneService implements PhoneServiceInterface {
     });
   }
 
-  @TraceMethod()
   async verifyPhoneCodeByKeycloakId(
     keycloakId: string,
     userPhoneId: string,
