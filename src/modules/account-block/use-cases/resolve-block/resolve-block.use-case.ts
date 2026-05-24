@@ -1,4 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -22,6 +23,7 @@ export const RESOLVE_BLOCK_LOG_MESSAGES = {
 
 @Injectable()
 export class ResolveAccountBlockUseCase implements ResolveAccountBlockUseCaseInterface {
+  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

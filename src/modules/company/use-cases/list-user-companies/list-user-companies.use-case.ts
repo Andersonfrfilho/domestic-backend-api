@@ -1,4 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
@@ -19,6 +20,7 @@ export const LIST_USER_COMPANIES_LOG_MESSAGES = {
 
 @Injectable()
 export class ListUserCompaniesUseCase implements ListUserCompaniesUseCaseInterface {
+  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

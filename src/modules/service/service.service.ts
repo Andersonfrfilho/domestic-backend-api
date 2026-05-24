@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
 
@@ -42,6 +43,7 @@ export class ServiceService implements ServiceServiceInterface {
     private readonly getByIdUseCase: GetServiceByIdUseCaseInterface,
   ) {}
 
+  @TraceMethod()
   async create(params: CreateServiceUseCaseParams): Promise<Service> {
     return this.createUseCase.execute(params);
   }

@@ -1,4 +1,5 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable } from '@nestjs/common';
@@ -21,6 +22,7 @@ export class HealthService {
     @Inject(CACHE_PROVIDER) private readonly cacheProvider: CacheProviderInterface,
   ) {}
 
+  @TraceMethod()
   private async checkDatabase(): Promise<CheckResult> {
     try {
       const start = Date.now();

@@ -1,4 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -24,6 +25,7 @@ const CODE_LENGTH = 4;
 
 @Injectable()
 export class SendVerificationCodeUseCase {
+  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

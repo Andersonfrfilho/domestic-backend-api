@@ -1,4 +1,5 @@
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Inject, Injectable, Optional } from '@nestjs/common';
 
@@ -14,6 +15,7 @@ import {
 
 @Injectable()
 export class SendVerificationCodeUseCase implements SendVerificationCodeUseCaseInterface {
+  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

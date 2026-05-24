@@ -1,4 +1,5 @@
 import type { CacheProviderInterface } from '@adatechnology/cache';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { CACHE_PROVIDER } from '@adatechnology/cache';
 import { LOGGER_PROVIDER } from '@adatechnology/logger';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -26,6 +27,7 @@ const ALLOWED_REASONS = ['EMAIL_CONFLICT', 'PHONE_CONFLICT'];
 
 @Injectable()
 export class SelfUnlockInitiateUseCase implements SelfUnlockInitiateUseCaseInterface {
+  @TraceMethod()
   private readonly logContext = `${this.constructor.name}.execute`;
 
   constructor(

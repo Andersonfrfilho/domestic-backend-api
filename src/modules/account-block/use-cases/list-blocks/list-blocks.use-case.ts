@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -18,6 +19,7 @@ export class ListAccountBlocksUseCase implements ListAccountBlocksUseCaseInterfa
     private readonly accountBlockRepository: Repository<AccountBlock>,
   ) {}
 
+  @TraceMethod()
   async execute(params: ListAccountBlocksParams): Promise<ListAccountBlocksResult> {
     const where: any = {};
     if (params.onlyActive) where.resolvedAt = null;
