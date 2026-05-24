@@ -86,9 +86,11 @@ jobs:
           git config user.name "GitHub Actions"
 
           BUILD_TIMESTAMP=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+          IMAGE_TAG="sha-$(echo "${{ github.sha }}" | cut -c1-7)"
 
           sed -i "s/build.timestamp:.*/build.timestamp: \"$BUILD_TIMESTAMP\"/" api/api.deployment.yaml
           sed -i "s/build.commit:.*/build.commit: \"${{ github.sha }}\"/" api/api.deployment.yaml
+          sed -i "s|image: ghcr.io/andersonfrfilho/domestic-backend-api:.*|image: ghcr.io/andersonfrfilho/domestic-backend-api:$IMAGE_TAG|" api/api.deployment.yaml
 
           git add api/api.deployment.yaml
 
