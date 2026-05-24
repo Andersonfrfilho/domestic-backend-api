@@ -138,6 +138,38 @@ export const CREATE_FOO_LOG_MESSAGES = {
 - Use `Logger` from `@nestjs/common` in modules, infrastructure, lifecycle listeners
 - This ensures all logs pass through structured logging pipeline and can be collected centrally
 
+### Call hierarchy tracing (@TraceMethod)
+
+Add `@TraceMethod()` to `execute()` methods of use-cases (and service methods that orchestrate multiple use-cases). This populates the ALS trace stack so the logger can display the full call hierarchy:
+
+```
+[reqId][timestamp][app:ver][UseCase.execute][Service.method][LibClass.method][LEVEL] - msg
+```
+
+**Decorator location:** `src/shared/decorators/trace-method.decorator.ts`
+**Import:** `import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';`
+**Config:** `LoggerModule.forRoot({ enableTraceStack: true })` already set in `app.module.ts`
+
+**CRITICAL — `import type` rule:** when `emitDecoratorMetadata: true` (enabled in this project), TypeScript emits runtime metadata for decorated method parameters. Any type used as a parameter in a `@TraceMethod()`-decorated method **must** be imported with `import type`, not a plain `import`. Failure to do so causes TS error `TS1272`.
+
+```typescript
+// ✅ Correto
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+import { type MyUseCaseParams, type MyUseCaseResponse } from './my.interface';
+
+@TraceMethod()
+async execute(params: MyUseCaseParams): Promise<MyUseCaseResponse> { ... }
+
+// ❌ Errado — TS1272: "A type referenced in a decorated signature must be imported with 'import type'"
+import { MyUseCaseParams } from './my.interface';  // missing `type`
+```
+
+**Scope:** apply only to concrete method implementations (`async execute()`), never to:
+- Interface method signatures
+- Abstract methods
+- Class field declarations
+- Constructor
+
 ### Flow tests (Spec-Driven)
 
 Every module must have a corresponding flow test in `scripts/flows/<module>.flow.js`. Flow tests verify end-to-end business behavior against a running environment.
