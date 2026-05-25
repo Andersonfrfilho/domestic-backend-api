@@ -19,6 +19,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+
 import { type CategoryServiceInterface } from './category.service';
 import { CATEGORY_SERVICE_PROVIDE } from './category.token';
 import { CreateCategoryRequestDto } from './use-cases/create-category/dtos/create-category-request.dto';
@@ -36,6 +38,7 @@ export class CategoryController {
   @Get()
   @ApiOperation({ summary: 'Listar categorias ativas (cacheado)' })
   @ApiOkResponse({ type: [CategoryResponseDto] })
+  @TraceMethod()
   async list(): Promise<CategoryResponseDto[]> {
     return this.categoryService.list();
   }
@@ -44,6 +47,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Buscar categoria por ID' })
   @ApiOkResponse({ type: CategoryResponseDto })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada' })
+  @TraceMethod()
   async findById(@Param('id') id: string): Promise<CategoryResponseDto> {
     return this.categoryService.findById(id);
   }
@@ -52,6 +56,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Criar nova categoria (Admin)' })
   @ApiOkResponse({ type: CategoryResponseDto })
   @ApiBadRequestResponse({ description: 'Slug duplicado ou dados inválidos' })
+  @TraceMethod()
   async create(@Body() body: CreateCategoryRequestDto): Promise<CategoryResponseDto> {
     return this.categoryService.create(body);
   }
@@ -60,6 +65,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Atualizar categoria (Admin)' })
   @ApiOkResponse({ type: CategoryResponseDto })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada' })
+  @TraceMethod()
   async update(
     @Param('id') id: string,
     @Body() body: UpdateCategoryRequestDto,
@@ -72,6 +78,7 @@ export class CategoryController {
   @ApiOperation({ summary: 'Desativar categoria (Admin - Soft Delete)' })
   @ApiNoContentResponse({ description: 'Categoria desativada com sucesso' })
   @ApiNotFoundResponse({ description: 'Categoria não encontrada' })
+  @TraceMethod()
   async delete(@Param('id') id: string): Promise<void> {
     await this.categoryService.delete(id);
   }

@@ -1,5 +1,7 @@
 import { Body, ConflictException, Controller, HttpCode, HttpException, HttpStatus, Inject, Post, Req } from '@nestjs/common';
 import { ApiConsumes, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
@@ -88,6 +90,7 @@ export class OnboardingController {
   @ApiOperation({ summary: 'Registro de usuário (com suporte a CNPJ/empresa)' })
   @ApiResponse({ status: 201, description: 'Usuário criado com sucesso' })
   @ApiResponse({ status: 409, description: 'Documento já cadastrado' })
+  @TraceMethod()
   async register(@Body() dto: OnboardingRegisterRequestDto, @Req() req: any) {
     const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
       ?? req.socket?.remoteAddress

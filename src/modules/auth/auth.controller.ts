@@ -1,6 +1,8 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+
 import type { AcceptTermsParams } from './use-cases/accept-terms/accept-terms.interface';
 import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-case';
 import type { CheckDocumentExistsParams } from './use-cases/check-document-exists/check-document-exists.interface';
@@ -99,6 +101,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verificar se email existe' })
   @ApiResponse({ status: 200, description: 'Email disponível.' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado.' })
+  @TraceMethod()
   async verifyEmail(@Body() body: CheckEmailExistsParams) {
     await this.checkEmailExists.execute(body);
   }
@@ -108,6 +111,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verificar se telefone existe' })
   @ApiResponse({ status: 200, description: 'Telefone disponível.' })
   @ApiResponse({ status: 409, description: 'Telefone já cadastrado.' })
+  @TraceMethod()
   async verifyPhone(@Body() body: CheckPhoneExistsParams) {
     await this.checkPhoneExists.execute(body);
   }
@@ -117,6 +121,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verificar se documento existe' })
   @ApiResponse({ status: 200, description: 'Documento disponível.' })
   @ApiResponse({ status: 409, description: 'Documento já cadastrado.' })
+  @TraceMethod()
   async verifyDocument(@Body() body: CheckDocumentExistsParams) {
     await this.checkDocumentExists.execute(body);
   }
