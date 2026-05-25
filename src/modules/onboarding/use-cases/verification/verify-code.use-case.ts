@@ -1,5 +1,5 @@
-import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/keycloak-admin';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/nestjs-keycloak-admin';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';

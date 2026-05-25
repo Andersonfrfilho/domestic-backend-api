@@ -1,4 +1,4 @@
-import { getContext, LOGGER_PROVIDER } from '@adatechnology/logger';
+import { getContext, LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Inject } from '@nestjs/common';
 import { context, propagation } from '@opentelemetry/api';

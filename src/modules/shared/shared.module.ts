@@ -1,4 +1,4 @@
-import { KeycloakModule } from '@adatechnology/auth-keycloak';
+import { KeycloakModule } from '@adatechnology/nestjs-auth-keycloak';
 import { Module } from '@nestjs/common';
 
 import { buildKeycloakConfigFromEnv } from '@config/keycloak.config';

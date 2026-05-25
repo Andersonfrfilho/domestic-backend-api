@@ -1,4 +1,4 @@
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import multipart from '@fastify/multipart';
 import { ValidationPipe } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';

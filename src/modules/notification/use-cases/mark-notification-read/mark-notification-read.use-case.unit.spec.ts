@@ -1,4 +1,4 @@
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Test } from '@nestjs/testing';
 
 import { NOTIFICATION_REPOSITORY_PROVIDE } from '../../notification.token';

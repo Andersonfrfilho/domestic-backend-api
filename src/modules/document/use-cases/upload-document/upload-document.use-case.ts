@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

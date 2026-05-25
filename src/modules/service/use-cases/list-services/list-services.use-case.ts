@@ -1,4 +1,4 @@
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable } from '@nestjs/common';
 
 import { type ServiceRepositoryInterface } from '@modules/service/service.repository.interface';

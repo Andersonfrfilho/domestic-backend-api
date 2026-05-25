@@ -1,6 +1,6 @@
-import type { CacheProviderInterface } from '@adatechnology/cache';
-import { CACHE_PROVIDER } from '@adatechnology/cache';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import type { CacheProviderInterface } from '@adatechnology/nestjs-cache';
+import { CACHE_PROVIDER } from '@adatechnology/nestjs-cache';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 

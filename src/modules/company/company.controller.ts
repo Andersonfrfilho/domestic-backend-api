@@ -1,4 +1,4 @@
-import { ApiAuthGuard } from '@adatechnology/auth-keycloak';
+import { ApiAuthGuard } from '@adatechnology/nestjs-auth-keycloak';
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 

@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { StorageProviderInterface, UploadFileParams } from './storage.interface';

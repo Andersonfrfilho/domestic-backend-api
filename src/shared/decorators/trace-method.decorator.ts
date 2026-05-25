@@ -1,4 +1,4 @@
-import { pushToTraceStack, popFromTraceStack } from '@adatechnology/logger';
+import { pushToTraceStack, popFromTraceStack } from '@adatechnology/nestjs-logger';
 
 /**
  * Rastreia a hierarquia de chamadas entre classes no log.

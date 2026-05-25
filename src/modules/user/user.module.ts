@@ -1,4 +1,4 @@
-import { ApiAuthGuard } from '@adatechnology/auth-keycloak';
+import { ApiAuthGuard } from '@adatechnology/nestjs-auth-keycloak';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 

@@ -1,4 +1,4 @@
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 

@@ -1,4 +1,4 @@
-import { ApiAuthGuard, AuthUser, Roles, RolesGuard } from '@adatechnology/auth-keycloak';
+import { ApiAuthGuard, AuthUser, Roles, RolesGuard } from '@adatechnology/nestjs-auth-keycloak';
 import {
   Body,
   Controller,

@@ -1,4 +1,4 @@
-import { AuthUser, B2CGuard } from '@adatechnology/auth-keycloak';
+import { AuthUser, B2CGuard } from '@adatechnology/nestjs-auth-keycloak';
 import { Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBody,

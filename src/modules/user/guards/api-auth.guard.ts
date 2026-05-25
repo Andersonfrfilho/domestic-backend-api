@@ -3,8 +3,8 @@ import {
   B2CGuard,
   BearerTokenGuard,
   KEYCLOAK_CLIENT,
-} from '@adatechnology/auth-keycloak';
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+} from '@adatechnology/nestjs-auth-keycloak';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';

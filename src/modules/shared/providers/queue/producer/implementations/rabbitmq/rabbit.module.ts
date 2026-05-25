@@ -1,4 +1,4 @@
-import { LoggerModule } from '@adatechnology/logger';
+import { LoggerModule } from '@adatechnology/nestjs-logger';
 import { Module } from '@nestjs/common';
 
 import { MESSAGE_PRODUCER, QUEUE_PRODUCER_PROVIDER } from '../../producer.token';
