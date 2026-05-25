@@ -57,8 +57,8 @@
   "dependencies": {
     "@adatechnology/auth-keycloak": "^0.1.14",
     "@adatechnology/cache": "^0.0.17",
-    "@adatechnology/http-client": "^0.0.20",
-    "@adatechnology/keycloak-admin": "^0.1.12",
+    "@adatechnology/http-client": "^0.0.21",
+    "@adatechnology/keycloak-admin": "^0.1.13",
     "@adatechnology/logger": "^0.0.16",
     "@faker-js/faker": "^10.1.0",
     "@fastify/helmet": "^13.0.2",
