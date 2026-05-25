@@ -44,12 +44,20 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO domestic_worker;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_api;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_cron;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO domestic_worker;
+-- Default privileges para tabelas criadas pelo superuser (domestic)
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_api;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_cron;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO domestic_worker;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_api;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_cron;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_worker;
+
+-- Default privileges para tabelas criadas pelo domestic_api (migrações TypeORM)
+-- Garante que novas tabelas criadas por migrations também sejam acessíveis
+ALTER DEFAULT PRIVILEGES FOR ROLE domestic_api IN SCHEMA public GRANT ALL ON TABLES TO domestic_cron;
+ALTER DEFAULT PRIVILEGES FOR ROLE domestic_api IN SCHEMA public GRANT ALL ON TABLES TO domestic_worker;
+ALTER DEFAULT PRIVILEGES FOR ROLE domestic_api IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_cron;
+ALTER DEFAULT PRIVILEGES FOR ROLE domestic_api IN SCHEMA public GRANT ALL ON SEQUENCES TO domestic_worker;
 PSQL
 
 echo "✓ PostgreSQL inicializado"
