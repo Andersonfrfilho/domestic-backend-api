@@ -1,6 +1,7 @@
-import { LOGGER_PROVIDER } from '@adatechnology/logger';
+import { getContext, LOGGER_PROVIDER } from '@adatechnology/logger';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Injectable, Inject } from '@nestjs/common';
+import { context, propagation } from '@opentelemetry/api';
 import { Observable, from, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 
@@ -111,14 +112,21 @@ export class RabbitMQMessageProducer<T = any> implements QueueProducerMessagePro
         },
       };
 
+      // Captura requestId do contexto ALS e headers OTel para propagação cross-service
+      const requestCtx = getContext();
+      const otelHeaders: Record<string, string> = {};
+      propagation.inject(context.active(), otelHeaders); // injeta traceparent + tracestate
+
       // Set message properties
       const publishOptions: any = {
         messageId,
-        correlationId: message.metadata?.correlationId,
+        correlationId: message.metadata?.correlationId ?? requestCtx?.requestId,
         timestamp: Date.now(),
         // REMOVIDO: userId - propriedade reservada do AMQP
         headers: {
           ...message.headers,
+          ...otelHeaders, // W3C traceparent + tracestate → Worker continua o mesmo trace no Jaeger
+          'x-request-id': requestCtx?.requestId, // ID legível → correlação de logs no Loki/Grafana
           priority: message.priority || this.config.defaultPriority,
           delay: message.delay,
           ttl: message.ttl,
