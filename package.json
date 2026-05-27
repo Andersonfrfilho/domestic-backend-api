@@ -59,7 +59,7 @@
     "@adatechnology/nestjs-cache": "latest",
     "@adatechnology/nestjs-http-client": "latest",
     "@adatechnology/nestjs-keycloak-admin": "latest",
-    "@adatechnology/nestjs-logger": "0.2.0",
+    "@adatechnology/nestjs-logger": "0.2.2",
     "@faker-js/faker": "^10.1.0",
     "@fastify/helmet": "^13.0.2",
     "@fastify/multipart": "^9.4.0",
