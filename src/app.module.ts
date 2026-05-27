@@ -62,7 +62,12 @@ tsConfigPathsRegister({
       interceptorExcludedPaths: ['/health', '/metrics'],
     }),
     CacheModule.forRoot({ isGlobal: true, excludedDebugKeys: ['health:*', 'metrics:*'] }),
-    HttpModule.forRoot({}),
+    HttpModule.forRoot({
+      logging: {
+        enabled: true,
+        environments: ['development', 'test', 'staging', 'production'],
+      },
+    }),
     KeycloakAdminModule.forRoot({
       baseUrl: process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080',
       realm: process.env.KEYCLOAK_REALM || 'domestic',
