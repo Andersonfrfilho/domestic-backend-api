@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
 import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
+import type { QueueProducerMessageProviderInterface } from '@modules/shared/providers/queue/producer/producer.interface';
+import { MESSAGE_PRODUCER } from '@modules/shared/providers/queue/producer/producer.token';
 
 export type VerificationChannel = 'email' | 'phone';
 
@@ -31,6 +33,8 @@ export class SendVerificationCodeUseCase {
     private readonly logProvider: LogProviderInterface,
     @InjectRepository(VerificationCode, CONNECTIONS_NAMES.POSTGRES)
     private readonly verificationCodeRepository: Repository<VerificationCode>,
+    @Inject(MESSAGE_PRODUCER)
+    private readonly messageProducer: QueueProducerMessageProviderInterface,
   ) {}
 
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResult> {
@@ -57,6 +61,66 @@ export class SendVerificationCodeUseCase {
         ...(process.env.NODE_ENV !== 'production' ? { code } : {}),
       },
     });
+
+    // Send via appropriate channel (email or SMS)
+    if (params.type === 'email') {
+      const emailPayload = {
+        body: {
+          to: params.destination,
+          template_id: 'verification-code-email',
+          variables: {
+            code,
+          },
+        },
+        metadata: {
+          source: 'onboarding-verification',
+          destination: params.destination,
+          type: 'email',
+        },
+      };
+
+      await this.messageProducer.send('notifications', emailPayload, {
+        exchange: 'zolve.events',
+        routingKey: 'notifications.email',
+        persistent: true,
+      });
+
+      this.logProvider.info({
+        message: 'Verification email queued for sending',
+        context: this.logContext,
+        meta: {
+          destination: params.destination,
+          type: 'email',
+        },
+      });
+    } else if (params.type === 'phone') {
+      const smsPayload = {
+        body: {
+          to: params.destination,
+          message: `Seu código de verificação é: ${code}`,
+        },
+        metadata: {
+          source: 'onboarding-verification',
+          destination: params.destination,
+          type: 'sms',
+        },
+      };
+
+      await this.messageProducer.send('notifications', smsPayload, {
+        exchange: 'zolve.events',
+        routingKey: 'notifications.sms',
+        persistent: true,
+      });
+
+      this.logProvider.info({
+        message: 'Verification SMS queued for sending',
+        context: this.logContext,
+        meta: {
+          destination: params.destination,
+          type: 'sms',
+        },
+      });
+    }
 
     return { success: true, message: 'Código de verificação enviado com sucesso' };
   }
