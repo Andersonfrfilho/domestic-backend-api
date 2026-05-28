@@ -64,12 +64,22 @@ export class SendVerificationCodeUseCase {
 
     // Send via appropriate channel (email or SMS)
     if (params.type === 'email') {
+      const expiresInMinutes = CODE_TTL_MINUTES;
+      const expiresAtFormatted = expiresAt.toLocaleString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        day: '2-digit',
+        month: '2-digit',
+      });
+
       const emailPayload = {
         body: {
           to: params.destination,
-          template_id: 'verify-email',
+          template_id: 'verification_code',
           variables: {
             code,
+            expiresIn: `${expiresInMinutes} minutos`,
+            expiresAt: expiresAtFormatted,
           },
         },
         metadata: {
