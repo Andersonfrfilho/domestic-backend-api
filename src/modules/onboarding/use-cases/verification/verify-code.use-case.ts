@@ -1,3 +1,5 @@
+import { CACHE_PROVIDER } from '@adatechnology/nestjs-cache';
+import type { CacheProviderInterface } from '@adatechnology/nestjs-cache';
 import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/nestjs-keycloak-admin';
 import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable } from '@nestjs/common';
@@ -8,9 +10,9 @@ import type { LogProviderInterface } from '@modules/shared/interfaces/log.interf
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
 import { Email } from '@modules/shared/providers/database/entities/email.entity';
 import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
-import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
+import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
 
 import type { VerificationChannel } from './send-verification-code.use-case';
@@ -23,6 +25,11 @@ export interface VerifyCodeParams {
 
 export interface VerifyCodeResult {
   verified: boolean;
+  codeId?: string;
+  destination: string;
+  type: VerificationChannel;
+  verifiedAt?: string;
+  message: string;
 }
 
 @Injectable()
@@ -34,6 +41,8 @@ export class VerifyCodeUseCase {
   constructor(
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
+    @Inject(CACHE_PROVIDER)
+    private readonly cacheProvider: CacheProviderInterface,
     @Inject(KEYCLOAK_ADMIN_CLIENT)
     private readonly keycloakAdmin: KeycloakAdminClient,
     @InjectRepository(VerificationCode, CONNECTIONS_NAMES.POSTGRES)
@@ -69,33 +78,87 @@ export class VerifyCodeUseCase {
         context: this.logContext,
         meta: { type: params.type, destination: params.destination },
       });
-      return { verified: false };
+      return {
+        verified: false,
+        destination: params.destination,
+        type: params.type,
+        message: 'Código inválido ou expirado',
+      };
     }
 
+    const verifiedAt = new Date();
     await this.verificationCodeRepository.update(activeCode.id, {
       isUsed: true,
-      verifiedAt: new Date(),
+      verifiedAt,
     });
 
     await this.markRelationshipVerified(params.type, params.destination);
 
+    // Invalidate cache: code and user data
+    await this.invalidateVerificationCache(params.destination, params.type);
+
     this.logProvider.info({
       message: 'Verification succeeded',
       context: this.logContext,
-      meta: { type: params.type, destination: params.destination, codeId: activeCode.id },
+      meta: {
+        type: params.type,
+        destination: params.destination,
+        codeId: activeCode.id,
+        verifiedAt,
+      },
     });
 
-    return { verified: true };
+    return {
+      verified: true,
+      codeId: activeCode.id,
+      destination: params.destination,
+      type: params.type,
+      verifiedAt: verifiedAt.toISOString(),
+      message: 'Verificação realizada com sucesso',
+    };
   }
 
-  private async markRelationshipVerified(type: VerificationChannel, destination: string): Promise<void> {
+  private async invalidateVerificationCache(
+    destination: string,
+    type: VerificationChannel,
+  ): Promise<void> {
+    try {
+      const cacheKeys = [
+        `verification:code:${type}:${destination}`,
+        `verification:${type}:${destination}`,
+        `user:email:${destination}`,
+        `user:phone:${destination}`,
+      ];
+
+      await Promise.all(cacheKeys.map((key) => this.cacheProvider.del({ key }).catch(() => null)));
+
+      this.logProvider.info({
+        message: 'Verification cache invalidated',
+        context: this.logContext,
+        meta: { destination, type, keysInvalidated: cacheKeys.length },
+      });
+    } catch (error) {
+      this.logProvider.warn({
+        message: 'Failed to invalidate verification cache',
+        context: this.logContext,
+        meta: { destination, type, error: (error as Error).message },
+      });
+    }
+  }
+
+  private async markRelationshipVerified(
+    type: VerificationChannel,
+    destination: string,
+  ): Promise<void> {
     const now = new Date();
 
     if (type === 'email') {
       const emailRecord = await this.emailRepository.findOne({ where: { email: destination } });
       if (!emailRecord) return;
 
-      const userEmail = await this.userEmailRepository.findOne({ where: { emailId: emailRecord.id } });
+      const userEmail = await this.userEmailRepository.findOne({
+        where: { emailId: emailRecord.id },
+      });
 
       await this.userEmailRepository.update({ emailId: emailRecord.id }, { verifiedAt: now });
 
@@ -135,7 +198,7 @@ export class VerifyCodeUseCase {
         {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ emailVerified: true }),

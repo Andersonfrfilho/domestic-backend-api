@@ -3,6 +3,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import {
+  RABBITMQ_EXCHANGE,
+  RABBITMQ_QUEUES,
+} from '@modules/shared/constants/rabbitmq-queues.constant';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
 import { VerificationCode } from '@modules/shared/providers/database/entities/verification-code.entity';
@@ -16,13 +20,20 @@ export interface SendVerificationCodeParams {
   destination: string;
 }
 
+export interface ExpirationInfo {
+  value: number;
+  unit: 'minutos' | 'horas' | 'segundos';
+}
+
 export interface SendVerificationCodeResult {
   success: boolean;
   message: string;
+  codeId: string;
+  expiresIn: ExpirationInfo;
+  expiresAt: string;
+  destination: string;
+  type: VerificationChannel;
 }
-
-const CODE_TTL_MINUTES = 10;
-const CODE_LENGTH = 4;
 
 @Injectable()
 export class SendVerificationCodeUseCase {
@@ -39,9 +50,9 @@ export class SendVerificationCodeUseCase {
 
   async execute(params: SendVerificationCodeParams): Promise<SendVerificationCodeResult> {
     const code = this.generateCode(params);
-    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    await this.verificationCodeRepository.save({
+    const savedCode = await this.verificationCodeRepository.save({
       destination: params.destination,
       type: params.type,
       code,
@@ -56,29 +67,36 @@ export class SendVerificationCodeUseCase {
       meta: {
         type: params.type,
         destination: params.destination,
+        codeId: savedCode.id,
         expiresAt,
+        ttlMinutes: 5,
         // log code only in non-production for debugging
         ...(process.env.NODE_ENV !== 'production' ? { code } : {}),
       },
     });
 
+    // Format response
+    const expirationInfo: ExpirationInfo = {
+      value: 5,
+      unit: 'minutos',
+    };
+
+    const expiresAtFormatted = expiresAt.toLocaleString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit',
+    });
+
     // Send via appropriate channel (email or SMS)
     if (params.type === 'email') {
-      const expiresInMinutes = CODE_TTL_MINUTES;
-      const expiresAtFormatted = expiresAt.toLocaleString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: '2-digit',
-      });
-
       const emailPayload = {
         body: {
           to: params.destination,
           template_id: 'verification_code',
           variables: {
             code,
-            expiresIn: `${expiresInMinutes} minutos`,
+            expiresIn: `${5} minutos`,
             expiresAt: expiresAtFormatted,
           },
         },
@@ -86,12 +104,13 @@ export class SendVerificationCodeUseCase {
           source: 'onboarding-verification',
           destination: params.destination,
           type: 'email',
+          codeId: savedCode.id,
         },
       };
 
-      await this.messageProducer.send('notifications', emailPayload, {
-        exchange: 'zolve.events',
-        routingKey: 'notifications.email',
+      await this.messageProducer.send(RABBITMQ_QUEUES.NOTIFICATIONS.NAME, emailPayload, {
+        exchange: RABBITMQ_EXCHANGE,
+        routingKey: RABBITMQ_QUEUES.NOTIFICATIONS.ROUTING_KEYS.EMAIL,
         persistent: true,
       });
 
@@ -101,23 +120,53 @@ export class SendVerificationCodeUseCase {
         meta: {
           destination: params.destination,
           type: 'email',
+          codeId: savedCode.id,
         },
       });
     } else if (params.type === 'phone') {
-      // SMS sending would be implemented here
-      // For now, just log that it was queued
+      const smsPayload = {
+        body: {
+          to: params.destination,
+          template_id: 'verification_code_sms', // matches SMS_TEMPLATES.VERIFICATION_CODE in worker
+          variables: {
+            code,
+            expiresIn: `${5} minutos`,
+          },
+        },
+        metadata: {
+          source: 'onboarding-verification',
+          destination: params.destination,
+          type: 'sms',
+          codeId: savedCode.id,
+        },
+      };
+
+      await this.messageProducer.send(RABBITMQ_QUEUES.NOTIFICATIONS.NAME, smsPayload, {
+        exchange: RABBITMQ_EXCHANGE,
+        routingKey: RABBITMQ_QUEUES.NOTIFICATIONS.ROUTING_KEYS.SMS,
+        persistent: true,
+      });
+
       this.logProvider.info({
-        message: 'SMS verification would be queued here (not yet implemented)',
+        message: 'Verification SMS queued for sending',
         context: this.logContext,
         meta: {
           destination: params.destination,
-          type: 'phone',
-          code,
+          type: 'sms',
+          codeId: savedCode.id,
         },
       });
     }
 
-    return { success: true, message: 'Código de verificação enviado com sucesso' };
+    return {
+      success: true,
+      message: 'Código de verificação enviado com sucesso',
+      codeId: savedCode.id,
+      expiresIn: expirationInfo,
+      expiresAt: expiresAtFormatted,
+      destination: params.destination,
+      type: params.type,
+    };
   }
 
   private generateCode(params: SendVerificationCodeParams): string {
@@ -125,8 +174,8 @@ export class SendVerificationCodeUseCase {
       if (params.type === 'email') return '0000';
       return params.destination.replace(/\D/g, '').slice(-4).padStart(4, '0');
     }
-    return Math.floor(Math.random() * 10 ** CODE_LENGTH)
+    return Math.floor(Math.random() * 10 ** 4)
       .toString()
-      .padStart(CODE_LENGTH, '0');
+      .padStart(4, '0');
   }
 }
