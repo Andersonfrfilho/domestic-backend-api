@@ -1,4 +1,15 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
@@ -11,15 +22,31 @@ import type { CheckEmailExistsParams } from './use-cases/check-email-exists/chec
 import { CheckEmailExistsUseCase } from './use-cases/check-email-exists/check-email-exists.use-case';
 import type { CheckPendingTermsParams } from './use-cases/check-pending-terms/check-pending-terms.interface';
 import { CheckPendingTermsUseCase } from './use-cases/check-pending-terms/check-pending-terms.use-case';
-import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
-import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
-import { SendVerificationCodeUseCase } from './use-cases/send-verification-code/send-verification-code.use-case';
-import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case';
-import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
-import { CheckPhoneExistsUseCase } from './use-cases/check-phone-exists/check-phone-exists.use-case';
-import type { SendVerificationCodeParams } from './use-cases/send-verification-code/send-verification-code.interface';
-import type { VerifyCodeParams } from './use-cases/verify-code/verify-code.interface';
 import type { CheckPhoneExistsParams } from './use-cases/check-phone-exists/check-phone-exists.interface';
+import { CheckPhoneExistsUseCase } from './use-cases/check-phone-exists/check-phone-exists.use-case';
+import type { ForgotPasswordParams } from './use-cases/forgot-password/forgot-password.interface';
+import { ForgotPasswordUseCase } from './use-cases/forgot-password/forgot-password.use-case';
+import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
+import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
+import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
+import { CreateProviderServiceUseCase } from './use-cases/provider-profile/create-provider-service.use-case';
+import { DeleteProviderServiceUseCase } from './use-cases/provider-profile/delete-provider-service.use-case';
+import { GetCategoriesUseCase } from './use-cases/provider-profile/get-categories.use-case';
+import { GetProviderAvailabilityUseCase } from './use-cases/provider-profile/get-provider-availability.use-case';
+import { GetProviderServicesUseCase } from './use-cases/provider-profile/get-provider-services.use-case';
+import { SetProviderAvailabilityUseCase } from './use-cases/provider-profile/set-provider-availability.use-case';
+import type {
+  CreateProviderServiceParams,
+  UpdateProviderServiceParams,
+  SetProviderAvailabilityParams,
+  UpdateProviderAvailabilityParams,
+} from './use-cases/provider-profile/types';
+import { UpdateProviderAvailabilityUseCase } from './use-cases/provider-profile/update-provider-availability.use-case';
+import { UpdateProviderServiceUseCase } from './use-cases/provider-profile/update-provider-service.use-case';
+import type { SendVerificationCodeParams } from './use-cases/send-verification-code/send-verification-code.interface';
+import { SendVerificationCodeUseCase } from './use-cases/send-verification-code/send-verification-code.use-case';
+import type { VerifyCodeParams } from './use-cases/verify-code/verify-code.interface';
+import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -35,7 +62,26 @@ export class AuthController {
     private readonly checkEmailExists: CheckEmailExistsUseCase,
     private readonly checkPhoneExists: CheckPhoneExistsUseCase,
     private readonly checkDocumentExists: CheckDocumentExistsUseCase,
+    private readonly forgotPassword: ForgotPasswordUseCase,
+    private readonly getCategories: GetCategoriesUseCase,
+    private readonly createProviderService: CreateProviderServiceUseCase,
+    private readonly getProviderServices: GetProviderServicesUseCase,
+    private readonly updateProviderService: UpdateProviderServiceUseCase,
+    private readonly deleteProviderService: DeleteProviderServiceUseCase,
+    private readonly setProviderAvailability: SetProviderAvailabilityUseCase,
+    private readonly getProviderAvailability: GetProviderAvailabilityUseCase,
+    private readonly updateProviderAvailability: UpdateProviderAvailabilityUseCase,
   ) {}
+
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Recuperação de senha' })
+  @ApiResponse({ status: 200, description: 'E-mail de recuperação disparado com sucesso.' })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  @TraceMethod()
+  async forgotPasswordHandler(@Body() body: ForgotPasswordParams): Promise<void> {
+    return this.forgotPassword.execute(body);
+  }
 
   @Post('verification/send')
   @HttpCode(HttpStatus.OK)
@@ -124,5 +170,103 @@ export class AuthController {
   @TraceMethod()
   async verifyDocument(@Body() body: CheckDocumentExistsParams) {
     await this.checkDocumentExists.execute(body);
+  }
+
+  // Provider Profile Endpoints
+
+  @Get('categories')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar categorias de serviços' })
+  @ApiResponse({ status: 200, description: 'Lista de categorias.' })
+  async getCategoriesHandler() {
+    return this.getCategories.execute();
+  }
+
+  @Post('providers/me/services')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Criar serviço prestador' })
+  @ApiResponse({ status: 201, description: 'Serviço criado com sucesso.' })
+  @TraceMethod()
+  async createProviderServiceHandler(
+    @Body() body: CreateProviderServiceParams,
+    @Req() req: Request,
+  ) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.createProviderService.execute({ ...body, providerId });
+  }
+
+  @Get('providers/me/services')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar serviços do prestador' })
+  @ApiResponse({ status: 200, description: 'Lista de serviços.' })
+  @TraceMethod()
+  async getProviderServicesHandler(@Req() req: Request) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.getProviderServices.execute({ providerId });
+  }
+
+  @Put('providers/me/services/:serviceId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Atualizar serviço prestador' })
+  @ApiResponse({ status: 200, description: 'Serviço atualizado.' })
+  @TraceMethod()
+  async updateProviderServiceHandler(
+    @Param('serviceId') serviceId: string,
+    @Body() body: Omit<UpdateProviderServiceParams, 'providerId' | 'serviceId'>,
+    @Req() req: Request,
+  ) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.updateProviderService.execute({ ...body, providerId, serviceId });
+  }
+
+  @Delete('providers/me/services/:serviceId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Deletar serviço prestador' })
+  @ApiResponse({ status: 200, description: 'Serviço deletado.' })
+  @TraceMethod()
+  async deleteProviderServiceHandler(@Param('serviceId') serviceId: string, @Req() req: Request) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.deleteProviderService.execute({ providerId, serviceId });
+  }
+
+  @Post('providers/me/availability')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Definir disponibilidade do prestador' })
+  @ApiResponse({ status: 201, description: 'Disponibilidade definida.' })
+  @TraceMethod()
+  async setProviderAvailabilityHandler(
+    @Body() body: Omit<SetProviderAvailabilityParams, 'providerId'>,
+    @Req() req: Request,
+  ) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.setProviderAvailability.execute({ ...body, providerId });
+  }
+
+  @Get('providers/me/availability')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar disponibilidade do prestador' })
+  @ApiResponse({ status: 200, description: 'Lista de horários.' })
+  @TraceMethod()
+  async getProviderAvailabilityHandler(@Req() req: Request) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.getProviderAvailability.execute({ providerId });
+  }
+
+  @Put('providers/me/availability/:dayOfWeek')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Atualizar disponibilidade do prestador' })
+  @ApiResponse({ status: 200, description: 'Disponibilidade atualizada.' })
+  @TraceMethod()
+  async updateProviderAvailabilityHandler(
+    @Param('dayOfWeek') dayOfWeek: string,
+    @Body() body: Omit<UpdateProviderAvailabilityParams, 'providerId' | 'dayOfWeek'>,
+    @Req() req: Request,
+  ) {
+    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    return this.updateProviderAvailability.execute({
+      ...body,
+      providerId,
+      dayOfWeek: Number(dayOfWeek),
+    });
   }
 }

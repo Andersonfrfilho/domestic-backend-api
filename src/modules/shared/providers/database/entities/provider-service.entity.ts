@@ -35,6 +35,18 @@ export class ProviderService {
   @Column({ name: 'price_type', nullable: true })
   priceType: string;
 
+  @ApiPropertyOptional({ example: 120, description: 'Duração estimada do serviço em minutos' })
+  @Column({ name: 'estimated_duration_minutes', type: 'int', nullable: true })
+  estimatedDurationMinutes: number | null;
+
+  @ApiPropertyOptional({ example: 50.0, description: 'Preço por hora' })
+  @Column({ name: 'price_per_hour', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  pricePerHour: number | null;
+
+  @ApiPropertyOptional({ example: true, description: 'Se o serviço está ativo' })
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
