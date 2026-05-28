@@ -67,7 +67,7 @@ export class SendVerificationCodeUseCase {
       const emailPayload = {
         body: {
           to: params.destination,
-          template_id: 'verification_code',
+          template_id: 'verify-email',
           variables: {
             code,
           },
