@@ -67,7 +67,7 @@ export class SendVerificationCodeUseCase {
       const emailPayload = {
         body: {
           to: params.destination,
-          template_id: 'verification-code-email',
+          template_id: 'verification_code',
           variables: {
             code,
           },
@@ -94,30 +94,15 @@ export class SendVerificationCodeUseCase {
         },
       });
     } else if (params.type === 'phone') {
-      const smsPayload = {
-        body: {
-          to: params.destination,
-          message: `Seu código de verificação é: ${code}`,
-        },
-        metadata: {
-          source: 'onboarding-verification',
-          destination: params.destination,
-          type: 'sms',
-        },
-      };
-
-      await this.messageProducer.send('notifications', smsPayload, {
-        exchange: 'zolve.events',
-        routingKey: 'notifications.sms',
-        persistent: true,
-      });
-
+      // SMS sending would be implemented here
+      // For now, just log that it was queued
       this.logProvider.info({
-        message: 'Verification SMS queued for sending',
+        message: 'SMS verification would be queued here (not yet implemented)',
         context: this.logContext,
         meta: {
           destination: params.destination,
-          type: 'sms',
+          type: 'phone',
+          code,
         },
       });
     }
