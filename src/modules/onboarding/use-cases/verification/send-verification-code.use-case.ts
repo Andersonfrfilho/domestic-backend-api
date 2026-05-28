@@ -100,12 +100,6 @@ export class SendVerificationCodeUseCase {
             expiresAt: expiresAtFormatted,
           },
         },
-        metadata: {
-          source: 'onboarding-verification',
-          destination: params.destination,
-          type: 'email',
-          codeId: savedCode.id,
-        },
       };
 
       await this.messageProducer.send(RABBITMQ_QUEUES.NOTIFICATIONS.NAME, emailPayload, {
@@ -127,17 +121,11 @@ export class SendVerificationCodeUseCase {
       const smsPayload = {
         body: {
           to: params.destination,
-          template_id: 'verification_code_sms', // matches SMS_TEMPLATES.VERIFICATION_CODE in worker
+          template_id: 'verification_code_sms',
           variables: {
             code,
             expiresIn: `${5} minutos`,
           },
-        },
-        metadata: {
-          source: 'onboarding-verification',
-          destination: params.destination,
-          type: 'sms',
-          codeId: savedCode.id,
         },
       };
 
