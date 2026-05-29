@@ -28,7 +28,6 @@ import { seedProviderDocuments } from './seeders/19-provider-document.seeder';
 import { seedServiceRequests } from './seeders/20-service-request.seeder';
 import { seedReviews } from './seeders/21-review.seeder';
 import { seedNotifications } from './seeders/22-notification.seeder';
-import { seedQATestProviders } from './seeders/99-qa-test-providers.seeder';
 
 const RESET  = '\x1b[0m';
 const GREEN  = '\x1b[32m';
@@ -155,7 +154,6 @@ async function main() {
     { name: '19 Provider Documents',      fn: async () => { await seedProviderDocuments(ds!, ctx, cfg);       return ctx.providerDocuments.length; } },
     { name: '20 Service Requests',        fn: async () => { await seedServiceRequests(ds!, ctx, cfg);         return ctx.serviceRequests.length; } },
     { name: '21 Reviews',                 fn: async () => { await seedReviews(ds!, ctx, cfg);                 return ctx.reviews.length; } },
-    { name: '99 QA Test Providers',       fn: async () => { await seedQATestProviders(ds!, ctx, cfg);         return 3; } },
   ];
 
   let failed = 0;
