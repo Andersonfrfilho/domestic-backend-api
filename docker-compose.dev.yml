@@ -1,7 +1,11 @@
-# Infra essencial para desenvolvimento local — sem Grafana, Jaeger, Prometheus, SonarQube.
-# Uso: make dev-infra
-# Todos os serviços usam o mesmo projeto "domestic" para serem compartilhados com BFF e Worker.
+# Stack completa de desenvolvimento local — infra + aplicações.
+# Uso:
+#   make dev-infra     → apenas infra (postgres, mongo, redis, rabbitmq, keycloak, mailpit)
+#   make dev-app-all   → infra + API + BFF + Worker (com hot-reload)
 services:
+
+  # ── Infra ──────────────────────────────────────────────────────────────
+
   database_postgres:
     image: postgres:18
     container_name: domestic_database_postgres
@@ -10,7 +14,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_POSTGRES_PASSWORD:-backendapi123}
       - POSTGRES_DB=${DATABASE_POSTGRES_NAME:-backend_database_postgres}
     ports:
-      - '${DATABASE_POSTGRES_PORT:-5432}:5432'
+      - '${DATABASE_POSTGRES_PORT:-5433}:5432'
     volumes:
       - database_postgres_data:/var/lib/postgresql
     healthcheck:
@@ -125,6 +129,131 @@ services:
         limits:
           memory: 64m
 
+  # ── Aplicações (profiles: app) ─────────────────────────────────────────
+
+  api:
+    profiles: ['app']
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: domestic_api
+    environment:
+      NODE_ENV: development
+      PORT: 3333
+      DATABASE_POSTGRES_HOST: database_postgres
+      DATABASE_POSTGRES_PORT: 5432
+      DATABASE_POSTGRES_NAME: ${DATABASE_POSTGRES_NAME:-backend_database_postgres}
+      DATABASE_POSTGRES_USER: ${DATABASE_POSTGRES_USER:-domestic_api}
+      DATABASE_POSTGRES_PASSWORD: ${DATABASE_POSTGRES_PASSWORD:-backendapi123}
+      DATABASE_MONGO_HOST: database_mongo
+      MONGO_URI: mongodb://database_mongo:27017/${DATABASE_POSTGRES_NAME:-backend_database_mongo}
+      CACHE_REDIS_HOST: cache_redis
+      CACHE_REDIS_PORT: 6379
+      QUEUE_RABBITMQ_HOST: queue_rabbitmq
+      QUEUE_RABBITMQ_USER: ${QUEUE_RABBITMQ_USER:-domestic_api}
+      QUEUE_RABBITMQ_PASS: ${QUEUE_RABBITMQ_PASS:-backendapi123}
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-domestic-backend}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-domestic-api}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-api-client-secret}
+      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - '3333:3333'
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
+      - api_logs:/app/logs
+    depends_on:
+      database_postgres:
+        condition: service_healthy
+      database_mongo:
+        condition: service_started
+      cache_redis:
+        condition: service_started
+      queue_rabbitmq:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+
+  bff:
+    profiles: ['app']
+    build:
+      context: ../domestic-backend-bff
+      dockerfile: Dockerfile.dev
+    container_name: domestic_bff
+    environment:
+      NODE_ENV: development
+      PORT: 3335
+      MONGO_URI: mongodb://database_mongo:27017/backend_database_mongo
+      CACHE_REDIS_HOST: cache_redis
+      CACHE_REDIS_PORT: 6379
+      API_BASE_URL: http://api:3333
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-domestic-backend}
+      KEYCLOAK_CLIENT_ID: ${BFF_KEYCLOAK_CLIENT_ID:-domestic-backend-bff}
+      KEYCLOAK_CLIENT_SECRET: ${BFF_KEYCLOAK_CLIENT_SECRET:-backend-bff-client-secret}
+      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+    ports:
+      - '3335:3335'
+    volumes:
+      - ../domestic-backend-bff/src:/app/src
+      - ../domestic-backend-bff/dist:/app/dist
+      - bff_logs:/app/logs
+    depends_on:
+      - api
+      - cache_redis
+      - database_mongo
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+
+  worker:
+    profiles: ['app']
+    build:
+      context: ../domestic-backend-worker
+      dockerfile: Dockerfile.dev
+    container_name: domestic_worker
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_POSTGRES_HOST: database_postgres
+      DATABASE_POSTGRES_PORT: 5432
+      DATABASE_POSTGRES_NAME: ${DATABASE_POSTGRES_NAME:-backend_database_postgres}
+      DATABASE_POSTGRES_USER: ${DATABASE_POSTGRES_USER:-domestic_api}
+      DATABASE_POSTGRES_PASSWORD: ${DATABASE_POSTGRES_PASSWORD:-backendapi123}
+      MONGO_URI: mongodb://database_mongo:27017/backend_database_mongo
+      RABBITMQ_URL: amqp://${QUEUE_RABBITMQ_USER:-domestic_api}:${QUEUE_RABBITMQ_PASS:-backendapi123}@queue_rabbitmq:5672
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-zolve.events}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    volumes:
+      - ../domestic-backend-worker/src:/app/src
+      - ../domestic-backend-worker/dist:/app/dist
+      - worker_logs:/app/logs
+    depends_on:
+      database_postgres:
+        condition: service_healthy
+      queue_rabbitmq:
+        condition: service_started
+      database_mongo:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 384m
+
 volumes:
   database_postgres_data:
   database_mongo_data:
@@ -133,6 +262,9 @@ volumes:
   queue_rabbitmq_data:
   keycloak_data:
   database_keycloak_data:
+  api_logs:
+  bff_logs:
+  worker_logs:
 
 networks:
   default:
