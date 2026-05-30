@@ -104,4 +104,17 @@ export class EmailController {
   ): Promise<UserEmail> {
     return this.emailService.verifyEmailCodeByKeycloakId(keycloakId, userEmailId, body.code);
   }
+
+  @Post(':userEmailId/set-primary')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Definir email como principal' })
+  @ApiParam({ name: 'userEmailId', type: String })
+  @ApiOkResponse({ type: UserEmail })
+  @ApiNotFoundResponse()
+  async setPrimary(
+    @AuthUser() keycloakId: string,
+    @Param('userEmailId') userEmailId: string,
+  ): Promise<UserEmail> {
+    return this.emailService.setPrimaryEmailByKeycloakId(keycloakId, userEmailId);
+  }
 }

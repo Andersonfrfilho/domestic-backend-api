@@ -104,4 +104,17 @@ export class PhoneController {
   ): Promise<UserPhone> {
     return this.phoneService.verifyPhoneCodeByKeycloakId(keycloakId, userPhoneId, body.code);
   }
+
+  @Post(':userPhoneId/set-primary')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Definir telefone como principal' })
+  @ApiParam({ name: 'userPhoneId', type: String })
+  @ApiOkResponse({ type: UserPhone })
+  @ApiNotFoundResponse()
+  async setPrimary(
+    @AuthUser() keycloakId: string,
+    @Param('userPhoneId') userPhoneId: string,
+  ): Promise<UserPhone> {
+    return this.phoneService.setPrimaryPhoneByKeycloakId(keycloakId, userPhoneId);
+  }
 }

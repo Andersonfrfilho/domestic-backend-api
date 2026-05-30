@@ -6,13 +6,18 @@ import type { UserPhone } from '@modules/shared/providers/database/entities/user
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
+import { PhoneErrorFactory } from './factories/phone.error.factory';
 import { PHONE_SERVICE_LOG_MESSAGES } from './phone.service.constants';
-import { type AddPhoneByKeycloakParams, type PhoneServiceInterface } from './phone.service.interface';
+import {
+  type AddPhoneByKeycloakParams,
+  type PhoneServiceInterface,
+} from './phone.service.interface';
 import {
   ADD_USER_PHONE_USE_CASE_PROVIDE,
   LIST_USER_PHONES_USE_CASE_PROVIDE,
   REMOVE_USER_PHONE_USE_CASE_PROVIDE,
   SEND_PHONE_VERIFICATION_USE_CASE_PROVIDE,
+  USER_PHONE_REPOSITORY_PROVIDE,
   VERIFY_PHONE_CODE_USE_CASE_PROVIDE,
 } from './phone.token';
 import { type AddUserPhoneUseCaseInterface } from './use-cases/add-user-phone/add-user-phone.interface';
@@ -20,6 +25,7 @@ import { type ListUserPhonesUseCaseInterface } from './use-cases/list-user-phone
 import { type RemoveUserPhoneUseCaseInterface } from './use-cases/remove-user-phone/remove-user-phone.interface';
 import { type SendPhoneVerificationUseCaseInterface } from './use-cases/send-phone-verification/send-phone-verification.interface';
 import { type VerifyPhoneCodeUseCaseInterface } from './use-cases/verify-phone-code/verify-phone-code.interface';
+import { type UserPhoneRepositoryInterface } from './user-phone.repository.interface';
 
 @Injectable()
 export class PhoneService implements PhoneServiceInterface {
@@ -38,6 +44,8 @@ export class PhoneService implements PhoneServiceInterface {
     private readonly sendPhoneVerificationUseCase: SendPhoneVerificationUseCaseInterface,
     @Inject(VERIFY_PHONE_CODE_USE_CASE_PROVIDE)
     private readonly verifyPhoneCodeUseCase: VerifyPhoneCodeUseCaseInterface,
+    @Inject(USER_PHONE_REPOSITORY_PROVIDE)
+    private readonly userPhoneRepository: UserPhoneRepositoryInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
   ) {}
@@ -142,5 +150,39 @@ export class PhoneService implements PhoneServiceInterface {
     });
 
     return userPhone;
+  }
+
+  async setPrimaryPhoneByKeycloakId(keycloakId: string, userPhoneId: string): Promise<UserPhone> {
+    this.logProvider.info({
+      message: 'Starting set primary phone by keycloakId',
+      context: `${this.logContext}.setPrimaryPhoneByKeycloakId`,
+      meta: { keycloakId, userPhoneId },
+    });
+
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const targetUserPhone = await this.userPhoneRepository.findById(userPhoneId);
+
+    if (!targetUserPhone || targetUserPhone.userId !== user.id) {
+      throw PhoneErrorFactory.userPhoneNotFound(userPhoneId);
+    }
+
+    const allUserPhones = await this.userPhoneRepository.findByUserId(user.id);
+    await Promise.all(
+      allUserPhones
+        .filter((up) => up.isPrimary && up.id !== userPhoneId)
+        .map((up) => this.userPhoneRepository.updateIsPrimary(up.id, false)),
+    );
+
+    await this.userPhoneRepository.updateIsPrimary(userPhoneId, true);
+
+    const updated = await this.userPhoneRepository.findById(userPhoneId);
+
+    this.logProvider.info({
+      message: 'Primary phone set successfully by keycloakId',
+      context: `${this.logContext}.setPrimaryPhoneByKeycloakId`,
+      meta: { keycloakId, userId: user.id, userPhoneId },
+    });
+
+    return updated!;
   }
 }

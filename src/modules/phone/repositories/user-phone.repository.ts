@@ -40,6 +40,10 @@ export class UserPhoneRepository implements UserPhoneRepositoryInterface {
     return this.typeormRepo.findOne({ where: { userId, phoneId } });
   }
 
+  async updateIsPrimary(id: string, isPrimary: boolean): Promise<void> {
+    await this.typeormRepo.update(id, { isPrimary });
+  }
+
   async delete(id: string): Promise<void> {
     await this.typeormRepo.delete(id);
   }

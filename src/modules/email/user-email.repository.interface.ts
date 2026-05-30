@@ -12,5 +12,6 @@ export interface UserEmailRepositoryInterface {
   findById(id: string): Promise<UserEmail | null>;
   findByUserId(userId: string): Promise<UserEmail[]>;
   findByUserIdAndEmailId(userId: string, emailId: string): Promise<UserEmail | null>;
+  updateIsPrimary(id: string, isPrimary: boolean): Promise<void>;
   delete(id: string): Promise<void>;
 }

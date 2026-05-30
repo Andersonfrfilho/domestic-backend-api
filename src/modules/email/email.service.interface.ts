@@ -19,4 +19,5 @@ export interface EmailServiceInterface {
     userEmailId: string,
     code: string,
   ): Promise<UserEmail>;
+  setPrimaryEmailByKeycloakId(keycloakId: string, userEmailId: string): Promise<UserEmail>;
 }

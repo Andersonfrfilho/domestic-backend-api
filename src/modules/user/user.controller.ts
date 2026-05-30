@@ -26,13 +26,13 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
-import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { ROLES } from '@modules/shared/constants';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 
 import { AddUserAddressRequestDto } from './use-cases/add-user-address/dtos/add-user-address-request.dto';
 import { type UserServiceInterface } from './use-cases/create-users/create-user.interface';
@@ -93,6 +93,22 @@ export class UserController {
   @ApiNotFoundResponse()
   async getMe(@AuthUser() keycloakId: string): Promise<CreateUserResponseDto> {
     return this.userService.getUserByKeycloakId(keycloakId);
+  }
+
+  @Put('me')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Atualizar nome do usuário autenticado' })
+  @ApiHeader({ name: 'X-Access-Token', description: 'User JWT forwarded by Kong', required: true })
+  @ApiOkResponse({ type: CreateUserResponseDto })
+  @ApiNotFoundResponse()
+  @ApiBadRequestResponse()
+  async updateMe(
+    @AuthUser() keycloakId: string,
+    @Body() body: UpdateUserRequestDto,
+  ): Promise<CreateUserResponseDto> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    return this.userService.updateUser(user.id, { fullName: body.fullName });
   }
 
   @Get(':id')

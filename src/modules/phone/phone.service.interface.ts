@@ -20,4 +20,5 @@ export interface PhoneServiceInterface {
     userPhoneId: string,
     code: string,
   ): Promise<UserPhone>;
+  setPrimaryPhoneByKeycloakId(keycloakId: string, userPhoneId: string): Promise<UserPhone>;
 }

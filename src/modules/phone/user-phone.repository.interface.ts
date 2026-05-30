@@ -12,5 +12,6 @@ export interface UserPhoneRepositoryInterface {
   findById(id: string): Promise<UserPhone | null>;
   findByUserId(userId: string): Promise<UserPhone[]>;
   findByUserIdAndPhoneId(userId: string, phoneId: string): Promise<UserPhone | null>;
+  updateIsPrimary(id: string, isPrimary: boolean): Promise<void>;
   delete(id: string): Promise<void>;
 }

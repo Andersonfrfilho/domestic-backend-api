@@ -13,13 +13,16 @@ import {
   LIST_USER_EMAILS_USE_CASE_PROVIDE,
   REMOVE_USER_EMAIL_USE_CASE_PROVIDE,
   SEND_EMAIL_VERIFICATION_USE_CASE_PROVIDE,
+  USER_EMAIL_REPOSITORY_PROVIDE,
   VERIFY_EMAIL_CODE_USE_CASE_PROVIDE,
 } from './email.token';
+import { EmailErrorFactory } from './factories/email.error.factory';
 import { type AddUserEmailUseCaseInterface } from './use-cases/add-user-email/add-user-email.interface';
 import { type ListUserEmailsUseCaseInterface } from './use-cases/list-user-emails/list-user-emails.interface';
 import { type RemoveUserEmailUseCaseInterface } from './use-cases/remove-user-email/remove-user-email.interface';
 import { type SendEmailVerificationUseCaseInterface } from './use-cases/send-email-verification/send-email-verification.interface';
 import { type VerifyEmailCodeUseCaseInterface } from './use-cases/verify-email-code/verify-email-code.interface';
+import { type UserEmailRepositoryInterface } from './user-email.repository.interface';
 
 @Injectable()
 export class EmailService implements EmailServiceInterface {
@@ -38,6 +41,8 @@ export class EmailService implements EmailServiceInterface {
     private readonly sendEmailVerificationUseCase: SendEmailVerificationUseCaseInterface,
     @Inject(VERIFY_EMAIL_CODE_USE_CASE_PROVIDE)
     private readonly verifyEmailCodeUseCase: VerifyEmailCodeUseCaseInterface,
+    @Inject(USER_EMAIL_REPOSITORY_PROVIDE)
+    private readonly userEmailRepository: UserEmailRepositoryInterface,
     @Inject(LOGGER_PROVIDER)
     private readonly logProvider: LogProviderInterface,
   ) {}
@@ -143,5 +148,39 @@ export class EmailService implements EmailServiceInterface {
     });
 
     return userEmail;
+  }
+
+  async setPrimaryEmailByKeycloakId(keycloakId: string, userEmailId: string): Promise<UserEmail> {
+    this.logProvider.info({
+      message: 'Starting set primary email by keycloakId',
+      context: `${this.logContext}.setPrimaryEmailByKeycloakId`,
+      meta: { keycloakId, userEmailId },
+    });
+
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const targetUserEmail = await this.userEmailRepository.findById(userEmailId);
+
+    if (!targetUserEmail || targetUserEmail.userId !== user.id) {
+      throw EmailErrorFactory.userEmailNotFound(userEmailId);
+    }
+
+    const allUserEmails = await this.userEmailRepository.findByUserId(user.id);
+    await Promise.all(
+      allUserEmails
+        .filter((ue) => ue.isPrimary && ue.id !== userEmailId)
+        .map((ue) => this.userEmailRepository.updateIsPrimary(ue.id, false)),
+    );
+
+    await this.userEmailRepository.updateIsPrimary(userEmailId, true);
+
+    const updated = await this.userEmailRepository.findById(userEmailId);
+
+    this.logProvider.info({
+      message: 'Primary email set successfully by keycloakId',
+      context: `${this.logContext}.setPrimaryEmailByKeycloakId`,
+      meta: { keycloakId, userId: user.id, userEmailId },
+    });
+
+    return updated!;
   }
 }

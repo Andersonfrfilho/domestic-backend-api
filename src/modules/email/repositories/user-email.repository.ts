@@ -40,6 +40,10 @@ export class UserEmailRepository implements UserEmailRepositoryInterface {
     return this.typeormRepo.findOne({ where: { userId, emailId } });
   }
 
+  async updateIsPrimary(id: string, isPrimary: boolean): Promise<void> {
+    await this.typeormRepo.update(id, { isPrimary });
+  }
+
   async delete(id: string): Promise<void> {
     await this.typeormRepo.delete(id);
   }
