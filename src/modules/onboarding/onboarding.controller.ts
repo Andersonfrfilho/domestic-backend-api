@@ -1,13 +1,22 @@
-import { Body, ConflictException, Controller, HttpCode, HttpException, HttpStatus, Inject, Post, Req } from '@nestjs/common';
+import {
+  Body,
+  ConflictException,
+  Controller,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { ApiConsumes, ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
-
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
+
+type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
 
 import { OnboardingRegisterRequestDto } from './use-cases/register/onboarding-register-request.dto';
 import { OnboardingRegisterUseCase } from './use-cases/register/onboarding-register.use-case';
@@ -92,9 +101,10 @@ export class OnboardingController {
   @ApiResponse({ status: 409, description: 'Documento já cadastrado' })
   @TraceMethod()
   async register(@Body() dto: OnboardingRegisterRequestDto, @Req() req: any) {
-    const ipAddress = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
-      ?? req.socket?.remoteAddress
-      ?? null;
+    const ipAddress =
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ??
+      req.socket?.remoteAddress ??
+      null;
 
     return this.onboardingRegisterUseCase.execute({
       email: dto.email,
@@ -107,6 +117,7 @@ export class OnboardingController {
       document: dto.document,
       companyName: dto.companyName,
       tradeName: dto.tradeName,
+      userType: dto.userType,
     });
   }
 
@@ -149,7 +160,7 @@ export class OnboardingController {
       throw new ConflictException('Usuário já possui endereço cadastrado');
     }
 
-    return this.userService.addUserAddressByKeycloakId(dto.keycloakId, {
+    const userAddress = await this.userService.addUserAddressByKeycloakId(dto.keycloakId, {
       street: dto.street,
       number: dto.number,
       complement: dto.complement,
@@ -161,6 +172,11 @@ export class OnboardingController {
       longitude: dto.longitude,
       isPrimary: true,
     });
+
+    const user = await this.userService.getUserByKeycloakId(dto.keycloakId);
+    await this.onboardingRegisterUseCase.linkProviderAddress(user.id, userAddress.addressId);
+
+    return userAddress;
   }
 
   @Post('documents')

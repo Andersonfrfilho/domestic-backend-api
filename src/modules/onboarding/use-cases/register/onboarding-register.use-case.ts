@@ -1,35 +1,42 @@
-import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/nestjs-keycloak-admin';
-import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
-
-import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
-import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'node:crypto';
 import { Readable } from 'stream';
 
-type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
-import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
-import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.token';
-import { randomUUID } from 'node:crypto';
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/nestjs-keycloak-admin';
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { ConflictException, Inject, Injectable, Optional } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
-import { CompanyStatus } from '@app/modules/shared/providers/database/entities/company.entity';
 import { CompanyMemberRole } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { CompanyStatus } from '@app/modules/shared/providers/database/entities/company.entity';
+import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+import type { CompanyRepositoryInterface } from '@modules/company/company.repository.interface';
+import { COMPANY_REPOSITORY_PROVIDE } from '@modules/company/company.token';
+import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
+import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { Email } from '@modules/shared/providers/database/entities/email.entity';
 import { Phone } from '@modules/shared/providers/database/entities/phone.entity';
+import { ProviderAddress } from '@modules/shared/providers/database/entities/provider-address.entity';
+import { ProviderDocument } from '@modules/shared/providers/database/entities/provider-document.entity';
+import { ProviderEmail } from '@modules/shared/providers/database/entities/provider-email.entity';
+import { ProviderPhone } from '@modules/shared/providers/database/entities/provider-phone.entity';
+import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
+import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
+import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 import { TermsAcceptance } from '@modules/shared/providers/database/entities/terms-acceptance.entity';
 import { TermsVersion } from '@modules/shared/providers/database/entities/terms-version.entity';
-import { Document } from '@modules/shared/providers/database/entities/document.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { UserEmail } from '@modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@modules/shared/providers/database/entities/user-phone.entity';
-
-import { COMPANY_REPOSITORY_PROVIDE } from '@modules/company/company.token';
-import type { CompanyRepositoryInterface } from '@modules/company/company.repository.interface';
-import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
+import { type StorageProviderInterface } from '@modules/shared/providers/storage/storage.interface';
+import { STORAGE_PROVIDER } from '@modules/shared/providers/storage/storage.token';
 import type { UserRepositoryInterface } from '@modules/user/user.repository.interface';
+import { USER_REPOSITORY_PROVIDE } from '@modules/user/user.token';
+
+type UploadedFile = { originalname: string; buffer: Buffer; size: number; mimetype: string };
 
 export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   START_FLOW: 'Starting onboarding register flow',
@@ -46,6 +53,9 @@ export const ONBOARDING_REGISTER_LOG_MESSAGES = {
   DOCUMENT_SAVED: 'Document saved to user_documents',
   COMPANY_CREATED: 'Company created for CNPJ user',
   CNPJ_EXISTS: 'CNPJ already registered',
+  PROVIDER_PROFILE_CREATED: 'Provider profile created',
+  PROVIDER_REGISTERED_EVENT_PUBLISHED: 'Provider registered event published',
+  PROVIDER_REGISTERED_EVENT_FAILED: 'Failed to publish provider registered event (non-fatal)',
 } as const;
 
 const USER_MANAGER_ROLE = 'user-manager';
@@ -70,6 +80,7 @@ export interface OnboardingRegisterParams {
   document?: string;
   companyName?: string;
   tradeName?: string;
+  userType?: 'contractor' | 'provider';
 }
 
 export interface OnboardingRegisterResult {
@@ -109,9 +120,24 @@ export class OnboardingRegisterUseCase {
     private readonly userDocumentRepository: Repository<UserDocument>,
     @InjectRepository(Document, CONNECTIONS_NAMES.POSTGRES)
     private readonly documentRepository: Repository<Document>,
+    @InjectRepository(ProviderProfile, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerProfileRepository: Repository<ProviderProfile>,
+    @InjectRepository(ProviderEmail, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerEmailRepository: Repository<ProviderEmail>,
+    @InjectRepository(ProviderPhone, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerPhoneRepository: Repository<ProviderPhone>,
+    @InjectRepository(ProviderVerification, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerVerificationRepository: Repository<ProviderVerification>,
+    @InjectRepository(ProviderDocument, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerDocumentRepository: Repository<ProviderDocument>,
+    @InjectRepository(ProviderAddress, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerAddressRepository: Repository<ProviderAddress>,
+    @InjectRepository(ProviderWorkLocation, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerWorkLocationRepository: Repository<ProviderWorkLocation>,
     @Inject(STORAGE_PROVIDER)
     private readonly storage: StorageProviderInterface,
     private readonly configService: ConfigService,
+    @Optional() private readonly amqpConnection?: AmqpConnection,
   ) {
     this.keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://keycloak:8080';
     this.keycloakRealm = process.env.KEYCLOAK_REALM || 'domestic';
@@ -189,7 +215,12 @@ export class OnboardingRegisterUseCase {
       }
     }
 
-    // 8. Se CNPJ, cria empresa
+    // 8. Se provider, cria perfil de prestador e relacionamentos
+    if (params.userType === 'provider') {
+      await this.setupProviderProfile(user.id, params.email, params.phone);
+    }
+
+    // 9. Se CNPJ, cria empresa
     if (params.document && inferDocumentType(params.document) === 'CNPJ') {
       const existingCompany = await this.companyRepository.findByDocument(params.document);
       if (existingCompany) {
@@ -238,7 +269,13 @@ export class OnboardingRegisterUseCase {
     const objectName = `${userId}/${documentType}/${randomUUID()}.${ext}`;
 
     const stream = Readable.from(file.buffer);
-    await this.storage.upload({ bucket, objectName, stream, size: file.size, contentType: file.mimetype });
+    await this.storage.upload({
+      bucket,
+      objectName,
+      stream,
+      size: file.size,
+      contentType: file.mimetype,
+    });
 
     const doc = await this.documentRepository.save({
       userId,
@@ -247,7 +284,36 @@ export class OnboardingRegisterUseCase {
       status: 'PENDING',
     });
 
+    const providerProfile = await this.providerProfileRepository.findOne({ where: { userId } });
+    if (providerProfile) {
+      await this.providerDocumentRepository.save({
+        providerId: providerProfile.id,
+        documentType,
+        documentUrl: objectName,
+        status: 'PENDING',
+      });
+    }
+
     return { documentId: doc.id, url: objectName };
+  }
+
+  async linkProviderAddress(userId: string, addressId: string): Promise<void> {
+    const providerProfile = await this.providerProfileRepository.findOne({ where: { userId } });
+    if (!providerProfile) return;
+
+    await this.providerAddressRepository.save({
+      providerId: providerProfile.id,
+      addressId,
+      isPrimary: true,
+      label: null,
+    });
+
+    await this.providerWorkLocationRepository.save({
+      providerId: providerProfile.id,
+      addressId,
+      isPrimary: true,
+      isActive: true,
+    } as Partial<ProviderWorkLocation>);
   }
 
   private async saveEmail(userId: string, emailAddress: string): Promise<void> {
@@ -326,12 +392,82 @@ export class OnboardingRegisterUseCase {
     });
   }
 
-  private async assignRealmRole(token: string, keycloakId: string, roleName: string): Promise<void> {
+  private async setupProviderProfile(
+    userId: string,
+    emailAddress: string,
+    phoneNumber: string,
+  ): Promise<void> {
+    const providerProfile = await this.providerProfileRepository.save({
+      userId,
+      isAvailable: true,
+      averageRating: 0,
+    });
+
+    const emailRecord = await this.emailRepository.findOne({ where: { email: emailAddress } });
+    if (emailRecord) {
+      await this.providerEmailRepository.save({
+        providerId: providerProfile.id,
+        emailId: emailRecord.id,
+        isPrimary: true,
+        label: null,
+        verifiedAt: null,
+      });
+    }
+
+    const phoneRecord = await this.phoneRepository.findOne({ where: { number: phoneNumber } });
+    if (phoneRecord) {
+      await this.providerPhoneRepository.save({
+        providerId: providerProfile.id,
+        phoneId: phoneRecord.id,
+        isPrimary: true,
+        label: null,
+        verifiedAt: null,
+      });
+    }
+
+    await this.providerVerificationRepository.save({
+      providerId: providerProfile.id,
+      status: 'PENDING',
+    });
+
+    this.logProvider.info({
+      message: ONBOARDING_REGISTER_LOG_MESSAGES.PROVIDER_PROFILE_CREATED,
+      context: this.logContext,
+      meta: { userId, providerProfileId: providerProfile.id },
+    });
+
+    if (this.amqpConnection) {
+      try {
+        await this.amqpConnection.publish('zolve.events', 'user.registered.provider', {
+          userId,
+          providerProfileId: providerProfile.id,
+          registeredAt: new Date().toISOString(),
+        });
+        this.logProvider.info({
+          message: ONBOARDING_REGISTER_LOG_MESSAGES.PROVIDER_REGISTERED_EVENT_PUBLISHED,
+          context: this.logContext,
+          meta: { userId, providerProfileId: providerProfile.id },
+        });
+      } catch (eventError) {
+        this.logProvider.warn({
+          message: ONBOARDING_REGISTER_LOG_MESSAGES.PROVIDER_REGISTERED_EVENT_FAILED,
+          context: this.logContext,
+          meta: { userId, error: eventError?.message },
+        });
+      }
+    }
+  }
+
+  private async assignRealmRole(
+    token: string,
+    keycloakId: string,
+    roleName: string,
+  ): Promise<void> {
     try {
       // 1. Lookup the role ID
       const rolesUrl = `${this.keycloakBaseUrl}/admin/realms/${this.keycloakRealm}/roles/${roleName}`;
       const roleResponse = await fetch(rolesUrl, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!roleResponse.ok) {
@@ -350,7 +486,7 @@ export class OnboardingRegisterUseCase {
       const assignResponse = await fetch(assignUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify([{ id: role.id, name: role.name }]),
@@ -380,13 +516,16 @@ export class OnboardingRegisterUseCase {
     }
   }
 
-  private async createKeycloakUser(token: string, params: OnboardingRegisterParams): Promise<string> {
+  private async createKeycloakUser(
+    token: string,
+    params: OnboardingRegisterParams,
+  ): Promise<string> {
     const url = `${this.keycloakBaseUrl}/admin/realms/${this.keycloakRealm}/users`;
 
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

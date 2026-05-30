@@ -6,6 +6,7 @@ import { PhoneModule } from '@modules/phone/phone.module';
 import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
 import { Category } from '@modules/shared/providers/database/entities/category.entity';
 import { ProviderAvailability } from '@modules/shared/providers/database/entities/provider-availability.entity';
+import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { User } from '@modules/shared/providers/database/entities/user.entity';
@@ -42,7 +43,7 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
   imports: [
     SharedModule,
     TypeOrmModule.forFeature(
-      [User, UserDocument, Category, ProviderService, ProviderAvailability],
+      [User, UserDocument, Category, ProviderService, ProviderAvailability, ProviderProfile],
       CONNECTIONS_NAMES.POSTGRES,
     ),
     EmailModule,

@@ -5,14 +5,20 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Put,
   Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
+import { CONNECTIONS_NAMES } from '@modules/shared/providers/database/database.constant';
+import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
+import { User } from '@modules/shared/providers/database/entities/user.entity';
 
 import type { AcceptTermsParams } from './use-cases/accept-terms/accept-terms.interface';
 import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-case';
@@ -71,7 +77,23 @@ export class AuthController {
     private readonly setProviderAvailability: SetProviderAvailabilityUseCase,
     private readonly getProviderAvailability: GetProviderAvailabilityUseCase,
     private readonly updateProviderAvailability: UpdateProviderAvailabilityUseCase,
+    @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(ProviderProfile, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerProfileRepository: Repository<ProviderProfile>,
   ) {}
+
+  private async resolveProviderProfileId(keycloakId: string): Promise<string> {
+    const user = await this.userRepository.findOne({ where: { keycloakId } });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    const providerProfile = await this.providerProfileRepository.findOne({
+      where: { userId: user.id },
+    });
+    if (!providerProfile) throw new NotFoundException('Perfil de prestador não encontrado');
+
+    return providerProfile.id;
+  }
 
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
@@ -191,7 +213,8 @@ export class AuthController {
     @Body() body: CreateProviderServiceParams,
     @Req() req: Request,
   ) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.createProviderService.execute({ ...body, providerId });
   }
 
@@ -201,7 +224,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Lista de serviços.' })
   @TraceMethod()
   async getProviderServicesHandler(@Req() req: Request) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.getProviderServices.execute({ providerId });
   }
 
@@ -215,7 +239,8 @@ export class AuthController {
     @Body() body: Omit<UpdateProviderServiceParams, 'providerId' | 'serviceId'>,
     @Req() req: Request,
   ) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.updateProviderService.execute({ ...body, providerId, serviceId });
   }
 
@@ -225,7 +250,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Serviço deletado.' })
   @TraceMethod()
   async deleteProviderServiceHandler(@Param('serviceId') serviceId: string, @Req() req: Request) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.deleteProviderService.execute({ providerId, serviceId });
   }
 
@@ -238,7 +264,8 @@ export class AuthController {
     @Body() body: Omit<SetProviderAvailabilityParams, 'providerId'>,
     @Req() req: Request,
   ) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.setProviderAvailability.execute({ ...body, providerId });
   }
 
@@ -248,7 +275,8 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Lista de horários.' })
   @TraceMethod()
   async getProviderAvailabilityHandler(@Req() req: Request) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.getProviderAvailability.execute({ providerId });
   }
 
@@ -262,7 +290,8 @@ export class AuthController {
     @Body() body: Omit<UpdateProviderAvailabilityParams, 'providerId' | 'dayOfWeek'>,
     @Req() req: Request,
   ) {
-    const providerId = (req.headers['x-user-id'] as string) ?? null;
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.updateProviderAvailability.execute({
       ...body,
       providerId,

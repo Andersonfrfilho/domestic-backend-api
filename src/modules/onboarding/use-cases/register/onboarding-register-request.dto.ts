@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class OnboardingRegisterRequestDto {
   @ApiProperty({ example: 'user@example.com', description: 'E-mail do usuário' })
@@ -28,12 +36,20 @@ export class OnboardingRegisterRequestDto {
   @IsNotEmpty()
   phone: string;
 
-  @ApiProperty({ example: '12345678900', description: 'Documento (CPF 11 dígitos, CNPJ 14 dígitos, RG 6-9 dígitos, ou Passaporte)', required: false })
+  @ApiProperty({
+    example: '12345678900',
+    description: 'Documento (CPF 11 dígitos, CNPJ 14 dígitos, RG 6-9 dígitos, ou Passaporte)',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   document?: string;
 
-  @ApiProperty({ example: 'Empresa LTDA', description: 'Razão Social (para CNPJ)', required: false })
+  @ApiProperty({
+    example: 'Empresa LTDA',
+    description: 'Razão Social (para CNPJ)',
+    required: false,
+  })
   @IsString()
   @IsOptional()
   companyName?: string;
@@ -47,4 +63,14 @@ export class OnboardingRegisterRequestDto {
   @IsBoolean()
   @IsOptional()
   termsAccepted?: boolean;
+
+  @ApiProperty({
+    example: 'provider',
+    description: 'Tipo de usuário: contractor (contratante) ou provider (prestador)',
+    required: false,
+    enum: ['contractor', 'provider'],
+  })
+  @IsIn(['contractor', 'provider'])
+  @IsOptional()
+  userType?: 'contractor' | 'provider';
 }
