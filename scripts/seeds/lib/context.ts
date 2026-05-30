@@ -19,8 +19,10 @@ import { UserAddress } from '@app/modules/shared/providers/database/entities/use
 import { UserEmail } from '@app/modules/shared/providers/database/entities/user-email.entity';
 import { UserPhone } from '@app/modules/shared/providers/database/entities/user-phone.entity';
 import { User } from '@app/modules/shared/providers/database/entities/user.entity';
+import type { KeycloakSeededUser } from './keycloak';
 
 export interface SeedContext {
+  keycloakUsers: KeycloakSeededUser[];
   categories: Category[];
   services: Service[];
   emails: Email[];
@@ -47,6 +49,7 @@ export interface SeedContext {
 
 export function createEmptyContext(): SeedContext {
   return {
+    keycloakUsers: [],
     categories: [],
     services: [],
     emails: [],

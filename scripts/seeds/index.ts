@@ -6,6 +6,7 @@ import { createEmptyContext } from './lib/context';
 import { createPostgresDataSource } from './lib/postgres';
 import { createMongoClient } from './lib/mongo';
 
+import { seedKeycloak } from './seeders/00-keycloak.seeder';
 import { seedCategories } from './seeders/01-category.seeder';
 import { seedServices } from './seeders/02-service.seeder';
 import { seedEmails } from './seeders/03-email.seeder';
@@ -106,6 +107,19 @@ async function main() {
   let ds: DataSource | null = null;
   let mongo: MongoClient | null = null;
 
+  // ── Keycloak ──────────────────────────────────────────────────
+  console.log(`\n${BOLD}  Keycloak${RESET}`);
+  console.log('─'.repeat(60));
+  const kcStep: Step = {
+    name: '00 Keycloak Users',
+    fn: async () => { await seedKeycloak(ctx); return ctx.keycloakUsers.length; },
+  };
+  const kcPassed = await runStep(kcStep);
+  if (!kcPassed) {
+    console.log(`${BOLD}${RED}  Keycloak seeder failed — aborting.${RESET}\n`);
+    process.exit(1);
+  }
+
   // ── Connections ──────────────────────────────────────────────
   log(`Connecting to PostgreSQL...`);
   try {
@@ -178,6 +192,7 @@ async function main() {
   await mongo!.close();
 
   const totalRows =
+    ctx.keycloakUsers.length +
     ctx.categories.length + ctx.services.length + ctx.emails.length + ctx.phones.length +
     ctx.addresses.length + ctx.users.length + ctx.userEmails.length + ctx.userPhones.length +
     ctx.userAddresses.length + ctx.documents.length + ctx.providers.length +
