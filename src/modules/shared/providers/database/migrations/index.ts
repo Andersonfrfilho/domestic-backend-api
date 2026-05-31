@@ -29,6 +29,8 @@ import { CreateCompanyRelatedTables1778091959000 } from './1778091959000-create-
 import { CreateAccountBlocks1778256000000 } from './1778256000000-create-account-blocks';
 import { AddDocumentToUsers1778260000000 } from './1778260000000-add-document-to-users';
 import { GrantServiceUsersPermissions1778500000000 } from './1778500000000-grant-service-users-permissions';
+import { AddEstimatedDurationToProviderService1778600000000 } from './1778600000000-add-estimated-duration-to-provider-service';
+import { AddPricePerHourToProviderService1778600000001 } from './1778600000001-add-price-per-hour-to-provider-service';
 
 export const migrations = [
   User1763256695093,
@@ -62,4 +64,6 @@ export const migrations = [
   CreateAccountBlocks1778256000000,
   AddDocumentToUsers1778260000000,
   GrantServiceUsersPermissions1778500000000,
+  AddEstimatedDurationToProviderService1778600000000,
+  AddPricePerHourToProviderService1778600000001,
 ];

@@ -4,7 +4,9 @@ const { execSync } = require('child_process');
 const { existsSync } = require('fs');
 
 const command = process.argv[2];
-const hasDist = existsSync('./dist');
+// FORCE_TS=true → sempre usa ts-node (útil quando dist/ está desatualizado)
+const forceTs = process.env.FORCE_TS === 'true';
+const hasDist = !forceTs && existsSync('./dist');
 const basePath = hasDist ? 'dist' : 'src';
 const fileExt = hasDist ? 'js' : 'ts';
 const executor = hasDist ? 'node' : 'ts-node -r tsconfig-paths/register';

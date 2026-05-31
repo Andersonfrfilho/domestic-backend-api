@@ -44,8 +44,8 @@ export async function seedAddresses(ds: DataSource, ctx: SeedContext, cfg: SeedC
 
   for (let i = 0; i < total; i++) {
     const location = faker.helpers.arrayElement(BR_CITIES);
-    const latitude = faker.number.float({ min: location.latMin, max: location.latMax, precision: 0.000001 }).toString();
-    const longitude = faker.number.float({ min: location.lngMin, max: location.lngMax, precision: 0.000001 }).toString();
+    const latitude = faker.number.float({ min: location.latMin, max: location.latMax, fractionDigits: 6 }).toString();
+    const longitude = faker.number.float({ min: location.lngMin, max: location.lngMax, fractionDigits: 6 }).toString();
 
     entities.push(
       repo.create({

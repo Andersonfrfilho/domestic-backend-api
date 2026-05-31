@@ -21,11 +21,7 @@ export async function seedProviderPhones(ds: DataSource, ctx: SeedContext, _cfg:
 
   for (const provider of ctx.providers) {
     const businessPhone = await phoneRepo.save(
-      phoneRepo.create({
-        number: randomBrPhone(),
-        type: 'WHATSAPP',
-        isVerified: true,
-      }),
+      phoneRepo.create({ number: randomBrPhone(), type: 'WHATSAPP' }),
     );
 
     entities.push(

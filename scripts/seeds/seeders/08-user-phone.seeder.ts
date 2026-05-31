@@ -10,18 +10,24 @@ export async function seedUserPhones(ds: DataSource, ctx: SeedContext, _cfg: See
 
   const entities: UserPhone[] = [];
 
+  const now = new Date();
+  const fixedCount = Math.min(ctx.keycloakUsers.length, 3);
+
   for (let i = 0; i < ctx.users.length; i++) {
     const user = ctx.users[i];
     const primaryPhone = ctx.phones[i * 2];
     const secondaryPhone = ctx.phones[i * 2 + 1];
+    const isFixed = i < fixedCount;
 
-    entities.push(
-      repo.create({ userId: user.id, phoneId: primaryPhone.id, label: 'celular', isPrimary: true }),
-    );
+    if (primaryPhone) {
+      entities.push(
+        repo.create({ userId: user.id, phoneId: primaryPhone.id, label: 'celular', isPrimary: true, verifiedAt: isFixed ? now : null }),
+      );
+    }
 
     if (secondaryPhone) {
       entities.push(
-        repo.create({ userId: user.id, phoneId: secondaryPhone.id, label: 'fixo', isPrimary: false }),
+        repo.create({ userId: user.id, phoneId: secondaryPhone.id, label: 'fixo', isPrimary: false, verifiedAt: null }),
       );
     }
   }

@@ -4,7 +4,7 @@ import { MongoClient } from 'mongodb';
 import { loadSeedConfig } from './lib/config';
 import { createEmptyContext } from './lib/context';
 import { createPostgresDataSource } from './lib/postgres';
-import { createMongoClient } from './lib/mongo';
+import { createMongoClient, getMongoDbName } from './lib/mongo';
 
 import { seedKeycloak } from './seeders/00-keycloak.seeder';
 import { seedCategories } from './seeders/01-category.seeder';
@@ -131,6 +131,27 @@ async function main() {
     process.exit(1);
   }
 
+  // ── Reset PostgreSQL (truncate all seed tables) ───────────────
+  log(`Resetting PostgreSQL tables...`);
+  try {
+    await ds.query('SET session_replication_role = replica');
+    const tables = [
+      'reviews', 'service_requests', 'provider_documents', 'provider_verification_logs',
+      'provider_verifications', 'provider_work_locations', 'provider_services',
+      'provider_addresses', 'provider_phones', 'provider_emails', 'provider_profiles',
+      'user_documents', 'documents', 'user_addresses', 'user_phones', 'user_emails',
+      'users', 'addresses', 'phones', 'emails', 'services', 'categories',
+    ];
+    for (const table of tables) {
+      await ds.query(`TRUNCATE TABLE "${table}" CASCADE`);
+    }
+    await ds.query('SET session_replication_role = DEFAULT');
+    log(`${GREEN}PostgreSQL tables reset${RESET}`);
+  } catch (err) {
+    log(`${YELLOW}Reset warning (non-fatal): ${(err as Error).message}${RESET}`);
+    await ds.query('SET session_replication_role = DEFAULT').catch(() => {});
+  }
+
   log(`Connecting to MongoDB...`);
   try {
     mongo = createMongoClient();
@@ -140,6 +161,18 @@ async function main() {
     log(`${RED}MongoDB connection failed: ${(err as Error).message}${RESET}`);
     await ds.destroy();
     process.exit(1);
+  }
+
+  // ── Reset MongoDB collections ─────────────────────────────────
+  try {
+    const dbName = getMongoDbName();
+    const db = mongo.db(dbName);
+    for (const col of ['notifications']) {
+      await db.collection(col).deleteMany({});
+    }
+    log(`${GREEN}MongoDB collections reset${RESET}`);
+  } catch (err) {
+    log(`${YELLOW}MongoDB reset warning (non-fatal): ${(err as Error).message}${RESET}`);
   }
 
   // ── PostgreSQL seeders ────────────────────────────────────────

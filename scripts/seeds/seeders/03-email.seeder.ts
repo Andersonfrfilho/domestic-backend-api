@@ -19,7 +19,8 @@ export async function seedEmails(ds: DataSource, ctx: SeedContext, cfg: SeedConf
     if (existing) {
       entities.push(existing);
     } else {
-      entities.push(await repo.save(repo.create({ email: ku.email, isVerified: true })));
+      const saved = await repo.save(repo.create({ email: ku.email }));
+      entities.push(saved);
     }
   }
 
@@ -27,12 +28,7 @@ export async function seedEmails(ds: DataSource, ctx: SeedContext, cfg: SeedConf
   const randomCount = Math.max(0, cfg.users - 3) * 2;
   const randomEntities: Email[] = [];
   for (let i = 0; i < randomCount; i++) {
-    randomEntities.push(
-      repo.create({
-        email: faker.internet.email().toLowerCase(),
-        isVerified: faker.datatype.boolean({ probability: 0.8 }),
-      }),
-    );
+    randomEntities.push(repo.create({ email: faker.internet.email().toLowerCase() }));
   }
 
   const savedRandom = randomEntities.length > 0 ? await repo.save(randomEntities) : [];

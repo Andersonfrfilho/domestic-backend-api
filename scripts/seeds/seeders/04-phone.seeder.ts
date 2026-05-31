@@ -31,7 +31,6 @@ export async function seedPhones(ds: DataSource, ctx: SeedContext, cfg: SeedConf
       repo.create({
         number,
         type: faker.helpers.arrayElement(PHONE_TYPES),
-        isVerified: faker.datatype.boolean({ probability: 0.7 }),
       }),
     );
   }

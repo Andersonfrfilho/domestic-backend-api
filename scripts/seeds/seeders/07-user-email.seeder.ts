@@ -13,7 +13,9 @@ export async function seedUserEmails(ds: DataSource, ctx: SeedContext, _cfg: See
   const entities: UserEmail[] = [];
   const fixedCount = Math.min(ctx.keycloakUsers.length, 3);
 
-  // Fixed users — 1 primary email, already real
+  const now = new Date();
+
+  // Fixed users — 1 primary email, verified
   for (let i = 0; i < fixedCount; i++) {
     const user = ctx.users[i];
     const primaryEmail = ctx.emails[i];
@@ -21,7 +23,7 @@ export async function seedUserEmails(ds: DataSource, ctx: SeedContext, _cfg: See
     const existing = await repo.findOne({ where: { userId: user.id, emailId: primaryEmail.id } });
     if (!existing) {
       entities.push(
-        repo.create({ userId: user.id, emailId: primaryEmail.id, label: 'principal', isPrimary: true }),
+        repo.create({ userId: user.id, emailId: primaryEmail.id, label: 'principal', isPrimary: true, verifiedAt: now }),
       );
     }
   }
@@ -35,12 +37,12 @@ export async function seedUserEmails(ds: DataSource, ctx: SeedContext, _cfg: See
 
     if (primaryEmail) {
       entities.push(
-        repo.create({ userId: user.id, emailId: primaryEmail.id, label: 'principal', isPrimary: true }),
+        repo.create({ userId: user.id, emailId: primaryEmail.id, label: 'principal', isPrimary: true, verifiedAt: now }),
       );
     }
     if (secondaryEmail) {
       entities.push(
-        repo.create({ userId: user.id, emailId: secondaryEmail.id, label: 'alternativo', isPrimary: false }),
+        repo.create({ userId: user.id, emailId: secondaryEmail.id, label: 'alternativo', isPrimary: false, verifiedAt: null }),
       );
     }
   }

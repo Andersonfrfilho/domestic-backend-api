@@ -14,12 +14,8 @@ export async function seedProviderEmails(ds: DataSource, ctx: SeedContext, _cfg:
   const entities: ProviderEmail[] = [];
 
   for (const provider of ctx.providers) {
-    // Create a dedicated business email per provider
     const businessEmail = await emailRepo.save(
-      emailRepo.create({
-        email: faker.internet.email().toLowerCase(),
-        isVerified: true,
-      }),
+      emailRepo.create({ email: faker.internet.email().toLowerCase() }),
     );
 
     entities.push(
