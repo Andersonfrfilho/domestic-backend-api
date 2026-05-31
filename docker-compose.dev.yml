@@ -154,6 +154,7 @@ services:
       CACHE_REDIS_HOST: cache_redis
       CACHE_REDIS_PORT: 6379
       QUEUE_RABBITMQ_HOST: queue_rabbitmq
+      QUEUE_RABBITMQ_PORT: 5672
       QUEUE_RABBITMQ_USER: ${QUEUE_RABBITMQ_USER:-domestic_api}
       QUEUE_RABBITMQ_PASS: ${QUEUE_RABBITMQ_PASS:-backendapi123}
       KEYCLOAK_BASE_URL: http://keycloak:8080
