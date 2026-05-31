@@ -140,11 +140,15 @@ services:
     container_name: domestic_migrator
     environment:
       NODE_ENV: development
+      FORCE_TS: 'true'
       DATABASE_POSTGRES_HOST: database_postgres
       DATABASE_POSTGRES_PORT: 5432
       DATABASE_POSTGRES_NAME: backend_database_postgres
       DATABASE_POSTGRES_USER: domestic_api
       DATABASE_POSTGRES_PASSWORD: domestic123
+      DATABASE_POSTGRES_TEST_E2E_PASSWORD: domestic123
+      DATABASE_MONGO_PASSWORD: domestic123
+      DATABASE_MONGO_HOST: database_mongo
     command: ['node', 'scripts/migration.js', 'run']
     depends_on:
       database_postgres:

@@ -9,7 +9,7 @@ const forceTs = process.env.FORCE_TS === 'true';
 const hasDist = !forceTs && existsSync('./dist');
 const basePath = hasDist ? 'dist' : 'src';
 const fileExt = hasDist ? 'js' : 'ts';
-const executor = hasDist ? 'node' : 'ts-node -r tsconfig-paths/register';
+const executor = hasDist ? 'node' : './node_modules/.bin/ts-node -r tsconfig-paths/register';
 
 const dataSourcePath = `${basePath}/modules/shared/providers/database/implementations/postgres/postgres.migration-datasource.${fileExt}`;
 
