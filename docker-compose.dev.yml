@@ -3,7 +3,6 @@
 #   make dev-infra     → apenas infra (postgres, mongo, redis, rabbitmq, keycloak, mailpit)
 #   make dev-all       → infra + migrations + seeds + api + bff + worker
 services:
-
   # ── Infra ──────────────────────────────────────────────────────────────
 
   database_postgres:
@@ -104,7 +103,7 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
-      JAVA_OPTS_APPEND: "-Xms128m -Xmx512m"
+      JAVA_OPTS_APPEND: '-Xms128m -Xmx512m'
     ports:
       - '8080:8080'
     depends_on:
@@ -208,79 +207,6 @@ services:
         limits:
           memory: 512m
 
-  bff:
-    profiles: ['app']
-    build:
-      context: ../domestic-backend-bff
-      dockerfile: Dockerfile.dev
-    container_name: domestic_bff
-    environment:
-      NODE_ENV: development
-      PORT: 3335
-      MONGO_URI: mongodb://database_mongo:27017/backend_database_mongo
-      CACHE_REDIS_HOST: cache_redis
-      CACHE_REDIS_PORT: 6379
-      API_BASE_URL: http://api:3333
-      KEYCLOAK_BASE_URL: http://keycloak:8080
-      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-domestic-backend}
-      KEYCLOAK_CLIENT_ID: ${BFF_KEYCLOAK_CLIENT_ID:-domestic-backend-bff}
-      KEYCLOAK_CLIENT_SECRET: ${BFF_KEYCLOAK_CLIENT_SECRET:-backend-bff-client-secret}
-      KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER:-admin}
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-    ports:
-      - '3335:3335'
-    volumes:
-      - ../domestic-backend-bff/src:/app/src
-      - ../domestic-backend-bff/dist:/app/dist
-      - bff_logs:/app/logs
-    depends_on:
-      - api
-      - cache_redis
-      - database_mongo
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 384m
-
-  worker:
-    profiles: ['app']
-    build:
-      context: ../domestic-backend-worker
-      dockerfile: Dockerfile.dev
-    container_name: domestic_worker
-    environment:
-      NODE_ENV: development
-      PORT: 3002
-      DATABASE_POSTGRES_HOST: database_postgres
-      DATABASE_POSTGRES_PORT: 5432
-      DATABASE_POSTGRES_NAME: backend_database_postgres
-      DATABASE_POSTGRES_USER: domestic_api
-      DATABASE_POSTGRES_PASSWORD: domestic123
-      MONGO_URI: mongodb://database_mongo:27017/backend_database_mongo
-      RABBITMQ_URL: amqp://${QUEUE_RABBITMQ_USER:-domestic_api}:${QUEUE_RABBITMQ_PASS:-backendapi123}@queue_rabbitmq:5672
-      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-zolve.events}
-      SMTP_HOST: mailpit
-      SMTP_PORT: 1025
-    volumes:
-      - ../domestic-backend-worker/src:/app/src
-      - ../domestic-backend-worker/dist:/app/dist
-      - worker_logs:/app/logs
-    depends_on:
-      migrator:
-        condition: service_completed_successfully
-      queue_rabbitmq:
-        condition: service_started
-      database_mongo:
-        condition: service_started
-      mailpit:
-        condition: service_started
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 384m
-
 volumes:
   database_postgres_data:
   database_mongo_data:
@@ -290,8 +216,6 @@ volumes:
   keycloak_data:
   database_keycloak_data:
   api_logs:
-  bff_logs:
-  worker_logs:
 
 networks:
   default:
