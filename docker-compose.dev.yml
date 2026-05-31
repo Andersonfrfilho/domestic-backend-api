@@ -129,37 +129,8 @@ services:
         limits:
           memory: 64m
 
-  # ── Migrator (profile: app) ────────────────────────────────────────────
-  # Roda as migrations do TypeORM antes de subir a API.
-
-  migrator:
-    profiles: ['app']
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: domestic_migrator
-    environment:
-      NODE_ENV: development
-      FORCE_TS: 'true'
-      DATABASE_POSTGRES_HOST: database_postgres
-      DATABASE_POSTGRES_PORT: 5432
-      DATABASE_POSTGRES_NAME: backend_database_postgres
-      DATABASE_POSTGRES_USER: domestic_api
-      DATABASE_POSTGRES_PASSWORD: domestic123
-      DATABASE_POSTGRES_TEST_E2E_PASSWORD: domestic123
-      DATABASE_MONGO_PASSWORD: domestic123
-      DATABASE_MONGO_HOST: database_mongo
-    command: ['node', 'scripts/migration.js', 'run']
-    depends_on:
-      database_postgres:
-        condition: service_healthy
-    restart: 'no'
-    deploy:
-      resources:
-        limits:
-          memory: 256m
-
-  # ── Aplicações (profile: app) ──────────────────────────────────────────
+  # ── API (profile: app) ────────────────────────────────────────────────
+  # Roda migrations antes de iniciar (init embutido no command).
 
   api:
     profiles: ['app']
@@ -170,12 +141,15 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3333
+      FORCE_TS: 'true'
       DATABASE_POSTGRES_HOST: database_postgres
       DATABASE_POSTGRES_PORT: 5432
       DATABASE_POSTGRES_NAME: backend_database_postgres
       DATABASE_POSTGRES_USER: domestic_api
       DATABASE_POSTGRES_PASSWORD: domestic123
+      DATABASE_POSTGRES_TEST_E2E_PASSWORD: domestic123
       DATABASE_MONGO_HOST: database_mongo
+      DATABASE_MONGO_PASSWORD: domestic123
       MONGO_URI: mongodb://database_mongo:27017/backend_database_mongo
       CACHE_REDIS_HOST: cache_redis
       CACHE_REDIS_PORT: 6379
@@ -188,6 +162,8 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-api-client-secret}
       KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      NODE_OPTIONS: '--max-old-space-size=768'
+    command: ['sh', '-c', 'node scripts/migration.js run && npm run start:dev']
     ports:
       - '3333:3333'
     volumes:
@@ -195,8 +171,8 @@ services:
       - ./dist:/app/dist
       - api_logs:/app/logs
     depends_on:
-      migrator:
-        condition: service_completed_successfully
+      database_postgres:
+        condition: service_healthy
       database_mongo:
         condition: service_started
       cache_redis:
@@ -209,7 +185,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 1g
 
 volumes:
   database_postgres_data:
