@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { DeviceTokenModule } from '@modules/device-token/device-token.module';
 import { ProviderModule } from '@modules/provider/provider.module';
 import { ServiceRequest } from '@modules/shared/providers/database/entities/service-request.entity';
 import { SharedModule } from '@modules/shared/shared.module';
@@ -38,6 +39,7 @@ import { RejectServiceRequestUseCase } from './use-cases/reject-service-request/
     SharedModule,
     UserModule,
     ProviderModule,
+    DeviceTokenModule,
   ],
   controllers: [ServiceRequestController],
   providers: [

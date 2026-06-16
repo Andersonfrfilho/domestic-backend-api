@@ -57,26 +57,37 @@ export class CreateServiceRequestUseCase implements CreateServiceRequestUseCaseI
 
     const serviceRequest = await this.serviceRequestRepository.create(params);
 
-    await this.producer
-      .send(
-        ROUTING_KEY,
-        {
-          body: {
-            service_request_id: serviceRequest?.id,
-            contractor_id: serviceRequest?.contractorId,
-            provider_id: serviceRequest?.providerId,
-            service_id: serviceRequest?.serviceId,
+    const notification = await this.serviceRequestRepository.findForNotification(serviceRequest.id);
+    if (notification) {
+      await this.producer
+        .send(
+          ROUTING_KEY,
+          {
+            body: {
+              event_type: 'created',
+              request_id: notification.id,
+              contractor_id: notification.contractorId,
+              contractor_user_id: notification.contractorUserId,
+              contractor_email: notification.contractorEmail,
+              contractor_fcm_token: notification.contractorFcmToken,
+              provider_id: notification.providerId,
+              provider_user_id: notification.providerUserId,
+              provider_email: notification.providerEmail,
+              provider_fcm_token: notification.providerFcmToken,
+              service_name: notification.serviceName,
+              scheduled_at: notification.scheduledAt,
+            },
           },
-        },
-        { exchange: EXCHANGE, routingKey: ROUTING_KEY },
-      )
-      .catch((error) => {
-        this.logProvider.error({
-          message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.QUEUE_ERROR,
-          context: this.logContext,
-          meta: { id: serviceRequest?.id, error },
+          { exchange: EXCHANGE, routingKey: ROUTING_KEY },
+        )
+        .catch((error) => {
+          this.logProvider.error({
+            message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.QUEUE_ERROR,
+            context: this.logContext,
+            meta: { id: serviceRequest.id, error },
+          });
         });
-      });
+    }
 
     this.logProvider.info({
       message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.SUCCESS,

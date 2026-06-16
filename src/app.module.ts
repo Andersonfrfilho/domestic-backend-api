@@ -22,6 +22,7 @@ import { AccountBlockModule } from './modules/account-block/account-block.module
 import { AuthModule } from './modules/auth/auth.module';
 import { CategoryModule } from './modules/category/category.module';
 import { CompanyModule } from './modules/company/company.module';
+import { DeviceTokenModule } from './modules/device-token/device-token.module';
 import { DocumentModule } from './modules/document/document.module';
 import { EmailModule } from './modules/email/email.module';
 import { NotificationModule } from './modules/notification/notification.module';
@@ -86,6 +87,7 @@ tsConfigPathsRegister({
     ServiceRequestModule,
     ReviewModule,
     NotificationModule,
+    DeviceTokenModule,
     DocumentModule,
     AuthModule,
     CompanyModule,

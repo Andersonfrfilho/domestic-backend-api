@@ -31,6 +31,15 @@ import { AddDocumentToUsers1778260000000 } from './1778260000000-add-document-to
 import { GrantServiceUsersPermissions1778500000000 } from './1778500000000-grant-service-users-permissions';
 import { AddEstimatedDurationToProviderService1778600000000 } from './1778600000000-add-estimated-duration-to-provider-service';
 import { AddPricePerHourToProviderService1778600000001 } from './1778600000001-add-price-per-hour-to-provider-service';
+import { CreateProviderAvailability1778700000000 } from './1778700000000-create-provider-availability';
+import { AddAdditionalPercentageToProviderAvailability1778700000001 } from './1778700000001-add-additional-percentage-to-provider-availability';
+import { DropUniqueDayAndBreakColumnsFromProviderAvailability1778700000002 } from './1778700000002-drop-unique-day-and-break-columns-from-provider-availability';
+import { AddDocumentNumberToDocuments1778700000003 } from './1778700000003-add-document-number-to-documents';
+import { CreatePaymentMethodTypes1778800000000 } from './1778800000000-create-payment-method-types';
+import { AddDetailsToProviderPaymentMethods1778800000001 } from './1778800000001-add-details-to-provider-payment-methods';
+import { AddAvatarUrlToProviderProfiles1778900000000 } from './1778900000000-add-avatar-url-to-provider-profiles';
+import { AddPaymentMethodToServiceRequests1778900000001 } from './1778900000001-add-payment-method-to-service-requests';
+import { CreateUserDeviceTokens1778900000002 } from './1778900000002-create-user-device-tokens';
 
 export const migrations = [
   User1763256695093,
@@ -66,4 +75,13 @@ export const migrations = [
   GrantServiceUsersPermissions1778500000000,
   AddEstimatedDurationToProviderService1778600000000,
   AddPricePerHourToProviderService1778600000001,
+  CreateProviderAvailability1778700000000,
+  AddAdditionalPercentageToProviderAvailability1778700000001,
+  DropUniqueDayAndBreakColumnsFromProviderAvailability1778700000002,
+  AddDocumentNumberToDocuments1778700000003,
+  CreatePaymentMethodTypes1778800000000,
+  AddDetailsToProviderPaymentMethods1778800000001,
+  AddAvatarUrlToProviderProfiles1778900000000,
+  AddPaymentMethodToServiceRequests1778900000001,
+  CreateUserDeviceTokens1778900000002,
 ];
