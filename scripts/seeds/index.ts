@@ -29,6 +29,8 @@ import { seedProviderDocuments } from './seeders/19-provider-document.seeder';
 import { seedServiceRequests } from './seeders/20-service-request.seeder';
 import { seedReviews } from './seeders/21-review.seeder';
 import { seedNotifications } from './seeders/22-notification.seeder';
+import { seedProviderPaymentMethods } from './seeders/23-provider-payment-method.seeder';
+import { seedProviderAvailability } from './seeders/24-provider-availability.seeder';
 
 const RESET  = '\x1b[0m';
 const GREEN  = '\x1b[32m';
@@ -136,11 +138,11 @@ async function main() {
   try {
     await ds.query('SET session_replication_role = replica');
     const tables = [
-      'reviews', 'service_requests', 'provider_documents', 'provider_verification_logs',
-      'provider_verifications', 'provider_work_locations', 'provider_services',
-      'provider_addresses', 'provider_phones', 'provider_emails', 'provider_profiles',
-      'user_documents', 'documents', 'user_addresses', 'user_phones', 'user_emails',
-      'users', 'addresses', 'phones', 'emails', 'services', 'categories',
+      'reviews', 'service_requests', 'provider_payment_methods', 'provider_documents',
+      'provider_verification_logs', 'provider_verifications', 'provider_work_locations',
+      'provider_services', 'provider_addresses', 'provider_phones', 'provider_emails',
+      'provider_profiles', 'user_documents', 'documents', 'user_addresses', 'user_phones',
+      'user_emails', 'users', 'addresses', 'phones', 'emails', 'services', 'categories',
     ];
     for (const table of tables) {
       await ds.query(`TRUNCATE TABLE "${table}" CASCADE`);
@@ -201,6 +203,8 @@ async function main() {
     { name: '19 Provider Documents',      fn: async () => { await seedProviderDocuments(ds!, ctx, cfg);       return ctx.providerDocuments.length; } },
     { name: '20 Service Requests',        fn: async () => { await seedServiceRequests(ds!, ctx, cfg);         return ctx.serviceRequests.length; } },
     { name: '21 Reviews',                 fn: async () => { await seedReviews(ds!, ctx, cfg);                 return ctx.reviews.length; } },
+    { name: '23 Provider Payment Methods',  fn: async () => { await seedProviderPaymentMethods(ds, ctx, cfg);  return ctx.providerPaymentMethods.length; } },
+    { name: '24 Provider Availability',     fn: async () => { await seedProviderAvailability(ds!, ctx, cfg);   return ctx.providerAvailability.length; } },
   ];
 
   let failed = 0;
@@ -232,7 +236,8 @@ async function main() {
     ctx.providerEmails.length + ctx.providerPhones.length + ctx.providerAddresses.length +
     ctx.providerServices.length + ctx.providerWorkLocations.length + ctx.providerVerifications.length +
     ctx.providerVerificationLogs.length + ctx.providerDocuments.length +
-    ctx.serviceRequests.length + ctx.reviews.length + ctx.notificationsInserted;
+    ctx.serviceRequests.length + ctx.reviews.length + ctx.providerPaymentMethods.length +
+    ctx.notificationsInserted;
 
   console.log('\n' + '─'.repeat(60));
   console.log(`${DIM}  Total rows inserted  : ${totalRows}`);

@@ -16,24 +16,30 @@ export class ProviderAvailabilityRepository {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
+    additionalPercentage?: number;
   }): Promise<ProviderAvailability> {
     const availability = this.repository.create(data);
     return this.repository.save(availability);
   }
 
+  async findById(id: string): Promise<ProviderAvailability | null> {
+    return this.repository.findOne({ where: { id } });
+  }
+
   async findByProviderIdAndDay(
     providerId: string,
     dayOfWeek: number,
-  ): Promise<ProviderAvailability | null> {
-    return this.repository.findOne({
+  ): Promise<ProviderAvailability[]> {
+    return this.repository.find({
       where: { providerId, dayOfWeek, isActive: true },
+      order: { startTime: 'ASC' },
     });
   }
 
   async findByProviderId(providerId: string): Promise<ProviderAvailability[]> {
     return this.repository.find({
       where: { providerId, isActive: true },
-      order: { dayOfWeek: 'ASC' },
+      order: { dayOfWeek: 'ASC', startTime: 'ASC' },
     });
   }
 
@@ -43,17 +49,14 @@ export class ProviderAvailabilityRepository {
       startTime: string;
       endTime: string;
       isActive: boolean;
+      additionalPercentage: number;
     }>,
   ): Promise<ProviderAvailability | null> {
     await this.repository.update(id, data);
     return this.repository.findOne({ where: { id } });
   }
 
-  async delete(id: string): Promise<void> {
+  async deleteById(id: string): Promise<void> {
     await this.repository.delete(id);
-  }
-
-  async deleteByProviderAndDay(providerId: string, dayOfWeek: number): Promise<void> {
-    await this.repository.delete({ providerId, dayOfWeek });
   }
 }

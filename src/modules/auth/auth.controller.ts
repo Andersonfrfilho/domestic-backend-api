@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -34,13 +35,20 @@ import type { ForgotPasswordParams } from './use-cases/forgot-password/forgot-pa
 import { ForgotPasswordUseCase } from './use-cases/forgot-password/forgot-password.use-case';
 import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get-current-terms.use-case';
 import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
+import type { LogoutParams } from './use-cases/logout/logout.interface';
+import { LogoutUseCase } from './use-cases/logout/logout.use-case';
 import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
+import { CheckPixKeyAvailabilityUseCase } from './use-cases/provider-profile/check-pix-key-availability.use-case';
 import { CreateProviderServiceUseCase } from './use-cases/provider-profile/create-provider-service.use-case';
+import { DeleteProviderAvailabilityUseCase } from './use-cases/provider-profile/delete-provider-availability.use-case';
 import { DeleteProviderServiceUseCase } from './use-cases/provider-profile/delete-provider-service.use-case';
 import { GetCategoriesUseCase } from './use-cases/provider-profile/get-categories.use-case';
+import { GetPaymentMethodTypesUseCase } from './use-cases/provider-profile/get-payment-method-types.use-case';
 import { GetProviderAvailabilityUseCase } from './use-cases/provider-profile/get-provider-availability.use-case';
+import { GetProviderPaymentMethodsUseCase } from './use-cases/provider-profile/get-provider-payment-methods.use-case';
 import { GetProviderServicesUseCase } from './use-cases/provider-profile/get-provider-services.use-case';
 import { SetProviderAvailabilityUseCase } from './use-cases/provider-profile/set-provider-availability.use-case';
+import { SetProviderPaymentMethodsUseCase } from './use-cases/provider-profile/set-provider-payment-methods.use-case';
 import type {
   CreateProviderServiceParams,
   UpdateProviderServiceParams,
@@ -51,6 +59,8 @@ import { UpdateProviderAvailabilityUseCase } from './use-cases/provider-profile/
 import { UpdateProviderServiceUseCase } from './use-cases/provider-profile/update-provider-service.use-case';
 import type { SendVerificationCodeParams } from './use-cases/send-verification-code/send-verification-code.interface';
 import { SendVerificationCodeUseCase } from './use-cases/send-verification-code/send-verification-code.use-case';
+import type { TokenParams, TokenResult } from './use-cases/token/token.interface';
+import { TokenUseCase } from './use-cases/token/token.use-case';
 import type { VerifyCodeParams } from './use-cases/verify-code/verify-code.interface';
 import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case';
 
@@ -58,6 +68,8 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
 @Controller('auth')
 export class AuthController {
   constructor(
+    private readonly tokenUseCase: TokenUseCase,
+    private readonly logoutUseCase: LogoutUseCase,
     private readonly sendVerificationCode: SendVerificationCodeUseCase,
     private readonly verifyCode: VerifyCodeUseCase,
     private readonly lookupCep: LookupCepUseCase,
@@ -77,6 +89,11 @@ export class AuthController {
     private readonly setProviderAvailability: SetProviderAvailabilityUseCase,
     private readonly getProviderAvailability: GetProviderAvailabilityUseCase,
     private readonly updateProviderAvailability: UpdateProviderAvailabilityUseCase,
+    private readonly deleteProviderAvailability: DeleteProviderAvailabilityUseCase,
+    private readonly getPaymentMethodTypes: GetPaymentMethodTypesUseCase,
+    private readonly getProviderPaymentMethods: GetProviderPaymentMethodsUseCase,
+    private readonly setProviderPaymentMethods: SetProviderPaymentMethodsUseCase,
+    private readonly checkPixKeyAvailability: CheckPixKeyAvailabilityUseCase,
     @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
     private readonly userRepository: Repository<User>,
     @InjectRepository(ProviderProfile, CONNECTIONS_NAMES.POSTGRES)
@@ -93,6 +110,25 @@ export class AuthController {
     if (!providerProfile) throw new NotFoundException('Perfil de prestador não encontrado');
 
     return providerProfile.id;
+  }
+
+  @Post('token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login ou refresh de token' })
+  @ApiResponse({ status: 200, description: 'Tokens retornados com sucesso.' })
+  @ApiResponse({ status: 401, description: 'Credenciais inválidas.' })
+  @TraceMethod()
+  async token(@Body() body: TokenParams): Promise<TokenResult> {
+    return this.tokenUseCase.execute(body);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Logout — invalida o refresh token no Keycloak' })
+  @ApiResponse({ status: 200, description: 'Logout realizado com sucesso.' })
+  @TraceMethod()
+  async logout(@Body() body: LogoutParams): Promise<void> {
+    await this.logoutUseCase.execute(body);
   }
 
   @Post('forgot-password')
@@ -280,22 +316,75 @@ export class AuthController {
     return this.getProviderAvailability.execute({ providerId });
   }
 
-  @Put('providers/me/availability/:dayOfWeek')
+  @Put('providers/me/availability/:id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Atualizar disponibilidade do prestador' })
+  @ApiOperation({ summary: 'Atualizar faixa de disponibilidade do prestador' })
   @ApiResponse({ status: 200, description: 'Disponibilidade atualizada.' })
   @TraceMethod()
   async updateProviderAvailabilityHandler(
-    @Param('dayOfWeek') dayOfWeek: string,
-    @Body() body: Omit<UpdateProviderAvailabilityParams, 'providerId' | 'dayOfWeek'>,
+    @Param('id') id: string,
+    @Body() body: Omit<UpdateProviderAvailabilityParams, 'providerId' | 'id'>,
     @Req() req: Request,
   ) {
     const keycloakId = (req.headers['x-user-id'] as string) ?? null;
     const providerId = await this.resolveProviderProfileId(keycloakId);
-    return this.updateProviderAvailability.execute({
-      ...body,
-      providerId,
-      dayOfWeek: Number(dayOfWeek),
-    });
+    return this.updateProviderAvailability.execute({ ...body, providerId, id });
+  }
+
+  @Delete('providers/me/availability/:id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remover faixa de disponibilidade do prestador' })
+  @ApiResponse({ status: 200, description: 'Disponibilidade removida.' })
+  @TraceMethod()
+  async deleteProviderAvailabilityHandler(@Param('id') id: string, @Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.deleteProviderAvailability.execute({ providerId, id });
+  }
+
+  @Get('payment-method-types')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar tipos de formas de pagamento disponíveis' })
+  @ApiResponse({ status: 200, description: 'Lista de tipos de pagamento.' })
+  @TraceMethod()
+  async getPaymentMethodTypesHandler() {
+    return this.getPaymentMethodTypes.execute();
+  }
+
+  @Get('providers/me/payment-methods')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar formas de pagamento do prestador' })
+  @ApiResponse({ status: 200, description: 'Formas de pagamento do prestador.' })
+  @TraceMethod()
+  async getProviderPaymentMethodsHandler(@Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.getProviderPaymentMethods.execute({ providerId });
+  }
+
+  @Put('providers/me/payment-methods')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Definir formas de pagamento do prestador' })
+  @ApiResponse({ status: 200, description: 'Formas de pagamento atualizadas.' })
+  @TraceMethod()
+  async setProviderPaymentMethodsHandler(
+    @Body()
+    body: { methods: { paymentMethodTypeId: string; details: Record<string, string> | null }[] },
+    @Req() req: Request,
+  ) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.setProviderPaymentMethods.execute({ providerId, methods: body.methods });
+  }
+
+  @Get('providers/me/pix-key/check')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verificar disponibilidade de chave PIX' })
+  @ApiResponse({ status: 200, description: 'Resultado da verificação.' })
+  @TraceMethod()
+  async checkPixKeyAvailabilityHandler(@Query('key') key: string, @Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.checkPixKeyAvailability.execute({ providerId, pixKey: key });
   }
 }

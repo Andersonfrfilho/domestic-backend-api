@@ -7,14 +7,14 @@ import { SeedConfig } from '../lib/config';
 import { SeedContext } from '../lib/context';
 
 // 2 emails per user (one primary, one secondary).
-// Fixed test users (first 3 from Keycloak) use their real emails.
+// Fixed test users (all Keycloak test users) use their real emails.
 export async function seedEmails(ds: DataSource, ctx: SeedContext, cfg: SeedConfig): Promise<void> {
   const repo = ds.getRepository(Email);
 
   const entities: Email[] = [];
 
   // Fixed emails: one per keycloak test user (primary only — no secondary)
-  for (const ku of ctx.keycloakUsers.slice(0, 3)) {
+  for (const ku of ctx.keycloakUsers) {
     const existing = await repo.findOne({ where: { email: ku.email } });
     if (existing) {
       entities.push(existing);
@@ -25,7 +25,7 @@ export async function seedEmails(ds: DataSource, ctx: SeedContext, cfg: SeedConf
   }
 
   // Random emails for remaining users (2 per user)
-  const randomCount = Math.max(0, cfg.users - 3) * 2;
+  const randomCount = Math.max(0, cfg.users - ctx.keycloakUsers.length) * 2;
   const randomEntities: Email[] = [];
   for (let i = 0; i < randomCount; i++) {
     randomEntities.push(repo.create({ email: faker.internet.email().toLowerCase() }));

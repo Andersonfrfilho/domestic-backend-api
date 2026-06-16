@@ -1,4 +1,5 @@
 import { Address } from '@app/modules/shared/providers/database/entities/address.entity';
+import { ProviderAvailability } from '@app/modules/shared/providers/database/entities/provider-availability.entity';
 import { Category } from '@app/modules/shared/providers/database/entities/category.entity';
 import { Document } from '@app/modules/shared/providers/database/entities/document.entity';
 import { Email } from '@app/modules/shared/providers/database/entities/email.entity';
@@ -12,6 +13,7 @@ import { ProviderService } from '@app/modules/shared/providers/database/entities
 import { ProviderVerificationLog } from '@app/modules/shared/providers/database/entities/provider-verification-log.entity';
 import { ProviderVerification } from '@app/modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@app/modules/shared/providers/database/entities/provider-work-location.entity';
+import { ProviderPaymentMethod } from '@app/modules/shared/providers/database/entities/provider-payment-method.entity';
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 import { ServiceRequest } from '@app/modules/shared/providers/database/entities/service-request.entity';
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
@@ -44,6 +46,8 @@ export interface SeedContext {
   providerDocuments: ProviderDocument[];
   serviceRequests: ServiceRequest[];
   reviews: Review[];
+  providerPaymentMethods: ProviderPaymentMethod[];
+  providerAvailability: ProviderAvailability[];
   notificationsInserted: number;
 }
 
@@ -71,6 +75,8 @@ export function createEmptyContext(): SeedContext {
     providerDocuments: [],
     serviceRequests: [],
     reviews: [],
+    providerPaymentMethods: [],
+    providerAvailability: [],
     notificationsInserted: 0,
   };
 }

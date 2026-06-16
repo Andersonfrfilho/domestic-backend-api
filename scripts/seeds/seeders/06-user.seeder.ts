@@ -8,15 +8,15 @@ import { SeedContext } from '../lib/context';
 
 const USER_STATUSES = ['PENDING', 'ACTIVE', 'ACTIVE', 'ACTIVE', 'SUSPENDED'];
 
-// keycloakUsers[0] = contractor, [1] = provider (pending), [2] = provider-full (active)
-const FIXED_STATUSES = ['ACTIVE', 'PENDING', 'ACTIVE'];
+// keycloakUsers order: [0] contractor-test, [1] provider-test, [2] provider-full, [3] admin-test
+const FIXED_STATUSES = ['ACTIVE', 'ACTIVE', 'ACTIVE', 'ACTIVE'];
 
 export async function seedUsers(ds: DataSource, ctx: SeedContext, cfg: SeedConfig): Promise<void> {
   const repo = ds.getRepository(User);
 
   const savedFixed: User[] = [];
 
-  for (let i = 0; i < Math.min(ctx.keycloakUsers.length, 3); i++) {
+  for (let i = 0; i < ctx.keycloakUsers.length; i++) {
     const ku = ctx.keycloakUsers[i];
     const existing = await repo.findOne({ where: { keycloakId: ku.keycloakId } });
     if (existing) {

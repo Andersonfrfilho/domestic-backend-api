@@ -38,6 +38,10 @@ export class ProviderProfile {
   @Column({ name: 'is_available', default: true })
   isAvailable: boolean;
 
+  @ApiPropertyOptional({ example: 'https://picsum.photos/seed/abc123/200' })
+  @Column({ name: 'avatar_url', type: 'varchar', length: 512, nullable: true })
+  avatarUrl: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

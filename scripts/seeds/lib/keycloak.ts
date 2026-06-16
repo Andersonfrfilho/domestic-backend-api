@@ -174,23 +174,50 @@ async function resetPassword(
   }
 }
 
+async function disableSSLRequirement(cfg: KeycloakConfig, token: string): Promise<void> {
+  const url = `${cfg.baseUrl}/admin/realms/${cfg.realm}`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) return;
+  const realm = (await response.json()) as Record<string, unknown>;
+
+  realm.sslRequired = 'none';
+
+  const updateResponse = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(realm),
+  });
+
+  if (!updateResponse.ok) {
+    const text = await updateResponse.text();
+    console.warn(`Warning: Could not update realm SSL requirement (${updateResponse.status}): ${text}`);
+  }
+}
+
 export async function upsertKeycloakUsers(
   cfg: KeycloakConfig,
   users: KeycloakTestUser[],
 ): Promise<KeycloakSeededUser[]> {
   const token = await getAdminToken(cfg);
+  await disableSSLRequirement(cfg, token);
   const seeded: KeycloakSeededUser[] = [];
 
   for (const user of users) {
     let keycloakId = await findUserByEmail(cfg, token, user.email);
 
     if (keycloakId) {
-      // User already exists — ensure password is correct
+      // User already exists — ensure password and roles are correct
       await resetPassword(cfg, token, keycloakId, user.password);
     } else {
       keycloakId = await createUser(cfg, token, user);
-      await assignRealmRoles(cfg, token, keycloakId, user.realmRoles);
     }
+    await assignRealmRoles(cfg, token, keycloakId, user.realmRoles);
 
     seeded.push({ ...user, keycloakId });
   }

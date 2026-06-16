@@ -263,6 +263,7 @@ export class OnboardingRegisterUseCase {
     userId: string,
     documentType: string,
     file: UploadedFile,
+    documentNumber?: string,
   ): Promise<{ documentId: string; url: string }> {
     const bucket = this.configService.get<string>('STORAGE_MINIO_BUCKET') ?? 'documents';
     const ext = file.originalname.split('.').pop() ?? 'bin';
@@ -281,6 +282,7 @@ export class OnboardingRegisterUseCase {
       userId,
       documentType,
       documentUrl: objectName,
+      documentNumber: documentNumber ? documentNumber.replace(/\D/g, '') : null,
       status: 'PENDING',
     });
 

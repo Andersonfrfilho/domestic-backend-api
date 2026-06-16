@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
+import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
@@ -26,6 +28,7 @@ export interface ProviderWithDetails {
   description: string;
   averageRating: string;
   isAvailable: boolean;
+  avatarUrl: string | null;
   createdAt: Date;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -40,6 +43,46 @@ export interface ProviderWithDetails {
     priceType: string;
   }[];
   reviewCount: number;
+  activeDays: number[];
+}
+
+export interface ProviderFullDetails {
+  id: string;
+  userId: string;
+  businessName: string;
+  description: string | null;
+  averageRating: number;
+  isAvailable: boolean;
+  avatarUrl: string | null;
+  createdAt: Date;
+  updatedAt: Date | null;
+  deletedAt: Date | null;
+  verificationStatus: string;
+  services: {
+    id: string;
+    name: string;
+    category: { id: string; name: string };
+    priceBase: number;
+    priceType: string;
+  }[];
+  workLocations: {
+    city: string;
+    state: string;
+    isPrimary: boolean;
+  }[];
+  paymentMethods: {
+    id: string;
+    name: string;
+    label: string;
+    icon: string | null;
+    isEnabled: boolean;
+  }[];
+  reviewCount: number;
+}
+
+export interface SetProviderPaymentMethodsParams {
+  paymentMethodTypeId: string;
+  isEnabled: boolean;
 }
 
 @Injectable()
@@ -53,6 +96,10 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     private readonly verificationRepo: Repository<ProviderVerification>,
     @InjectRepository(ProviderWorkLocation, CONNECTIONS_NAMES.POSTGRES)
     private readonly workLocationRepo: Repository<ProviderWorkLocation>,
+    @InjectRepository(PaymentMethodType, CONNECTIONS_NAMES.POSTGRES)
+    private readonly paymentMethodTypeRepo: Repository<PaymentMethodType>,
+    @InjectRepository(ProviderPaymentMethod, CONNECTIONS_NAMES.POSTGRES)
+    private readonly providerPaymentMethodRepo: Repository<ProviderPaymentMethod>,
   ) {}
 
   async create(params: CreateProviderParams): Promise<ProviderProfile> {
@@ -62,6 +109,113 @@ export class ProviderRepository implements ProviderRepositoryInterface {
 
   async findById(id: string): Promise<ProviderProfile | null> {
     return this.profileRepo.findOne({ where: { id } });
+  }
+
+  async findByIdWithDetails(id: string): Promise<ProviderFullDetails | null> {
+    const rows = await this.profileRepo
+      .createQueryBuilder('p')
+      .leftJoin(
+        (qb) =>
+          qb
+            .select('v.provider_id', 'provider_id')
+            .addSelect('MAX(v.submitted_at)', 'last_submitted')
+            .from('provider_verifications', 'v')
+            .groupBy('v.provider_id'),
+        'latest',
+        'latest.provider_id = p.id',
+      )
+      .leftJoin(
+        'provider_verifications',
+        'v',
+        'v.provider_id = p.id AND v.submitted_at = latest.last_submitted',
+      )
+      .leftJoin('provider_work_locations', 'pwl', 'pwl.provider_id = p.id AND pwl.is_active = true')
+      .leftJoin('addresses', 'a', 'a.id = pwl.address_id')
+      .leftJoin('provider_services', 'ps', 'ps.provider_id = p.id')
+      .leftJoin('services', 's', 's.id = ps.service_id')
+      .leftJoin('categories', 'cat', 'cat.id = s.category_id')
+      .addSelect(['a.city', 'a.state'])
+      .addSelect('pwl.isPrimary', 'pwl_is_primary')
+      .addSelect(['s.id', 's.name'])
+      .addSelect('cat.id', 'cat_id')
+      .addSelect('cat.name', 'cat_name')
+      .addSelect('ps.price_base', 'ps_price_base')
+      .addSelect('ps.price_type', 'ps_price_type')
+      .addSelect('v.status', 'verification_status')
+      .where('p.id = :id', { id })
+      .getRawMany();
+
+    if (!rows.length) return null;
+
+    const first = rows[0];
+    const provider: ProviderFullDetails = {
+      id: first.p_id,
+      userId: first.p_user_id,
+      businessName: first.p_business_name,
+      description: first.p_description ?? null,
+      averageRating: Number(first.p_average_rating ?? 0),
+      isAvailable: Boolean(first.p_is_available),
+      avatarUrl: first.p_avatar_url ?? null,
+      createdAt: first.p_created_at,
+      updatedAt: first.p_updated_at ?? null,
+      deletedAt: first.p_deleted_at ?? null,
+      verificationStatus: first.verification_status ?? 'PENDING',
+      services: [],
+      workLocations: [],
+      paymentMethods: [],
+      reviewCount: 0,
+    };
+
+    const seenServices = new Set<string>();
+    const seenLocations = new Set<string>();
+
+    for (const row of rows) {
+      if (row.s_id && !seenServices.has(row.s_id)) {
+        seenServices.add(row.s_id);
+        provider.services.push({
+          id: row.s_id,
+          name: row.s_name,
+          category: { id: row.cat_id ?? '', name: row.cat_name ?? '' },
+          priceBase: Number(row.ps_price_base ?? 0),
+          priceType: row.ps_price_type ?? 'FIXED',
+        });
+      }
+      const locKey = `${row.a_city}:${row.a_state}`;
+      if (row.a_city && !seenLocations.has(locKey)) {
+        seenLocations.add(locKey);
+        provider.workLocations.push({
+          city: row.a_city,
+          state: row.a_state,
+          isPrimary: Boolean(row.pwl_is_primary),
+        });
+      }
+    }
+
+    const reviewResult = await this.profileRepo
+      .createQueryBuilder('p')
+      .select('COUNT(r.id)', 'count')
+      .leftJoin('reviews', 'r', 'r.provider_id = p.id')
+      .where('p.id = :id', { id })
+      .getRawOne();
+    provider.reviewCount = Number(reviewResult?.count ?? 0);
+
+    const paymentRows = await this.providerPaymentMethodRepo
+      .createQueryBuilder('ppm')
+      .innerJoin('ppm.paymentMethodType', 'pmt')
+      .select(['pmt.id', 'pmt.name', 'pmt.label', 'pmt.icon', 'ppm.isEnabled'])
+      .where('ppm.providerId = :id', { id })
+      .andWhere('pmt.isEnabled = true')
+      .getMany();
+
+    provider.paymentMethods = paymentRows.map((row) => ({
+      id: row.paymentMethodType.id,
+      name: row.paymentMethodType.name,
+      label: row.paymentMethodType.label,
+      icon: row.paymentMethodType.icon,
+      isEnabled: row.isEnabled,
+    }));
+
+    return provider;
   }
 
   async findByUserId(userId: string): Promise<ProviderProfile | null> {
@@ -87,6 +241,9 @@ export class ProviderRepository implements ProviderRepositoryInterface {
         'v.provider_id = p.id AND v.submitted_at = latest.last_submitted',
       )
       .where('v.status = :status', { status: 'APPROVED' })
+      .andWhere(
+        'EXISTS (SELECT 1 FROM provider_payment_methods ppm WHERE ppm.provider_id = p.id AND ppm.is_enabled = true)',
+      )
       .getMany();
   }
 
@@ -94,6 +251,11 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     sort?: string,
     limit?: number,
     available?: boolean,
+    city?: string,
+    state?: string,
+    categoryId?: string,
+    priceMin?: number,
+    priceMax?: number,
   ): Promise<ProviderWithDetails[]> {
     let query = this.profileRepo
       .createQueryBuilder('p')
@@ -112,17 +274,48 @@ export class ProviderRepository implements ProviderRepositoryInterface {
         'v',
         'v.provider_id = p.id AND v.submitted_at = latest.last_submitted',
       )
-      .leftJoin('provider_addresses', 'pa', 'pa.provider_id = p.id')
-      .leftJoin('addresses', 'a', 'a.id = pa.address_id')
+      .leftJoin('provider_work_locations', 'pwl', 'pwl.provider_id = p.id AND pwl.is_active = true')
+      .leftJoin('addresses', 'a', 'a.id = pwl.address_id')
       .leftJoin('provider_services', 'ps', 'ps.provider_id = p.id')
       .leftJoin('services', 's', 's.id = ps.service_id')
-      .addSelect(['a.city', 'a.state', 'a.latitude', 'a.longitude', 's.id', 's.name'])
+      .addSelect([
+        'p.avatar_url',
+        'a.city',
+        'a.state',
+        'a.latitude',
+        'a.longitude',
+        's.id',
+        's.name',
+      ])
       .addSelect('ps.price_base', 'ps_price_base')
       .addSelect('ps.price_type', 'ps_price_type')
-      .where('v.status = :status', { status: 'APPROVED' });
+      .where('v.status = :status', { status: 'APPROVED' })
+      .andWhere(
+        'EXISTS (SELECT 1 FROM provider_payment_methods ppm WHERE ppm.provider_id = p.id AND ppm.is_enabled = true)',
+      );
 
     if (available) {
       query = query.andWhere('p.is_available = :available', { available: true });
+    }
+
+    if (city) {
+      query = query.andWhere('LOWER(a.city) = LOWER(:city)', { city });
+    }
+
+    if (state) {
+      query = query.andWhere('UPPER(a.state) = UPPER(:state)', { state });
+    }
+
+    if (categoryId) {
+      query = query.andWhere('s.category_id = :categoryId', { categoryId });
+    }
+
+    if (priceMin != null) {
+      query = query.andWhere('ps.price_base >= :priceMin', { priceMin });
+    }
+
+    if (priceMax != null) {
+      query = query.andWhere('ps.price_base <= :priceMax', { priceMax });
     }
 
     if (sort === 'rating') {
@@ -149,6 +342,7 @@ export class ProviderRepository implements ProviderRepositoryInterface {
           description: row.p_description,
           averageRating: row.p_average_rating,
           isAvailable: row.p_is_available,
+          avatarUrl: row.p_avatar_url ?? null,
           createdAt: row.p_created_at,
           updatedAt: row.p_updated_at,
           deletedAt: row.p_deleted_at,
@@ -158,6 +352,7 @@ export class ProviderRepository implements ProviderRepositoryInterface {
           longitude: row.a_longitude ?? row.longitude ?? null,
           services: [],
           reviewCount: 0,
+          activeDays: [],
         });
       }
 
@@ -194,6 +389,27 @@ export class ProviderRepository implements ProviderRepositoryInterface {
 
       for (const provider of providers) {
         provider.reviewCount = countMap.get(provider.id) ?? 0;
+      }
+
+      const availabilityRows = await this.profileRepo.manager.query<
+        { provider_id: string; days_csv: string | null }[]
+      >(
+        `SELECT provider_id,
+                string_agg(day_of_week::text, ',' ORDER BY day_of_week) AS days_csv
+         FROM provider_availability
+         WHERE provider_id = ANY($1) AND is_active = true
+         GROUP BY provider_id`,
+        [providers.map((p) => p.id)],
+      );
+
+      const daysMap = new Map<string, number[]>();
+      for (const row of availabilityRows) {
+        const days = row.days_csv ? row.days_csv.split(',').map(Number) : [];
+        daysMap.set(row.provider_id, days);
+      }
+
+      for (const provider of providers) {
+        provider.activeDays = daysMap.get(provider.id) ?? [];
       }
     }
 
@@ -291,5 +507,38 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       )
       .where('v.status = :status', { status: 'UNDER_REVIEW' })
       .getMany();
+  }
+
+  async listPaymentMethodTypes(): Promise<PaymentMethodType[]> {
+    return this.paymentMethodTypeRepo.find({
+      where: { isEnabled: true },
+      order: { name: 'ASC' },
+    });
+  }
+
+  async listProviderPaymentMethods(providerId: string): Promise<ProviderPaymentMethod[]> {
+    return this.providerPaymentMethodRepo.find({
+      where: { providerId },
+      relations: ['paymentMethodType'],
+    });
+  }
+
+  async setProviderPaymentMethods(
+    providerId: string,
+    methods: SetProviderPaymentMethodsParams[],
+  ): Promise<ProviderPaymentMethod[]> {
+    await this.providerPaymentMethodRepo.delete({ providerId });
+
+    if (methods.length === 0) return [];
+
+    const entities = methods.map((method) =>
+      this.providerPaymentMethodRepo.create({
+        providerId,
+        paymentMethodTypeId: method.paymentMethodTypeId,
+        isEnabled: method.isEnabled,
+      }),
+    );
+
+    return this.providerPaymentMethodRepo.save(entities);
   }
 }

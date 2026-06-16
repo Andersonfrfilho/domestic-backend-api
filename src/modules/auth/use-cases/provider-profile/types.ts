@@ -24,6 +24,7 @@ export interface ProviderAvailabilityDto {
   startTime: string;
   endTime: string;
   isActive: boolean;
+  additionalPercentage: number;
 }
 
 export interface GetCategoriesParams {}
@@ -105,6 +106,7 @@ export interface SetProviderAvailabilityParams {
   dayOfWeek: number;
   startTime: string;
   endTime: string;
+  additionalPercentage?: number;
 }
 
 export interface SetProviderAvailabilityResult {
@@ -131,9 +133,10 @@ export interface GetProviderAvailabilityUseCaseInterface {
 
 export interface UpdateProviderAvailabilityParams {
   providerId: string;
-  dayOfWeek: number;
+  id: string;
   startTime: string;
   endTime: string;
+  additionalPercentage?: number;
 }
 
 export interface UpdateProviderAvailabilityResult {
@@ -143,4 +146,87 @@ export interface UpdateProviderAvailabilityResult {
 
 export interface UpdateProviderAvailabilityUseCaseInterface {
   execute(params: UpdateProviderAvailabilityParams): Promise<UpdateProviderAvailabilityResult>;
+}
+
+export interface DeleteProviderAvailabilityParams {
+  providerId: string;
+  id: string;
+}
+
+export interface DeleteProviderAvailabilityResult {
+  success: boolean;
+}
+
+export interface DeleteProviderAvailabilityUseCaseInterface {
+  execute(params: DeleteProviderAvailabilityParams): Promise<DeleteProviderAvailabilityResult>;
+}
+
+export interface PaymentMethodTypeDto {
+  id: string;
+  name: string;
+  label: string;
+  icon: string | null;
+}
+
+export interface ProviderPaymentMethodDetailsEntry {
+  paymentMethodTypeId: string;
+  details: Record<string, string> | null;
+}
+
+export interface ProviderPaymentMethodDto {
+  id: string;
+  paymentMethodTypeId: string;
+  name: string;
+  label: string;
+  icon: string | null;
+  isEnabled: boolean;
+  details: Record<string, string> | null;
+}
+
+export interface GetPaymentMethodTypesResult {
+  success: boolean;
+  data: PaymentMethodTypeDto[];
+}
+
+export interface GetPaymentMethodTypesUseCaseInterface {
+  execute(): Promise<GetPaymentMethodTypesResult>;
+}
+
+export interface GetProviderPaymentMethodsParams {
+  providerId: string;
+}
+
+export interface GetProviderPaymentMethodsResult {
+  success: boolean;
+  data: ProviderPaymentMethodDto[];
+}
+
+export interface GetProviderPaymentMethodsUseCaseInterface {
+  execute(params: GetProviderPaymentMethodsParams): Promise<GetProviderPaymentMethodsResult>;
+}
+
+export interface SetProviderPaymentMethodsParams {
+  providerId: string;
+  methods: ProviderPaymentMethodDetailsEntry[];
+}
+
+export interface SetProviderPaymentMethodsResult {
+  success: boolean;
+}
+
+export interface SetProviderPaymentMethodsUseCaseInterface {
+  execute(params: SetProviderPaymentMethodsParams): Promise<SetProviderPaymentMethodsResult>;
+}
+
+export interface CheckPixKeyAvailabilityParams {
+  providerId: string;
+  pixKey: string;
+}
+
+export interface CheckPixKeyAvailabilityResult {
+  available: boolean;
+}
+
+export interface CheckPixKeyAvailabilityUseCaseInterface {
+  execute(params: CheckPixKeyAvailabilityParams): Promise<CheckPixKeyAvailabilityResult>;
 }

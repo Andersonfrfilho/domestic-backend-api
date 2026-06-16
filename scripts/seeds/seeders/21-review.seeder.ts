@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { DataSource } from 'typeorm';
 
+import { ProviderProfile } from '@app/modules/shared/providers/database/entities/provider-profile.entity';
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 
 import { SeedConfig } from '../lib/config';
@@ -40,4 +41,23 @@ export async function seedReviews(ds: DataSource, ctx: SeedContext, _cfg: SeedCo
   }
 
   ctx.reviews = await repo.save(entities);
+
+  // Recalculate averageRating for all providers based on actual seeded reviews
+  const profileRepo = ds.getRepository(ProviderProfile);
+  const ratingsByProvider = new Map<string, number[]>();
+
+  for (const review of ctx.reviews) {
+    const ratings = ratingsByProvider.get(review.providerId) ?? [];
+    ratings.push(Number(review.rating));
+    ratingsByProvider.set(review.providerId, ratings);
+  }
+
+  for (const provider of ctx.providers) {
+    const ratings = ratingsByProvider.get(provider.id) ?? [];
+    const average =
+      ratings.length > 0
+        ? Number.parseFloat((ratings.reduce((sum, r) => sum + r, 0) / ratings.length).toFixed(1))
+        : 0;
+    await profileRepo.update(provider.id, { averageRating: average });
+  }
 }

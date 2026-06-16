@@ -11,22 +11,19 @@ export async function seedProviderEmails(ds: DataSource, ctx: SeedContext, _cfg:
   const emailRepo = ds.getRepository(Email);
   const providerEmailRepo = ds.getRepository(ProviderEmail);
 
-  const entities: ProviderEmail[] = [];
+  const emailEntities = ctx.providers.map(() =>
+    emailRepo.create({ email: faker.internet.email().toLowerCase() }),
+  );
+  const savedEmails = await emailRepo.save(emailEntities);
 
-  for (const provider of ctx.providers) {
-    const businessEmail = await emailRepo.save(
-      emailRepo.create({ email: faker.internet.email().toLowerCase() }),
-    );
-
-    entities.push(
-      providerEmailRepo.create({
-        providerId: provider.id,
-        emailId: businessEmail.id,
-        label: 'empresarial',
-        isPrimary: true,
-      }),
-    );
-  }
+  const entities = ctx.providers.map((provider, i) =>
+    providerEmailRepo.create({
+      providerId: provider.id,
+      emailId: savedEmails[i].id,
+      label: 'empresarial',
+      isPrimary: true,
+    }),
+  );
 
   ctx.providerEmails = await providerEmailRepo.save(entities);
 }

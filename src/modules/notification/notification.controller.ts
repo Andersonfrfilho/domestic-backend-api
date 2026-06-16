@@ -54,4 +54,13 @@ export class NotificationController {
   async markAsRead(@Param('id') id: string): Promise<void> {
     await this.notificationService.markAsRead(id);
   }
+
+  @Get('unread-count')
+  @ApiOperation({ summary: 'Contagem de notificações não lidas' })
+  @ApiOkResponse({ type: Number })
+  async unreadCount(@AuthUser() keycloakId: string): Promise<{ count: number }> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const count = await this.notificationService.countUnread(user.id);
+    return { count };
+  }
 }

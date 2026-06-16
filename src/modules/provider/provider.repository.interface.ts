@@ -1,9 +1,15 @@
+import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
-import { ProviderWithDetails } from './provider.repository';
+import {
+  ProviderFullDetails,
+  ProviderWithDetails,
+  SetProviderPaymentMethodsParams,
+} from './provider.repository';
 
 export interface CreateProviderParams {
   userId: string;
@@ -47,12 +53,18 @@ export interface UpdateVerificationParams {
 export interface ProviderRepositoryInterface {
   create(params: CreateProviderParams): Promise<ProviderProfile>;
   findById(id: string): Promise<ProviderProfile | null>;
+  findByIdWithDetails(id: string): Promise<ProviderFullDetails | null>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   listApproved(): Promise<ProviderProfile[]>;
   listApprovedWithDetails(
     sort?: string,
     limit?: number,
     available?: boolean,
+    city?: string,
+    state?: string,
+    categoryId?: string,
+    priceMin?: number,
+    priceMax?: number,
   ): Promise<ProviderWithDetails[]>;
   update(id: string, params: UpdateProviderParams): Promise<ProviderProfile>;
 
@@ -72,4 +84,11 @@ export interface ProviderRepositoryInterface {
   createVerification(params: CreateVerificationParams): Promise<ProviderVerification>;
   updateVerification(id: string, params: UpdateVerificationParams): Promise<ProviderVerification>;
   listUnderReview(): Promise<ProviderProfile[]>;
+
+  listPaymentMethodTypes(): Promise<PaymentMethodType[]>;
+  listProviderPaymentMethods(providerId: string): Promise<ProviderPaymentMethod[]>;
+  setProviderPaymentMethods(
+    providerId: string,
+    methods: SetProviderPaymentMethodsParams[],
+  ): Promise<ProviderPaymentMethod[]>;
 }

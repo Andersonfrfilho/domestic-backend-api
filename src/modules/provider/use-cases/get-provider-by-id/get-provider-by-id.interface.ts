@@ -1,10 +1,10 @@
-import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
+import { ProviderFullDetails } from '../../provider.repository';
 
 export interface GetProviderByIdUseCaseParams {
   id: string;
 }
 
-export type GetProviderByIdUseCaseResponse = ProviderProfile;
+export type GetProviderByIdUseCaseResponse = ProviderFullDetails;
 
 export interface GetProviderByIdUseCaseInterface {
   execute(params: GetProviderByIdUseCaseParams): Promise<GetProviderByIdUseCaseResponse>;

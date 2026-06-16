@@ -30,9 +30,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
+import { Document } from '@app/modules/shared/providers/database/entities/document.entity';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
 import { ROLES } from '@modules/shared/constants';
-import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 
 import { AddUserAddressRequestDto } from './use-cases/add-user-address/dtos/add-user-address-request.dto';
 import { type UserServiceInterface } from './use-cases/create-users/create-user.interface';
@@ -49,8 +49,8 @@ export class UserController {
   constructor(
     @Inject(USER_SERVICE_PROVIDE)
     private readonly userService: UserServiceInterface,
-    @InjectRepository(UserDocument, CONNECTIONS_NAMES.POSTGRES)
-    private readonly userDocumentRepository: Repository<UserDocument>,
+    @InjectRepository(Document, CONNECTIONS_NAMES.POSTGRES)
+    private readonly documentRepository: Repository<Document>,
   ) {}
 
   @Post()
@@ -203,13 +203,29 @@ export class UserController {
   @UseGuards(ApiAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Listar documentos do usuário autenticado' })
   @ApiHeader({ name: 'X-User-Id', required: true })
-  @ApiOkResponse({ type: [UserDocument] })
-  async listDocuments(@AuthUser() keycloakId: string): Promise<UserDocument[]> {
+  @ApiOkResponse({ type: [Document] })
+  async listDocuments(@AuthUser() keycloakId: string): Promise<Document[]> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
-    return this.userDocumentRepository.find({
+    return this.documentRepository.find({
       where: { userId: user.id },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  @Delete('me/documents/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Remover documento do usuário autenticado (soft delete)' })
+  @ApiHeader({ name: 'X-User-Id', required: true })
+  @ApiNoContentResponse()
+  @ApiNotFoundResponse()
+  async deleteDocument(
+    @AuthUser() keycloakId: string,
+    @Param('id') documentId: string,
+  ): Promise<void> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    await this.documentRepository.softDelete({ id: documentId, userId: user.id });
   }
 
   @Get('me/onboarding-status')
@@ -232,7 +248,7 @@ export class UserController {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const [addresses, documents] = await Promise.all([
       this.userService.listUserAddressesByKeycloakId(keycloakId),
-      this.userDocumentRepository.find({
+      this.documentRepository.find({
         where: { userId: user.id },
         select: ['id'],
         take: 1,

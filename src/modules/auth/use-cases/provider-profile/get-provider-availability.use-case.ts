@@ -47,6 +47,7 @@ export class GetProviderAvailabilityUseCase implements GetProviderAvailabilityUs
           startTime: avail.startTime,
           endTime: avail.endTime,
           isActive: avail.isActive,
+          additionalPercentage: avail.additionalPercentage,
         })),
       };
     } catch (error) {

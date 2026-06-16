@@ -1,5 +1,12 @@
 import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
-import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 
 import { TraceMethod } from '@app/shared/decorators/trace-method.decorator';
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
@@ -29,45 +36,57 @@ export class UpdateProviderAvailabilityUseCase implements UpdateProviderAvailabi
     this.logProvider.info({
       message: 'Updating provider availability',
       context: this.logContext,
-      meta: { providerId: params.providerId, dayOfWeek: params.dayOfWeek },
+      meta: { providerId: params.providerId, id: params.id },
     });
 
     try {
-      if (params.dayOfWeek < 0 || params.dayOfWeek > 6) {
-        throw new BadRequestException('Dia da semana inválido (0-6)');
-      }
-
       if (!this.isValidTime(params.startTime) || !this.isValidTime(params.endTime)) {
         throw new BadRequestException('Formato de hora inválido (HH:mm)');
       }
 
-      const [startHour, startMin] = params.startTime.split(':').map(Number);
-      const [endHour, endMin] = params.endTime.split(':').map(Number);
-      const startMinutes = startHour * 60 + startMin;
-      const endMinutes = endHour * 60 + endMin;
+      const startMin = this.toMinutes(params.startTime);
+      const endMin = this.toMinutes(params.endTime);
 
-      if (startMinutes >= endMinutes) {
+      if (startMin >= endMin) {
         throw new BadRequestException('Hora de início deve ser menor que hora de término');
       }
 
-      const current = await this.availabilityRepository.findByProviderIdAndDay(
-        params.providerId,
-        params.dayOfWeek,
-      );
+      const current = await this.availabilityRepository.findById(params.id);
 
       if (!current) {
         throw new NotFoundException('Horário de disponibilidade não encontrado');
       }
 
-      const updated = await this.availabilityRepository.update(current.id, {
+      if (current.providerId !== params.providerId) {
+        throw new ForbiddenException('Sem permissão para atualizar este horário');
+      }
+
+      const siblings = await this.availabilityRepository.findByProviderIdAndDay(
+        params.providerId,
+        current.dayOfWeek,
+      );
+
+      for (const slot of siblings) {
+        if (slot.id === params.id) continue;
+        const slotStart = this.toMinutes(slot.startTime.substring(0, 5));
+        const slotEnd = this.toMinutes(slot.endTime.substring(0, 5));
+        if (startMin < slotEnd && endMin > slotStart) {
+          throw new ConflictException('Horário conflita com uma faixa já cadastrada');
+        }
+      }
+
+      const updated = await this.availabilityRepository.update(params.id, {
         startTime: params.startTime,
         endTime: params.endTime,
+        ...(params.additionalPercentage !== undefined && {
+          additionalPercentage: params.additionalPercentage,
+        }),
       });
 
       this.logProvider.info({
         message: 'Provider availability updated successfully',
         context: this.logContext,
-        meta: { availabilityId: current.id },
+        meta: { availabilityId: params.id },
       });
 
       return {
@@ -78,6 +97,7 @@ export class UpdateProviderAvailabilityUseCase implements UpdateProviderAvailabi
           startTime: updated!.startTime,
           endTime: updated!.endTime,
           isActive: updated!.isActive,
+          additionalPercentage: updated!.additionalPercentage,
         },
       };
     } catch (error) {
@@ -91,7 +111,11 @@ export class UpdateProviderAvailabilityUseCase implements UpdateProviderAvailabi
   }
 
   private isValidTime(time: string): boolean {
-    const regex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
-    return regex.test(time);
+    return /^([0-1]\d|2[0-3]):([0-5]\d)$/.test(time);
+  }
+
+  private toMinutes(time: string): number {
+    const [h, m] = time.split(':').map(Number);
+    return h * 60 + m;
   }
 }

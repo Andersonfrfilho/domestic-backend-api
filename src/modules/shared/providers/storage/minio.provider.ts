@@ -1,28 +1,39 @@
-import { Readable } from 'stream';
-
+import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client } from 'minio';
-import { LOGGER_PROVIDER } from '@adatechnology/nestjs-logger';
 
 import type { LogProviderInterface } from '@modules/shared/interfaces/log.interface';
+
 import { StorageProviderInterface, UploadFileParams } from './storage.interface';
 
 @Injectable()
 export class MinioStorageProvider implements StorageProviderInterface, OnModuleInit {
-  private client: Client;
+  private readonly client: Client;
+  private readonly publicClient: Client;
 
   constructor(
     @Inject(LOGGER_PROVIDER) private readonly logProvider: LogProviderInterface,
     private readonly configService: ConfigService,
   ) {
-    this.client = new Client({
-      endPoint: configService.get('STORAGE_MINIO_ENDPOINT', 'localhost'),
-      port: configService.get<number>('STORAGE_MINIO_PORT', 9000),
+    const commonConfig = {
       useSSL: configService.get<boolean>('STORAGE_MINIO_USE_SSL', false),
       accessKey: configService.get('STORAGE_MINIO_ACCESS_KEY', 'minioadmin'),
       secretKey: configService.get('STORAGE_MINIO_SECRET_KEY', 'minioadmin'),
+    };
+    this.client = new Client({
+      endPoint: configService.get('STORAGE_MINIO_ENDPOINT', 'localhost'),
+      port: configService.get<number>('STORAGE_MINIO_PORT', 9000),
+      ...commonConfig,
     });
+    const publicEndpoint = configService.get<string>('STORAGE_MINIO_PUBLIC_ENDPOINT');
+    this.publicClient = publicEndpoint
+      ? new Client({
+          endPoint: publicEndpoint,
+          port: configService.get<number>('STORAGE_MINIO_PUBLIC_PORT', 9000),
+          ...commonConfig,
+        })
+      : this.client;
   }
 
   async onModuleInit() {
@@ -51,7 +62,7 @@ export class MinioStorageProvider implements StorageProviderInterface, OnModuleI
   }
 
   async getSignedUrl(bucket: string, objectName: string, expirySeconds: number): Promise<string> {
-    return this.client.presignedGetObject(bucket, objectName, expirySeconds);
+    return this.publicClient.presignedGetObject(bucket, objectName, expirySeconds);
   }
 
   async delete(bucket: string, objectName: string): Promise<void> {

@@ -1,13 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsDateString,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  IsUUID,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 import { ErrorMessages } from '@modules/shared/constants/error-messages.constant';
 
@@ -33,7 +25,6 @@ export class CreateServiceRequestRequestDto {
   description?: string;
 
   @ApiPropertyOptional({ description: 'Data/hora agendada para o serviço' })
-  @IsDateString({}, { message: ErrorMessages['date.base']('Data/hora agendada') })
   @IsOptional()
   scheduledAt?: Date;
 
@@ -42,4 +33,11 @@ export class CreateServiceRequestRequestDto {
   @Min(0, { message: ErrorMessages['number.min']('Preço', 0) })
   @IsOptional()
   priceFinal?: number;
+
+  @ApiPropertyOptional({
+    description: 'ID do tipo de forma de pagamento escolhido pelo contratante',
+  })
+  @IsUUID('all', { message: ErrorMessages.invalid('Payment Method Type ID') })
+  @IsOptional()
+  paymentMethodTypeId?: string;
 }

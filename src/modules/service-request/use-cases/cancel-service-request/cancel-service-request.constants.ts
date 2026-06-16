@@ -4,4 +4,5 @@ export const CANCEL_SERVICE_REQUEST_LOG_MESSAGES = {
   NOT_FOUND: 'Service request not found',
   NOT_AUTHORIZED: 'Contractor not authorized to cancel this request',
   INVALID_STATUS: 'Invalid service request status for cancellation',
+  QUEUE_ERROR: 'Failed to publish service_request.cancelled event',
 } as const;

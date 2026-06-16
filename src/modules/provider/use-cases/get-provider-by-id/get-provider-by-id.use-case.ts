@@ -32,7 +32,7 @@ export class GetProviderByIdUseCase implements GetProviderByIdUseCaseInterface {
       meta: { providerId: params.id },
     });
 
-    const provider = await this.providerRepository.findById(params.id);
+    const provider = await this.providerRepository.findByIdWithDetails(params.id);
     if (!provider) {
       this.logProvider.warn({
         message: GET_PROVIDER_BY_ID_LOG_MESSAGES.PROVIDER_NOT_FOUND,

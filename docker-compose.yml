@@ -58,6 +58,9 @@ services:
       - KEYCLOAK_BASE_URL=http://keycloak:8080
       - STORAGE_MINIO_ENDPOINT=storage-minio
       - STORAGE_MINIO_PORT=9000
+      - STORAGE_MINIO_PUBLIC_ENDPOINT=192.168.3.207
+      - STORAGE_MINIO_PUBLIC_PORT=9000
+      - NODE_OPTIONS=--max-old-space-size=1536
     env_file:
       - .env
     ports:
@@ -71,7 +74,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: 2048m
 
   ### DATABASE SERVICE
   database_postgres:
@@ -183,7 +186,7 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
-      JAVA_OPTS_APPEND: "-Xms128m -Xmx512m"
+      JAVA_OPTS_APPEND: '-Xms128m -Xmx512m'
     ports:
       - '${KEYCLOAK_PORT}:8080'
     depends_on:

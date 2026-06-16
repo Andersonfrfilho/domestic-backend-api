@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService as ProviderServiceEntity } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 import { SharedModule } from '@modules/shared/shared.module';
+import { UserModule } from '@modules/user/user.module';
 
 import { CONNECTIONS_NAMES } from '../shared/providers/database/database.constant';
 
@@ -46,10 +49,18 @@ import { UpdateProviderUseCase } from './use-cases/update-provider/update-provid
 @Module({
   imports: [
     TypeOrmModule.forFeature(
-      [ProviderProfile, ProviderServiceEntity, ProviderVerification, ProviderWorkLocation],
+      [
+        ProviderProfile,
+        ProviderServiceEntity,
+        ProviderVerification,
+        ProviderWorkLocation,
+        PaymentMethodType,
+        ProviderPaymentMethod,
+      ],
       CONNECTIONS_NAMES.POSTGRES,
     ),
     SharedModule,
+    UserModule,
   ],
   controllers: [ProviderController],
   providers: [

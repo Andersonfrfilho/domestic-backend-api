@@ -5,13 +5,13 @@ import { UserEmail } from '@app/modules/shared/providers/database/entities/user-
 import { SeedConfig } from '../lib/config';
 import { SeedContext } from '../lib/context';
 
-// Fixed users (first 3) have 1 email each (index 0,1,2 in ctx.emails).
-// Random users start at index 3 with 2 emails each (indexes 3,4 / 5,6 / ...).
+// Fixed users (all Keycloak test users) have 1 email each (index 0..N-1 in ctx.emails).
+// Random users start at index N with 2 emails each (indexes N,N+1 / N+2,N+3 / ...).
 export async function seedUserEmails(ds: DataSource, ctx: SeedContext, _cfg: SeedConfig): Promise<void> {
   const repo = ds.getRepository(UserEmail);
 
   const entities: UserEmail[] = [];
-  const fixedCount = Math.min(ctx.keycloakUsers.length, 3);
+  const fixedCount = ctx.keycloakUsers.length;
 
   const now = new Date();
 

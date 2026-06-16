@@ -198,6 +198,7 @@ export class OnboardingController {
     if (!data) throw new HttpException('Nenhum arquivo enviado', HttpStatus.BAD_REQUEST);
 
     const documentType = (data.fields?.documentType?.value as string) ?? 'UNKNOWN';
+    const documentNumber = (data.fields?.documentNumber?.value as string) || undefined;
     const buffer = await data.toBuffer();
     const file: UploadedFile = {
       originalname: data.filename,
@@ -207,6 +208,11 @@ export class OnboardingController {
     };
 
     const user = await this.userService.getUserByKeycloakId(keycloakId);
-    return this.onboardingRegisterUseCase.saveDocumentToUser(user.id, documentType, file);
+    return this.onboardingRegisterUseCase.saveDocumentToUser(
+      user.id,
+      documentType,
+      file,
+      documentNumber,
+    );
   }
 }

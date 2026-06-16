@@ -1,11 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService as ProviderServiceEntity } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
-import { type ProviderWithDetails } from './provider.repository';
+import {
+  type ProviderFullDetails,
+  type ProviderWithDetails,
+  type SetProviderPaymentMethodsParams,
+} from './provider.repository';
 import { type ProviderRepositoryInterface } from './provider.repository.interface';
 import {
   PROVIDER_ADD_SERVICE_USE_CASE_PROVIDE,
@@ -57,13 +63,18 @@ import {
 
 export interface ProviderServiceInterface {
   create(params: CreateProviderUseCaseParams): Promise<ProviderProfile>;
-  findById(id: string): Promise<ProviderProfile>;
+  findById(id: string): Promise<ProviderFullDetails>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   list(): Promise<ProviderProfile[]>;
   listWithDetails(
     sort?: string,
     limit?: number,
     available?: boolean,
+    city?: string,
+    state?: string,
+    categoryId?: string,
+    priceMin?: number,
+    priceMax?: number,
   ): Promise<ProviderWithDetails[]>;
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile>;
   addService(params: AddProviderServiceUseCaseParams): Promise<ProviderServiceEntity>;
@@ -77,6 +88,12 @@ export interface ProviderServiceInterface {
   approve(params: ApproveProviderUseCaseParams): Promise<ProviderVerification>;
   reject(params: RejectProviderUseCaseParams): Promise<ProviderVerification>;
   listPending(): Promise<ProviderProfile[]>;
+  listPaymentMethodTypes(): Promise<PaymentMethodType[]>;
+  listProviderPaymentMethods(providerId: string): Promise<ProviderPaymentMethod[]>;
+  setProviderPaymentMethods(
+    providerId: string,
+    methods: SetProviderPaymentMethodsParams[],
+  ): Promise<ProviderPaymentMethod[]>;
 }
 
 @Injectable()
@@ -116,7 +133,7 @@ export class ProviderService implements ProviderServiceInterface {
     return this.createUseCase.execute(params);
   }
 
-  findById(id: string): Promise<ProviderProfile> {
+  findById(id: string): Promise<ProviderFullDetails> {
     return this.getByIdUseCase.execute({ id });
   }
 
@@ -132,8 +149,22 @@ export class ProviderService implements ProviderServiceInterface {
     sort?: string,
     limit?: number,
     available?: boolean,
+    city?: string,
+    state?: string,
+    categoryId?: string,
+    priceMin?: number,
+    priceMax?: number,
   ): Promise<ProviderWithDetails[]> {
-    return this.providerRepository.listApprovedWithDetails(sort, limit, available);
+    return this.providerRepository.listApprovedWithDetails(
+      sort,
+      limit,
+      available,
+      city,
+      state,
+      categoryId,
+      priceMin,
+      priceMax,
+    );
   }
 
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile> {
@@ -182,5 +213,20 @@ export class ProviderService implements ProviderServiceInterface {
 
   listPending(): Promise<ProviderProfile[]> {
     return this.listPendingUseCase.execute();
+  }
+
+  listPaymentMethodTypes(): Promise<PaymentMethodType[]> {
+    return this.providerRepository.listPaymentMethodTypes();
+  }
+
+  listProviderPaymentMethods(providerId: string): Promise<ProviderPaymentMethod[]> {
+    return this.providerRepository.listProviderPaymentMethods(providerId);
+  }
+
+  setProviderPaymentMethods(
+    providerId: string,
+    methods: SetProviderPaymentMethodsParams[],
+  ): Promise<ProviderPaymentMethod[]> {
+    return this.providerRepository.setProviderPaymentMethods(providerId, methods);
   }
 }

@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 
 import { Address } from './address.entity';
+import { PaymentMethodType } from './payment-method-type.entity';
 import { ProviderProfile } from './provider-profile.entity';
 import { Service } from './service.entity';
 import { User } from './user.entity';
@@ -67,6 +68,10 @@ export class ServiceRequest {
   @Column({ name: 'price_final', type: 'decimal', nullable: true })
   priceFinal: number;
 
+  @ApiPropertyOptional({ example: 'uuid-do-tipo-pagamento', nullable: true })
+  @Column({ name: 'payment_method_type_id', type: 'uuid', nullable: true })
+  paymentMethodTypeId: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
@@ -91,4 +96,8 @@ export class ServiceRequest {
   @ManyToOne(() => Address, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'address_id' })
   address: Address;
+
+  @ManyToOne(() => PaymentMethodType, { nullable: true })
+  @JoinColumn({ name: 'payment_method_type_id' })
+  paymentMethodType: PaymentMethodType | null;
 }

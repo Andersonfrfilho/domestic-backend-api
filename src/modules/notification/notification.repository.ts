@@ -21,4 +21,8 @@ export class NotificationRepository implements NotificationRepositoryInterface {
   async markAsRead(id: ObjectId): Promise<void> {
     await this.repo.update({ _id: id }, { read: true });
   }
+
+  async countUnreadByUser(userId: string): Promise<number> {
+    return this.repo.count({ where: { userId, read: false } });
+  }
 }

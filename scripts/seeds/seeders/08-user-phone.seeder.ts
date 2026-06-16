@@ -11,7 +11,7 @@ export async function seedUserPhones(ds: DataSource, ctx: SeedContext, _cfg: See
   const entities: UserPhone[] = [];
 
   const now = new Date();
-  const fixedCount = Math.min(ctx.keycloakUsers.length, 3);
+  const fixedCount = ctx.keycloakUsers.length;
 
   for (let i = 0; i < ctx.users.length; i++) {
     const user = ctx.users[i];

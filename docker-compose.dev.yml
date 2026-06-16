@@ -129,6 +129,29 @@ services:
         limits:
           memory: 64m
 
+  storage-minio:
+    image: minio/minio:latest
+    container_name: domestic_storage_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - '9000:9000'
+      - '9002:9001'
+    volumes:
+      - storage-minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
   # ── API (profile: app) ────────────────────────────────────────────────
   # Roda migrations antes de iniciar (init embutido no command).
 
@@ -163,6 +186,12 @@ services:
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-api-client-secret}
       KEYCLOAK_ADMIN_USER: ${KEYCLOAK_ADMIN_USER:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      STORAGE_MINIO_ENDPOINT: storage-minio
+      STORAGE_MINIO_PORT: 9000
+      STORAGE_MINIO_USE_SSL: 'false'
+      STORAGE_MINIO_ACCESS_KEY: minioadmin
+      STORAGE_MINIO_SECRET_KEY: minioadmin
+      STORAGE_MINIO_BUCKET: documents
       NODE_OPTIONS: '--max-old-space-size=768'
     command: ['sh', '-c', 'node scripts/migration.js run && npm run start:dev']
     ports:
@@ -182,6 +211,8 @@ services:
         condition: service_started
       keycloak:
         condition: service_started
+      storage-minio:
+        condition: service_healthy
     restart: unless-stopped
     deploy:
       resources:
@@ -197,6 +228,7 @@ volumes:
   keycloak_data:
   database_keycloak_data:
   api_logs:
+  storage-minio_data:
 
 networks:
   default:

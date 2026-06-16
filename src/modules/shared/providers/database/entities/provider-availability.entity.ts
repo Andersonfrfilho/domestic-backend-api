@@ -37,6 +37,13 @@ export class ProviderAvailability {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @ApiProperty({
+    example: 0,
+    description: 'Surcharge percentage for this time slot (e.g. 50 = 50% extra)',
+  })
+  @Column({ name: 'additional_percentage', type: 'smallint', default: 0 })
+  additionalPercentage: number;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 

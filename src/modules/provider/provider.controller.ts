@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiConflictResponse,
   ApiHeader,
   ApiNoContentResponse,
@@ -25,12 +26,16 @@ import {
 } from '@nestjs/swagger';
 
 import { ROLES } from '@modules/shared/constants';
+import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService as ProviderServiceEntity } from '@modules/shared/providers/database/entities/provider-service.entity';
 import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
+import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
+import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
-import { type ProviderWithDetails } from './provider.repository';
+import { type ProviderFullDetails, type ProviderWithDetails } from './provider.repository';
 import { type ProviderServiceInterface } from './provider.service';
 import { PROVIDER_SERVICE_PROVIDE } from './provider.token';
 import { AddProviderServiceRequestDto } from './use-cases/add-provider-service/dtos/add-provider-service-request.dto';
@@ -45,6 +50,8 @@ export class ProviderController {
   constructor(
     @Inject(PROVIDER_SERVICE_PROVIDE)
     private readonly providerService: ProviderServiceInterface,
+    @Inject(USER_SERVICE_PROVIDE)
+    private readonly userService: UserServiceInterface,
   ) {}
 
   @Post()
@@ -63,12 +70,22 @@ export class ProviderController {
     @Query('sort') sort?: string,
     @Query('limit') limit?: string,
     @Query('available') available?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+    @Query('category_id') categoryId?: string,
+    @Query('price_min') priceMin?: string,
+    @Query('price_max') priceMax?: string,
   ): Promise<ProviderProfile[] | ProviderWithDetails[]> {
-    if (sort || limit || available) {
+    if (sort || limit || available || city || state || categoryId || priceMin || priceMax) {
       return this.providerService.listWithDetails(
         sort,
         limit ? parseInt(limit, 10) : undefined,
         available === 'true',
+        city,
+        state,
+        categoryId,
+        priceMin != null ? Number(priceMin) : undefined,
+        priceMax != null ? Number(priceMax) : undefined,
       );
     }
     return this.providerService.list();
@@ -89,11 +106,22 @@ export class ProviderController {
     return this.providerService.findByUserId(userId);
   }
 
+  @Get('me')
+  @ApiOperation({ summary: 'Buscar perfil do prestador autenticado' })
+  @ApiOkResponse({ type: ProviderProfile })
+  @ApiNotFoundResponse({ description: 'Prestador não encontrado' })
+  async findMe(@AuthUser() keycloakId: string): Promise<ProviderFullDetails | null> {
+    const user = await this.userService.getUserByKeycloakId(keycloakId);
+    const provider = await this.providerService.findByUserId(user.id);
+    if (!provider) return null;
+    return this.providerService.findById(provider.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar prestador por ID' })
   @ApiOkResponse({ type: ProviderProfile })
   @ApiNotFoundResponse({ description: 'Prestador não encontrado' })
-  async findById(@Param('id') id: string): Promise<ProviderProfile> {
+  async findById(@Param('id') id: string): Promise<ProviderFullDetails> {
     return this.providerService.findById(id);
   }
 
@@ -224,5 +252,44 @@ export class ProviderController {
     @Body() body: RejectProviderRequestDto,
   ): Promise<ProviderVerification> {
     return this.providerService.reject({ providerId: id, reviewedBy, reason: body.reason });
+  }
+
+  @Get('payment-method-types')
+  @ApiOperation({ summary: 'Listar tipos de formas de pagamento disponíveis' })
+  @ApiOkResponse({ type: [PaymentMethodType] })
+  async listPaymentMethodTypes(): Promise<PaymentMethodType[]> {
+    return this.providerService.listPaymentMethodTypes();
+  }
+
+  @Get(':id/payment-methods')
+  @ApiOperation({ summary: 'Listar formas de pagamento aceitas pelo prestador' })
+  @ApiOkResponse({ type: [ProviderPaymentMethod] })
+  @ApiNotFoundResponse()
+  async listProviderPaymentMethods(@Param('id') id: string): Promise<ProviderPaymentMethod[]> {
+    return this.providerService.listProviderPaymentMethods(id);
+  }
+
+  @Put(':id/payment-methods')
+  @ApiOperation({ summary: 'Definir formas de pagamento aceitas pelo prestador' })
+  @ApiBody({
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          paymentMethodTypeId: { type: 'string', format: 'uuid' },
+          isEnabled: { type: 'boolean' },
+        },
+        required: ['paymentMethodTypeId', 'isEnabled'],
+      },
+    },
+  })
+  @ApiOkResponse({ type: [ProviderPaymentMethod] })
+  @ApiNotFoundResponse()
+  async setProviderPaymentMethods(
+    @Param('id') id: string,
+    @Body() body: { paymentMethodTypeId: string; isEnabled: boolean }[],
+  ): Promise<ProviderPaymentMethod[]> {
+    return this.providerService.setProviderPaymentMethods(id, body);
   }
 }

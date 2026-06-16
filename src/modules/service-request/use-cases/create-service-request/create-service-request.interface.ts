@@ -8,6 +8,7 @@ export interface CreateServiceRequestUseCaseParams {
   description?: string;
   scheduledAt?: Date;
   priceFinal?: number;
+  paymentMethodTypeId?: string;
 }
 
 export type CreateServiceRequestUseCaseResponse = ServiceRequest;

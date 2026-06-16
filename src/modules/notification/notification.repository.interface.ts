@@ -5,4 +5,5 @@ import { Notification } from '@modules/shared/providers/database/entities/notifi
 export interface NotificationRepositoryInterface {
   listByUser(userId: string): Promise<Notification[]>;
   markAsRead(id: ObjectId): Promise<void>;
+  countUnreadByUser(userId: string): Promise<number>;
 }

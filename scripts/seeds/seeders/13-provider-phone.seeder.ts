@@ -17,22 +17,25 @@ export async function seedProviderPhones(ds: DataSource, ctx: SeedContext, _cfg:
   const phoneRepo = ds.getRepository(Phone);
   const providerPhoneRepo = ds.getRepository(ProviderPhone);
 
-  const entities: ProviderPhone[] = [];
+  const seen = new Set(ctx.phones.map((p) => p.number));
 
-  for (const provider of ctx.providers) {
-    const businessPhone = await phoneRepo.save(
-      phoneRepo.create({ number: randomBrPhone(), type: 'WHATSAPP' }),
-    );
+  const phoneEntities: Phone[] = ctx.providers.map(() => {
+    let number: string;
+    do { number = randomBrPhone(); } while (seen.has(number));
+    seen.add(number);
+    return phoneRepo.create({ number, type: 'WHATSAPP' });
+  });
 
-    entities.push(
-      providerPhoneRepo.create({
-        providerId: provider.id,
-        phoneId: businessPhone.id,
-        label: 'whatsapp comercial',
-        isPrimary: true,
-      }),
-    );
-  }
+  const savedPhones = await phoneRepo.save(phoneEntities);
+
+  const entities = ctx.providers.map((provider, i) =>
+    providerPhoneRepo.create({
+      providerId: provider.id,
+      phoneId: savedPhones[i].id,
+      label: 'whatsapp comercial',
+      isPrimary: true,
+    }),
+  );
 
   ctx.providerPhones = await providerPhoneRepo.save(entities);
 }

@@ -30,6 +30,10 @@ export class Document {
   @Column({ name: 'document_url' })
   documentUrl: string;
 
+  @ApiPropertyOptional({ example: '72246467098', nullable: true })
+  @Column({ name: 'document_number', type: 'varchar', nullable: true })
+  documentNumber: string | null;
+
   @ApiProperty({ example: 'PENDING', enum: ['PENDING', 'APPROVED', 'REJECTED'] })
   @Column()
   status: string;

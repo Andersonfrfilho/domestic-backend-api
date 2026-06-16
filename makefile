@@ -178,10 +178,10 @@ setup: setup-env
 DEV_COMPOSE = docker-compose -p $(COMPOSE_PROJECT_DEV) -f $(COMPOSE_DEV_FILE)
 
 dev-infra: setup-env
-	@echo "🚀 Subindo infra essencial (postgres:5433, mongo, redis, rabbitmq, keycloak, mailpit)..."
+	@echo "🚀 Subindo infra essencial (postgres:5433, mongo, redis, rabbitmq, keycloak, mailpit, minio)..."
 	$(DEV_COMPOSE) up -d \
 		database_postgres database_mongo cache_redis queue_rabbitmq \
-		database_keycloak keycloak mailpit
+		database_keycloak keycloak mailpit storage-minio
 	@echo ""
 	@echo "✅ Infra no ar:"
 	@echo "  PostgreSQL  → localhost:5433"
@@ -190,6 +190,7 @@ dev-infra: setup-env
 	@echo "  RabbitMQ    → localhost:5672  (UI: http://localhost:15672)"
 	@echo "  Keycloak    → http://localhost:8080"
 	@echo "  Mailpit     → http://localhost:8025"
+	@echo "  MinIO       → http://localhost:9000  (Console: http://localhost:9002)"
 
 dev-infra-down: setup-env
 	$(DEV_COMPOSE) down
@@ -212,6 +213,17 @@ migrate-dev:
 
 seed-dev:
 	@echo "🌱 Rodando seeders locais (Keycloak + PostgreSQL + MongoDB)..."
+	@echo "⏳ Aguardando Keycloak ficar pronto..."
+	@until docker exec domestic_keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+		--server http://localhost:8080 \
+		--realm master \
+		--user $${KEYCLOAK_ADMIN_USER:-admin} \
+		--password $${KEYCLOAK_ADMIN_PASSWORD:-admin} 2>/dev/null; do \
+		printf '.'; sleep 3; \
+	done; echo " OK"
+	@echo "🔓 Desabilitando SSL requirement no realm master..."
+	@docker exec domestic_keycloak /opt/keycloak/bin/kcadm.sh update realms/master \
+		-s sslRequired=none 2>/dev/null || true
 	DATABASE_POSTGRES_HOST=localhost \
 	DATABASE_POSTGRES_PORT=5433 \
 	DATABASE_POSTGRES_NAME=backend_database_postgres \
@@ -225,33 +237,28 @@ dev-app-build:
 	$(DEV_COMPOSE) --profile app build
 
 dev-app-up: setup-env
-	@echo "🚀 Subindo migrator + API + BFF + Worker (migrations automáticas)..."
+	@echo "🚀 Subindo migrator + API (migrations automáticas)..."
 	$(DEV_COMPOSE) --profile app up -d
 	@echo ""
-	@echo "✅ Apps no ar:"
-	@echo "  API     → http://localhost:3333"
-	@echo "  BFF     → http://localhost:3335"
-	@echo "  Worker  → porta 3002"
-	@echo ""
+	@echo "✅ API → http://localhost:3333"
 	@echo "Logs: make dev-app-logs"
 
 dev-app-down: setup-env
-	$(DEV_COMPOSE) --profile app rm -sf migrator api bff worker
+	$(DEV_COMPOSE) --profile app rm -sf api
 
 dev-app-logs:
 	$(DEV_COMPOSE) --profile app logs -f api bff worker
 
 dev-all: dev-infra seed-dev dev-app-up
 	@echo ""
-	@echo "✅ Stack completa no ar!"
-	@echo "  PostgreSQL  → localhost:5433"
-	@echo "  MongoDB     → localhost:27017"
-	@echo "  Redis       → localhost:6379"
-	@echo "  RabbitMQ    → localhost:5672  (UI: http://localhost:15672)"
-	@echo "  Keycloak    → http://localhost:8080"
-	@echo "  Mailpit     → http://localhost:8025"
-	@echo "  API         → http://localhost:3333"
-	@echo "  BFF         → http://localhost:3335"
+	@echo "✅ Stack da API no ar!"
+	@echo "  PostgreSQL → localhost:5433"
+	@echo "  MongoDB    → localhost:27017"
+	@echo "  Redis      → localhost:6379"
+	@echo "  RabbitMQ   → localhost:5672  (UI: http://localhost:15672)"
+	@echo "  Keycloak   → http://localhost:8080"
+	@echo "  Mailpit    → http://localhost:8025"
+	@echo "  API        → http://localhost:3333"
 	@echo ""
 	@echo "Logs: make dev-app-logs"
 
