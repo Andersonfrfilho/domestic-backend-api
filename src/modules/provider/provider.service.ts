@@ -8,6 +8,7 @@ import { ProviderVerification } from '@modules/shared/providers/database/entitie
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
 import {
+  type ListApprovedWithDetailsParams,
   type ProviderFullDetails,
   type ProviderWithDetails,
   type SetProviderPaymentMethodsParams,
@@ -66,16 +67,7 @@ export interface ProviderServiceInterface {
   findById(id: string): Promise<ProviderFullDetails>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
   list(): Promise<ProviderProfile[]>;
-  listWithDetails(
-    sort?: string,
-    limit?: number,
-    available?: boolean,
-    city?: string,
-    state?: string,
-    categoryId?: string,
-    priceMin?: number,
-    priceMax?: number,
-  ): Promise<ProviderWithDetails[]>;
+  listWithDetails(params?: ListApprovedWithDetailsParams): Promise<ProviderWithDetails[]>;
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile>;
   addService(params: AddProviderServiceUseCaseParams): Promise<ProviderServiceEntity>;
   removeService(providerId: string, serviceId: string): Promise<void>;
@@ -145,26 +137,8 @@ export class ProviderService implements ProviderServiceInterface {
     return this.listUseCase.execute();
   }
 
-  listWithDetails(
-    sort?: string,
-    limit?: number,
-    available?: boolean,
-    city?: string,
-    state?: string,
-    categoryId?: string,
-    priceMin?: number,
-    priceMax?: number,
-  ): Promise<ProviderWithDetails[]> {
-    return this.providerRepository.listApprovedWithDetails(
-      sort,
-      limit,
-      available,
-      city,
-      state,
-      categoryId,
-      priceMin,
-      priceMax,
-    );
+  listWithDetails(params?: ListApprovedWithDetailsParams): Promise<ProviderWithDetails[]> {
+    return this.providerRepository.listApprovedWithDetails(params);
   }
 
   update(params: UpdateProviderUseCaseParams): Promise<ProviderProfile> {

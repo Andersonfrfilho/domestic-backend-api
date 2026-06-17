@@ -8,4 +8,6 @@ export const VERIFY_PHONE_CODE_LOG_MESSAGES = {
   DEV_CODE_RECEIVED: 'Dev verification code received',
   EVENT_PUBLISHED: 'Phone verified event published',
   EVENT_PUBLISH_FAILED: 'Failed to publish phone verified event',
+  KEYCLOAK_VERIFIED: 'Phone verification synced to Keycloak',
+  KEYCLOAK_VERIFY_ATTEMPT_FAILED: 'Keycloak verify attempt failed',
 } as const;

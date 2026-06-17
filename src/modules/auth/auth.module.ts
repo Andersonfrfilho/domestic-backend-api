@@ -10,6 +10,8 @@ import { ProviderAvailability } from '@modules/shared/providers/database/entitie
 import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
 import { ProviderService } from '@modules/shared/providers/database/entities/provider-service.entity';
+import { ProviderVerification } from '@modules/shared/providers/database/entities/provider-verification.entity';
+import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 import { UserDocument } from '@modules/shared/providers/database/entities/user-document.entity';
 import { User } from '@modules/shared/providers/database/entities/user.entity';
 import { TermsAcceptanceRepository } from '@modules/shared/providers/database/repositories/terms-acceptance.repository';
@@ -22,6 +24,8 @@ import { CategoryRepository } from './repositories/category.repository';
 import { ProviderAvailabilityRepository } from './repositories/provider-availability.repository';
 import { ProviderPaymentMethodRepository } from './repositories/provider-payment-method.repository';
 import { ProviderServiceRepository } from './repositories/provider-service.repository';
+import { ProviderVerificationRepository } from './repositories/provider-verification.repository';
+import { ProviderWorkLocationRepository } from './repositories/provider-work-location.repository';
 import { AcceptTermsUseCase } from './use-cases/accept-terms/accept-terms.use-case';
 import { CheckDocumentExistsUseCase } from './use-cases/check-document-exists/check-document-exists.use-case';
 import { CheckEmailExistsUseCase } from './use-cases/check-email-exists/check-email-exists.use-case';
@@ -32,17 +36,24 @@ import { GetCurrentTermsVersionUseCase } from './use-cases/get-current-terms/get
 import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-terms-versions.use-case';
 import { LogoutUseCase } from './use-cases/logout/logout.use-case';
 import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
+import { AddWorkLocationUseCase } from './use-cases/provider-profile/add-work-location.use-case';
 import { CheckPixKeyAvailabilityUseCase } from './use-cases/provider-profile/check-pix-key-availability.use-case';
 import { CreateProviderServiceUseCase } from './use-cases/provider-profile/create-provider-service.use-case';
 import { DeleteProviderAvailabilityUseCase } from './use-cases/provider-profile/delete-provider-availability.use-case';
 import { DeleteProviderServiceUseCase } from './use-cases/provider-profile/delete-provider-service.use-case';
 import { GetCategoriesUseCase } from './use-cases/provider-profile/get-categories.use-case';
+import { GetMyProviderProfileUseCase } from './use-cases/provider-profile/get-my-provider-profile.use-case';
+import { GetMyVerificationUseCase } from './use-cases/provider-profile/get-my-verification.use-case';
 import { GetPaymentMethodTypesUseCase } from './use-cases/provider-profile/get-payment-method-types.use-case';
 import { GetProviderAvailabilityUseCase } from './use-cases/provider-profile/get-provider-availability.use-case';
 import { GetProviderPaymentMethodsUseCase } from './use-cases/provider-profile/get-provider-payment-methods.use-case';
 import { GetProviderServicesUseCase } from './use-cases/provider-profile/get-provider-services.use-case';
+import { GetWorkLocationsUseCase } from './use-cases/provider-profile/get-work-locations.use-case';
+import { RemoveWorkLocationUseCase } from './use-cases/provider-profile/remove-work-location.use-case';
 import { SetProviderAvailabilityUseCase } from './use-cases/provider-profile/set-provider-availability.use-case';
 import { SetProviderPaymentMethodsUseCase } from './use-cases/provider-profile/set-provider-payment-methods.use-case';
+import { SubmitMyVerificationUseCase } from './use-cases/provider-profile/submit-my-verification.use-case';
+import { UpdateMyProviderProfileUseCase } from './use-cases/provider-profile/update-my-provider-profile.use-case';
 import { UpdateProviderAvailabilityUseCase } from './use-cases/provider-profile/update-provider-availability.use-case';
 import { UpdateProviderServiceUseCase } from './use-cases/provider-profile/update-provider-service.use-case';
 import { SendVerificationCodeUseCase } from './use-cases/send-verification-code/send-verification-code.use-case';
@@ -62,6 +73,8 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
         ProviderProfile,
         PaymentMethodType,
         ProviderPaymentMethod,
+        ProviderWorkLocation,
+        ProviderVerification,
       ],
       CONNECTIONS_NAMES.POSTGRES,
     ),
@@ -90,6 +103,8 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
     ProviderServiceRepository,
     ProviderAvailabilityRepository,
     ProviderPaymentMethodRepository,
+    ProviderWorkLocationRepository,
+    ProviderVerificationRepository,
     GetCategoriesUseCase,
     CreateProviderServiceUseCase,
     GetProviderServicesUseCase,
@@ -103,6 +118,13 @@ import { VerifyCodeUseCase } from './use-cases/verify-code/verify-code.use-case'
     GetProviderPaymentMethodsUseCase,
     SetProviderPaymentMethodsUseCase,
     CheckPixKeyAvailabilityUseCase,
+    GetMyProviderProfileUseCase,
+    UpdateMyProviderProfileUseCase,
+    GetWorkLocationsUseCase,
+    AddWorkLocationUseCase,
+    RemoveWorkLocationUseCase,
+    GetMyVerificationUseCase,
+    SubmitMyVerificationUseCase,
   ],
   exports: [
     SendVerificationCodeUseCase,

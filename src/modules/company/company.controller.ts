@@ -1,6 +1,5 @@
 import { ApiAuthGuard } from '@adatechnology/nestjs-auth-keycloak';
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 
 import { COMPANY_SERVICE_PROVIDE } from './company.token';
 import { CompanyService } from './company.service';
@@ -107,5 +106,26 @@ export class CompanyController {
     @Body() body: { providerId: string; role?: string; commissionRate?: number; fixedSalary?: number },
   ) {
     return this.companyService.addProvider({ companyId, ...body });
+  }
+
+  @Put(':companyId')
+  async updateCompany(
+    @Param('companyId') companyId: string,
+    @Body() body: {
+      companyName?: string;
+      tradeName?: string | null;
+      email?: string;
+      phone?: string;
+      stateRegistration?: string | null;
+      municipalRegistration?: string | null;
+    },
+    @Req() req: any,
+  ) {
+    const requestingUserId: string = req.headers['x-user-id'] ?? req.user?.sub;
+    return this.companyService.updateCompany({
+      companyId,
+      requestingUserId,
+      ...body,
+    });
   }
 }

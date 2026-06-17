@@ -63,6 +63,25 @@ export class CompanyRepository implements CompanyRepositoryInterface {
     return this.companyRepo.findOne({ where: { id } });
   }
 
+  async update(id: string, data: {
+    companyName?: string;
+    tradeName?: string | null;
+    email?: string;
+    phone?: string;
+    stateRegistration?: string | null;
+    municipalRegistration?: string | null;
+  }): Promise<Company> {
+    await this.companyRepo.update(id, {
+      ...(data.companyName !== undefined && { companyName: data.companyName }),
+      ...(data.tradeName !== undefined && { tradeName: data.tradeName }),
+      ...(data.email !== undefined && { email: data.email }),
+      ...(data.phone !== undefined && { phone: data.phone }),
+      ...(data.stateRegistration !== undefined && { stateRegistration: data.stateRegistration }),
+      ...(data.municipalRegistration !== undefined && { municipalRegistration: data.municipalRegistration }),
+    });
+    return this.companyRepo.findOneOrFail({ where: { id } });
+  }
+
   async createMember(data: {
     companyId: string;
     userId: string;

@@ -40,6 +40,7 @@ import { AddDetailsToProviderPaymentMethods1778800000001 } from './1778800000001
 import { AddAvatarUrlToProviderProfiles1778900000000 } from './1778900000000-add-avatar-url-to-provider-profiles';
 import { AddPaymentMethodToServiceRequests1778900000001 } from './1778900000001-add-payment-method-to-service-requests';
 import { CreateUserDeviceTokens1778900000002 } from './1778900000002-create-user-device-tokens';
+import { AddEstimatedHoursToServiceRequests1778900000003 } from './1778900000003-add-estimated-hours-to-service-requests';
 
 export const migrations = [
   User1763256695093,
@@ -84,4 +85,5 @@ export const migrations = [
   AddAvatarUrlToProviderProfiles1778900000000,
   AddPaymentMethodToServiceRequests1778900000001,
   CreateUserDeviceTokens1778900000002,
+  AddEstimatedHoursToServiceRequests1778900000003,
 ];

@@ -139,6 +139,7 @@ export class PhoneService implements PhoneServiceInterface {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
     const userPhone = await this.verifyPhoneCodeUseCase.execute({
       userId: user.id,
+      keycloakId,
       userPhoneId,
       code,
     });

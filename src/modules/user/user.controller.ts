@@ -1,4 +1,5 @@
 import { ApiAuthGuard, AuthUser, Roles, RolesGuard } from '@adatechnology/nestjs-auth-keycloak';
+import { KEYCLOAK_ADMIN_CLIENT, KeycloakAdminClient } from '@adatechnology/nestjs-keycloak-admin';
 import {
   Body,
   Controller,
@@ -25,11 +26,14 @@ import {
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CONNECTIONS_NAMES } from '@app/modules/shared/providers/database/database.constant';
+import { UserEmail } from '@app/modules/shared/providers/database/entities/user-email.entity';
+import { UserPhone } from '@app/modules/shared/providers/database/entities/user-phone.entity';
 import { Document } from '@app/modules/shared/providers/database/entities/document.entity';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
 import { ROLES } from '@modules/shared/constants';
@@ -51,6 +55,12 @@ export class UserController {
     private readonly userService: UserServiceInterface,
     @InjectRepository(Document, CONNECTIONS_NAMES.POSTGRES)
     private readonly documentRepository: Repository<Document>,
+    @InjectRepository(UserEmail, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userEmailRepository: Repository<UserEmail>,
+    @InjectRepository(UserPhone, CONNECTIONS_NAMES.POSTGRES)
+    private readonly userPhoneRepository: Repository<UserPhone>,
+    @Inject(KEYCLOAK_ADMIN_CLIENT)
+    private readonly keycloakAdmin: KeycloakAdminClient,
   ) {}
 
   @Post()
@@ -228,6 +238,30 @@ export class UserController {
     await this.documentRepository.softDelete({ id: documentId, userId: user.id });
   }
 
+  @Put('me/verification-attribute')
+  @Roles(ROLES.USER.MANAGER)
+  @UseGuards(ApiAuthGuard, RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Atualizar atributo de verificação no Keycloak' })
+  @ApiHeader({ name: 'X-User-Id', description: 'Keycloak user ID from Kong', required: true })
+  @ApiOkResponse()
+  @ApiBadRequestResponse({ description: 'Atributo inválido. Use "email" ou "phone"' })
+  @ApiUnprocessableEntityResponse()
+  async updateVerificationAttribute(
+    @AuthUser() keycloakId: string,
+    @Body() body: { type: 'email' | 'phone' },
+  ): Promise<void> {
+    if (body.type === 'email') {
+      const { accessToken } = await this.keycloakAdmin.getAdminToken();
+      await this.keycloakAdmin.updateUser({
+        userId: keycloakId,
+        userData: { emailVerified: true },
+        adminToken: accessToken,
+      });
+    }
+    // phone não tem campo nativo no Keycloak — ignora
+  }
+
   @Get('me/onboarding-status')
   @Roles(ROLES.USER.MANAGER)
   @UseGuards(ApiAuthGuard, RolesGuard)
@@ -239,24 +273,36 @@ export class UserController {
       properties: {
         hasAddress: { type: 'boolean' },
         hasDocument: { type: 'boolean' },
+        emailVerified: { type: 'boolean' },
+        phoneVerified: { type: 'boolean' },
       },
     },
   })
   async getOnboardingStatus(
     @AuthUser() keycloakId: string,
-  ): Promise<{ hasAddress: boolean; hasDocument: boolean }> {
+  ): Promise<{ hasAddress: boolean; hasDocument: boolean; emailVerified: boolean; phoneVerified: boolean }> {
     const user = await this.userService.getUserByKeycloakId(keycloakId);
-    const [addresses, documents] = await Promise.all([
+    const [addresses, documents, userEmails, userPhones] = await Promise.all([
       this.userService.listUserAddressesByKeycloakId(keycloakId),
       this.documentRepository.find({
         where: { userId: user.id },
         select: ['id'],
         take: 1,
       }),
+      this.userEmailRepository.find({
+        where: { userId: user.id },
+        select: ['verifiedAt'],
+      }),
+      this.userPhoneRepository.find({
+        where: { userId: user.id },
+        select: ['verifiedAt'],
+      }),
     ]);
     return {
       hasAddress: addresses.length > 0,
       hasDocument: documents.length > 0,
+      emailVerified: userEmails.some((e) => e.verifiedAt !== null),
+      phoneVerified: userPhones.some((p) => p.verifiedAt !== null),
     };
   }
 }

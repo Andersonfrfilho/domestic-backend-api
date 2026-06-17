@@ -40,4 +40,10 @@ export class CreateServiceRequestRequestDto {
   @IsUUID('all', { message: ErrorMessages.invalid('Payment Method Type ID') })
   @IsOptional()
   paymentMethodTypeId?: string;
+
+  @ApiPropertyOptional({ description: 'Duração estimada do serviço em horas (ex: 1.5 = 1h30min)' })
+  @IsNumber({}, { message: ErrorMessages['number.base']('Duração estimada') })
+  @Min(0.5, { message: ErrorMessages['number.min']('Duração estimada', 0.5) })
+  @IsOptional()
+  estimatedHours?: number;
 }

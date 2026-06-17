@@ -6,6 +6,7 @@ import { ProviderVerification } from '@modules/shared/providers/database/entitie
 import { ProviderWorkLocation } from '@modules/shared/providers/database/entities/provider-work-location.entity';
 
 import {
+  ListApprovedWithDetailsParams,
   ProviderFullDetails,
   ProviderWithDetails,
   SetProviderPaymentMethodsParams,
@@ -55,17 +56,8 @@ export interface ProviderRepositoryInterface {
   findById(id: string): Promise<ProviderProfile | null>;
   findByIdWithDetails(id: string): Promise<ProviderFullDetails | null>;
   findByUserId(userId: string): Promise<ProviderProfile | null>;
-  listApproved(): Promise<ProviderProfile[]>;
-  listApprovedWithDetails(
-    sort?: string,
-    limit?: number,
-    available?: boolean,
-    city?: string,
-    state?: string,
-    categoryId?: string,
-    priceMin?: number,
-    priceMax?: number,
-  ): Promise<ProviderWithDetails[]>;
+  listApproved(excludeKeycloakId?: string): Promise<ProviderProfile[]>;
+  listApprovedWithDetails(params?: ListApprovedWithDetailsParams): Promise<ProviderWithDetails[]>;
   update(id: string, params: UpdateProviderParams): Promise<ProviderProfile>;
 
   addService(params: AddProviderServiceParams): Promise<ProviderService>;

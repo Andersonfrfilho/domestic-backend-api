@@ -19,4 +19,14 @@ export class ServiceRequestErrorFactory extends BaseErrorFactory {
   static notAuthorized() {
     return this.createBusinessLogic(SERVICE_REQUEST_ERROR_CONFIGS.notAuthorized());
   }
+
+  static selfHiring() {
+    return this.createBusinessLogic(SERVICE_REQUEST_ERROR_CONFIGS.selfHiring());
+  }
+
+  static timeConflict(providerId: string, scheduledAt: string) {
+    return this.createBusinessLogic(
+      SERVICE_REQUEST_ERROR_CONFIGS.timeConflict(providerId, scheduledAt),
+    );
+  }
 }

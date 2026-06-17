@@ -22,6 +22,15 @@ export interface CompanyRepositoryInterface {
 
   findById(id: string): Promise<Company | null>;
 
+  update(id: string, data: {
+    companyName?: string;
+    tradeName?: string | null;
+    email?: string;
+    phone?: string;
+    stateRegistration?: string | null;
+    municipalRegistration?: string | null;
+  }): Promise<Company>;
+
   createMember(data: {
     companyId: string;
     userId: string;

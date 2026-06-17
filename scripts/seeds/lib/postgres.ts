@@ -23,6 +23,8 @@ import { ProviderService } from '@app/modules/shared/providers/database/entities
 import { ProviderVerificationLog } from '@app/modules/shared/providers/database/entities/provider-verification-log.entity';
 import { ProviderVerification } from '@app/modules/shared/providers/database/entities/provider-verification.entity';
 import { ProviderWorkLocation } from '@app/modules/shared/providers/database/entities/provider-work-location.entity';
+import { PaymentMethodType } from '@app/modules/shared/providers/database/entities/payment-method-type.entity';
+import { ProviderPaymentMethod } from '@app/modules/shared/providers/database/entities/provider-payment-method.entity';
 import { Review } from '@app/modules/shared/providers/database/entities/review.entity';
 import { ServiceRequest } from '@app/modules/shared/providers/database/entities/service-request.entity';
 import { Service } from '@app/modules/shared/providers/database/entities/service.entity';
@@ -69,6 +71,8 @@ export function createPostgresDataSource(): DataSource {
       ProviderVerification,
       ProviderVerificationLog,
       ProviderWorkLocation,
+      PaymentMethodType,
+      ProviderPaymentMethod,
       Review,
       Service,
       ServiceRequest,

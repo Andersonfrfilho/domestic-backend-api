@@ -7,7 +7,7 @@ const command = process.argv[2];
 // FORCE_TS=true → sempre usa ts-node (útil quando dist/ está desatualizado)
 const forceTs = process.env.FORCE_TS === 'true';
 const hasDist = !forceTs && existsSync('./dist');
-const basePath = hasDist ? 'dist' : 'src';
+const basePath = hasDist ? 'dist/src' : 'src';
 const fileExt = hasDist ? 'js' : 'ts';
 const executor = hasDist ? 'node' : './node_modules/.bin/ts-node -r tsconfig-paths/register';
 

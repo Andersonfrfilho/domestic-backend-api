@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Address } from '@app/modules/shared/providers/database/entities/address.entity';
 import { Document } from '@app/modules/shared/providers/database/entities/document.entity';
 import { UserAddress } from '@app/modules/shared/providers/database/entities/user-address.entity';
+import { UserEmail } from '@app/modules/shared/providers/database/entities/user-email.entity';
+import { UserPhone } from '@app/modules/shared/providers/database/entities/user-phone.entity';
 import { User } from '@app/modules/shared/providers/database/entities/user.entity';
 import { AddressRepository } from '@app/modules/shared/providers/database/repositories/address.repository';
 import { SharedModule } from '@modules/shared/shared.module';
@@ -44,7 +46,7 @@ import {
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Address, UserAddress, Document], CONNECTIONS_NAMES.POSTGRES),
+    TypeOrmModule.forFeature([User, Address, UserAddress, Document, UserEmail, UserPhone], CONNECTIONS_NAMES.POSTGRES),
     SharedModule,
   ],
   controllers: [UserController],

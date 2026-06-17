@@ -2,6 +2,7 @@ import { UserPhone } from '@modules/shared/providers/database/entities/user-phon
 
 export interface VerifyPhoneCodeUseCaseParams {
   userId: string;
+  keycloakId: string;
   userPhoneId: string;
   code: string;
 }

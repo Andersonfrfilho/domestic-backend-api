@@ -7,6 +7,7 @@ import { SeedConfig } from '../lib/config';
 import { SeedContext } from '../lib/context';
 
 const PRICE_TYPES = ['FIXED', 'HOUR', 'DAY'];
+const DURATION_MINUTES = [30, 45, 60, 90, 120, 150, 180, 240];
 
 export async function seedProviderServices(ds: DataSource, ctx: SeedContext, _cfg: SeedConfig): Promise<void> {
   const repo = ds.getRepository(ProviderService);
@@ -25,6 +26,7 @@ export async function seedProviderServices(ds: DataSource, ctx: SeedContext, _cf
           serviceId: service.id,
           priceBase: parseFloat(faker.number.float({ min: 50, max: 500, fractionDigits: 2 }).toFixed(2)),
           priceType: faker.helpers.arrayElement(PRICE_TYPES),
+          estimatedDurationMinutes: faker.helpers.arrayElement(DURATION_MINUTES),
         }),
       );
     }

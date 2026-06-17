@@ -1,6 +1,13 @@
 import { Address } from '@app/modules/shared/providers/database/entities/address.entity';
 import { ProviderAvailability } from '@app/modules/shared/providers/database/entities/provider-availability.entity';
 import { Category } from '@app/modules/shared/providers/database/entities/category.entity';
+import { Company } from '@app/modules/shared/providers/database/entities/company.entity';
+import { CompanyAddress } from '@app/modules/shared/providers/database/entities/company-address.entity';
+import { CompanyBusinessHours } from '@app/modules/shared/providers/database/entities/company-business-hours.entity';
+import { CompanyEmail } from '@app/modules/shared/providers/database/entities/company-email.entity';
+import { CompanyMember } from '@app/modules/shared/providers/database/entities/company-member.entity';
+import { CompanyPhone } from '@app/modules/shared/providers/database/entities/company-phone.entity';
+import { CompanyProvider } from '@app/modules/shared/providers/database/entities/company-provider.entity';
 import { Document } from '@app/modules/shared/providers/database/entities/document.entity';
 import { Email } from '@app/modules/shared/providers/database/entities/email.entity';
 import { Phone } from '@app/modules/shared/providers/database/entities/phone.entity';
@@ -48,6 +55,13 @@ export interface SeedContext {
   reviews: Review[];
   providerPaymentMethods: ProviderPaymentMethod[];
   providerAvailability: ProviderAvailability[];
+  companies: Company[];
+  companyAddresses: CompanyAddress[];
+  companyEmails: CompanyEmail[];
+  companyPhones: CompanyPhone[];
+  companyBusinessHours: CompanyBusinessHours[];
+  companyMembers: CompanyMember[];
+  companyProviders: CompanyProvider[];
   notificationsInserted: number;
 }
 
@@ -77,6 +91,13 @@ export function createEmptyContext(): SeedContext {
     reviews: [],
     providerPaymentMethods: [],
     providerAvailability: [],
+    companies: [],
+    companyAddresses: [],
+    companyEmails: [],
+    companyPhones: [],
+    companyBusinessHours: [],
+    companyMembers: [],
+    companyProviders: [],
     notificationsInserted: 0,
   };
 }

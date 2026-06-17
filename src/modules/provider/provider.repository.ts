@@ -44,6 +44,13 @@ export interface ProviderWithDetails {
   }[];
   reviewCount: number;
   activeDays: number[];
+  paymentMethods: { id: string; name: string; label: string; icon: string | null }[];
+}
+
+export interface ProviderAvailabilitySlot {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
 }
 
 export interface ProviderFullDetails {
@@ -78,11 +85,27 @@ export interface ProviderFullDetails {
     isEnabled: boolean;
   }[];
   reviewCount: number;
+  availability: ProviderAvailabilitySlot[];
 }
 
 export interface SetProviderPaymentMethodsParams {
   paymentMethodTypeId: string;
   isEnabled: boolean;
+}
+
+export interface ListApprovedWithDetailsParams {
+  sort?: string;
+  limit?: number;
+  available?: boolean;
+  city?: string;
+  state?: string;
+  categoryId?: string;
+  priceMin?: number;
+  priceMax?: number;
+  ratingMin?: number;
+  paymentMethodId?: string;
+  dayOfWeek?: number;
+  excludeKeycloakId?: string;
 }
 
 @Injectable()
@@ -164,6 +187,7 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       workLocations: [],
       paymentMethods: [],
       reviewCount: 0,
+      availability: [],
     };
 
     const seenServices = new Set<string>();
@@ -215,6 +239,22 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       isEnabled: row.isEnabled,
     }));
 
+    const availabilityRows = await this.profileRepo.manager.query<
+      { day_of_week: number; start_time: string; end_time: string }[]
+    >(
+      `SELECT day_of_week, start_time, end_time
+       FROM provider_availability
+       WHERE provider_id = $1 AND is_active = true
+       ORDER BY day_of_week, start_time`,
+      [id],
+    );
+
+    provider.availability = availabilityRows.map((row) => ({
+      dayOfWeek: row.day_of_week,
+      startTime: row.start_time,
+      endTime: row.end_time,
+    }));
+
     return provider;
   }
 
@@ -222,8 +262,8 @@ export class ProviderRepository implements ProviderRepositoryInterface {
     return this.profileRepo.findOne({ where: { userId } });
   }
 
-  async listApproved(): Promise<ProviderProfile[]> {
-    return this.profileRepo
+  async listApproved(excludeKeycloakId?: string): Promise<ProviderProfile[]> {
+    let query = this.profileRepo
       .createQueryBuilder('p')
       .innerJoin(
         (qb) =>
@@ -243,20 +283,20 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       .where('v.status = :status', { status: 'APPROVED' })
       .andWhere(
         'EXISTS (SELECT 1 FROM provider_payment_methods ppm WHERE ppm.provider_id = p.id AND ppm.is_enabled = true)',
-      )
-      .getMany();
+      );
+
+    if (excludeKeycloakId) {
+      query = query.andWhere(
+        'p.user_id NOT IN (SELECT u.id FROM "users" u WHERE u.keycloak_id = :excludeKeycloakId)',
+        { excludeKeycloakId },
+      );
+    }
+
+    return query.getMany();
   }
 
-  async listApprovedWithDetails(
-    sort?: string,
-    limit?: number,
-    available?: boolean,
-    city?: string,
-    state?: string,
-    categoryId?: string,
-    priceMin?: number,
-    priceMax?: number,
-  ): Promise<ProviderWithDetails[]> {
+  async listApprovedWithDetails(params: ListApprovedWithDetailsParams = {}): Promise<ProviderWithDetails[]> {
+    const { sort, limit, available, city, state, categoryId, priceMin, priceMax, ratingMin, paymentMethodId, dayOfWeek, excludeKeycloakId } = params;
     let query = this.profileRepo
       .createQueryBuilder('p')
       .leftJoin(
@@ -318,6 +358,31 @@ export class ProviderRepository implements ProviderRepositoryInterface {
       query = query.andWhere('ps.price_base <= :priceMax', { priceMax });
     }
 
+    if (ratingMin != null) {
+      query = query.andWhere('p.average_rating >= :ratingMin', { ratingMin });
+    }
+
+    if (paymentMethodId) {
+      query = query.andWhere(
+        'EXISTS (SELECT 1 FROM provider_payment_methods ppm2 WHERE ppm2.provider_id = p.id AND ppm2.payment_method_type_id = :paymentMethodId AND ppm2.is_enabled = true)',
+        { paymentMethodId },
+      );
+    }
+
+    if (dayOfWeek != null) {
+      query = query.andWhere(
+        'EXISTS (SELECT 1 FROM provider_availability pa WHERE pa.provider_id = p.id AND pa.day_of_week = :dayOfWeek AND pa.is_active = true)',
+        { dayOfWeek },
+      );
+    }
+
+    if (excludeKeycloakId) {
+      query = query.andWhere(
+        'p.user_id NOT IN (SELECT u.id FROM "users" u WHERE u.keycloak_id = :excludeKeycloakId)',
+        { excludeKeycloakId },
+      );
+    }
+
     if (sort === 'rating') {
       query = query.orderBy('p.average_rating', 'DESC');
     } else {
@@ -353,6 +418,7 @@ export class ProviderRepository implements ProviderRepositoryInterface {
           services: [],
           reviewCount: 0,
           activeDays: [],
+          paymentMethods: [],
         });
       }
 
@@ -410,6 +476,31 @@ export class ProviderRepository implements ProviderRepositoryInterface {
 
       for (const provider of providers) {
         provider.activeDays = daysMap.get(provider.id) ?? [];
+      }
+
+      const paymentMethodRows = await this.profileRepo.manager.query<{
+        provider_id: string;
+        type_id: string;
+        name: string;
+        label: string;
+        icon: string | null;
+      }[]>(
+        `SELECT ppm.provider_id, pmt.id as type_id, pmt.name, pmt.label, pmt.icon
+         FROM provider_payment_methods ppm
+         INNER JOIN payment_method_types pmt ON pmt.id = ppm.payment_method_type_id
+         WHERE ppm.provider_id = ANY($1)
+           AND pmt.is_enabled = true
+           AND ppm.is_enabled = true`,
+        [providers.map((p) => p.id)],
+      );
+
+      const paymentMap = new Map<string, ProviderWithDetails['paymentMethods']>();
+      for (const row of paymentMethodRows) {
+        if (!paymentMap.has(row.provider_id)) paymentMap.set(row.provider_id, []);
+        paymentMap.get(row.provider_id)!.push({ id: row.type_id, name: row.name, label: row.label, icon: row.icon });
+      }
+      for (const provider of providers) {
+        provider.paymentMethods = paymentMap.get(provider.id) ?? [];
       }
     }
 

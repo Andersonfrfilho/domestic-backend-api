@@ -9,7 +9,10 @@ import { ServiceRequest } from '@modules/shared/providers/database/entities/serv
 
 import { ServiceRequestErrorFactory } from './factories/service-request.error.factory';
 import {
+  BusySlot,
   CreateServiceRequestParams,
+  FindBusySlotsParams,
+  FindConflictingRequestParams,
   ServiceRequestNotificationData,
   ServiceRequestRepositoryInterface,
 } from './service-request.repository.interface';
@@ -177,6 +180,43 @@ export class ServiceRequestRepository implements ServiceRequestRepositoryInterfa
       serviceName: row.service_name ?? '',
       scheduledAt: row.scheduled_at ? new Date(row.scheduled_at).toISOString() : null,
     };
+  }
+
+  async findConflictingRequest(params: FindConflictingRequestParams): Promise<ServiceRequest | null> {
+    const { providerId, scheduledAt, estimatedHours } = params;
+    const durationMs = (estimatedHours ?? 1) * 60 * 60 * 1000;
+    const newEnd = new Date(scheduledAt.getTime() + durationMs);
+
+    const rows = await this.repo.manager.query<{ id: string }[]>(
+      `SELECT sr.id FROM service_requests sr
+       WHERE sr.provider_id = $1
+         AND sr.status = 'ACCEPTED'
+         AND sr.scheduled_at IS NOT NULL
+         AND sr.scheduled_at < $3
+         AND sr.scheduled_at + COALESCE(sr.estimated_hours, 1) * interval '1 hour' > $2
+       LIMIT 1`,
+      [providerId, scheduledAt, newEnd],
+    );
+
+    if (!rows.length) return null;
+    return this.repo.findOne({ where: { id: rows[0].id } });
+  }
+
+  async findBusySlotsForDate(params: FindBusySlotsParams): Promise<BusySlot[]> {
+    const { providerId, date } = params;
+    const rows = await this.repo.manager.query<{ scheduled_at: Date; estimated_hours: string }[]>(
+      `SELECT scheduled_at, COALESCE(estimated_hours, 1) AS estimated_hours
+       FROM service_requests
+       WHERE provider_id = $1
+         AND status = 'ACCEPTED'
+         AND scheduled_at IS NOT NULL
+         AND DATE(scheduled_at AT TIME ZONE 'UTC') = $2::date`,
+      [providerId, date],
+    );
+    return rows.map((row) => ({
+      scheduledAt: new Date(row.scheduled_at),
+      estimatedHours: Number(row.estimated_hours),
+    }));
   }
 
   async updateStatus(id: string, status: string): Promise<ServiceRequest> {

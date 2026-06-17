@@ -25,6 +25,7 @@ import {
   COMPANY_REPOSITORY_PROVIDE,
   COMPANY_SERVICE_PROVIDE,
   COMPANY_SET_BUSINESS_HOURS_USE_CASE_PROVIDE,
+  COMPANY_UPDATE_USE_CASE_PROVIDE,
 } from './company.token';
 import { AddCompanyAddressUseCase } from './use-cases/add-company-address/add-company-address.use-case';
 import { AddCompanyEmailUseCase } from './use-cases/add-company-email/add-company-email.use-case';
@@ -35,6 +36,7 @@ import { CreateCompanyUseCase } from './use-cases/create-company/create-company.
 import { GetCompanyDetailsUseCase } from './use-cases/get-company-details/get-company-details.use-case';
 import { ListUserCompaniesUseCase } from './use-cases/list-user-companies/list-user-companies.use-case';
 import { SetCompanyBusinessHoursUseCase } from './use-cases/set-company-business-hours/set-company-business-hours.use-case';
+import { UpdateCompanyUseCase } from './use-cases/update-company/update-company.use-case';
 
 @Module({
   imports: [
@@ -56,6 +58,7 @@ import { SetCompanyBusinessHoursUseCase } from './use-cases/set-company-business
     { provide: COMPANY_SET_BUSINESS_HOURS_USE_CASE_PROVIDE, useClass: SetCompanyBusinessHoursUseCase },
     { provide: COMPANY_ADD_PROVIDER_USE_CASE_PROVIDE, useClass: AddCompanyProviderUseCase },
     { provide: COMPANY_GET_DETAILS_USE_CASE_PROVIDE, useClass: GetCompanyDetailsUseCase },
+    { provide: COMPANY_UPDATE_USE_CASE_PROVIDE, useClass: UpdateCompanyUseCase },
   ],
   exports: [COMPANY_REPOSITORY_PROVIDE, COMPANY_SERVICE_PROVIDE],
 })

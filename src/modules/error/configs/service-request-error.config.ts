@@ -21,4 +21,14 @@ export const SERVICE_REQUEST_ERROR_CONFIGS = {
     code: 'SERVICE_REQUEST_NOT_AUTHORIZED',
     details: {},
   }),
+  selfHiring: (): BusinessLogicErrorConfig => ({
+    message: 'A provider cannot create a service request targeting their own services',
+    code: 'SERVICE_REQUEST_SELF_HIRING_NOT_ALLOWED',
+    details: {},
+  }),
+  timeConflict: (providerId: string, scheduledAt: string): BusinessLogicErrorConfig => ({
+    message: 'Provider already has an accepted service request overlapping this time slot',
+    code: 'SERVICE_REQUEST_PROVIDER_TIME_CONFLICT',
+    details: { providerId, scheduledAt },
+  }),
 };

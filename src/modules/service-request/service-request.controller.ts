@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,8 +29,9 @@ import { ServiceRequest } from '@modules/shared/providers/database/entities/serv
 import { type UserServiceInterface } from '@modules/user/use-cases/create-users/create-user.interface';
 import { USER_SERVICE_PROVIDE } from '@modules/user/user.token';
 
+import { type BusySlot, type ServiceRequestRepositoryInterface } from './service-request.repository.interface';
 import { type ServiceRequestServiceInterface } from './service-request.service';
-import { SERVICE_REQUEST_SERVICE_PROVIDE } from './service-request.token';
+import { SERVICE_REQUEST_REPOSITORY_PROVIDE, SERVICE_REQUEST_SERVICE_PROVIDE } from './service-request.token';
 import { CreateServiceRequestRequestDto } from './use-cases/create-service-request/dtos/create-service-request-request.dto';
 
 @ApiTags('Service Requests')
@@ -42,6 +44,8 @@ export class ServiceRequestController {
     private readonly userService: UserServiceInterface,
     @Inject(PROVIDER_REPOSITORY_PROVIDE)
     private readonly providerRepository: ProviderRepositoryInterface,
+    @Inject(SERVICE_REQUEST_REPOSITORY_PROVIDE)
+    private readonly serviceRequestRepository: ServiceRequestRepositoryInterface,
   ) {}
 
   @Post()
@@ -79,6 +83,16 @@ export class ServiceRequestController {
     }
 
     return this.serviceRequestService.listByContractor(user.id);
+  }
+
+  @Get('busy-slots')
+  @ApiOperation({ summary: 'Horários ocupados do prestador em uma data' })
+  @ApiOkResponse({ schema: { type: 'array', items: { type: 'object', properties: { scheduledAt: { type: 'string' }, estimatedHours: { type: 'number' } } } } })
+  async getBusySlots(
+    @Query('providerId') providerId: string,
+    @Query('date') date: string,
+  ): Promise<BusySlot[]> {
+    return this.serviceRequestRepository.findBusySlotsForDate({ providerId, date });
   }
 
   @Get(':id')

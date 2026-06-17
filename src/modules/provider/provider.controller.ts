@@ -24,8 +24,24 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { IsOptional } from "class-validator";
 
 import { ROLES } from '@modules/shared/constants';
+
+class ListProvidersQueryDto {
+  @IsOptional() sort?: string;
+  @IsOptional() limit?: string;
+  @IsOptional() available?: string;
+  @IsOptional() city?: string;
+  @IsOptional() state?: string;
+  @IsOptional() category_id?: string;
+  @IsOptional() price_min?: string;
+  @IsOptional() price_max?: string;
+  @IsOptional() rating_min?: string;
+  @IsOptional() payment_method_id?: string;
+  @IsOptional() day_of_week?: string;
+  @IsOptional() exclude_keycloak_id?: string;
+}
 import { PaymentMethodType } from '@modules/shared/providers/database/entities/payment-method-type.entity';
 import { ProviderPaymentMethod } from '@modules/shared/providers/database/entities/provider-payment-method.entity';
 import { ProviderProfile } from '@modules/shared/providers/database/entities/provider-profile.entity';
@@ -66,27 +82,23 @@ export class ProviderController {
   @Get()
   @ApiOperation({ summary: 'Listar prestadores aprovados' })
   @ApiOkResponse({ type: [ProviderProfile] })
-  async list(
-    @Query('sort') sort?: string,
-    @Query('limit') limit?: string,
-    @Query('available') available?: string,
-    @Query('city') city?: string,
-    @Query('state') state?: string,
-    @Query('category_id') categoryId?: string,
-    @Query('price_min') priceMin?: string,
-    @Query('price_max') priceMax?: string,
-  ): Promise<ProviderProfile[] | ProviderWithDetails[]> {
-    if (sort || limit || available || city || state || categoryId || priceMin || priceMax) {
-      return this.providerService.listWithDetails(
+  async list(@Query() query: ListProvidersQueryDto): Promise<ProviderProfile[] | ProviderWithDetails[]> {
+    const { sort, limit, available, city, state, category_id, price_min, price_max, rating_min, payment_method_id, day_of_week, exclude_keycloak_id } = query;
+    if (sort || limit || available || city || state || category_id || price_min || price_max || rating_min || payment_method_id || day_of_week || exclude_keycloak_id) {
+      return this.providerService.listWithDetails({
         sort,
-        limit ? parseInt(limit, 10) : undefined,
-        available === 'true',
+        limit: limit ? Number.parseInt(limit, 10) : undefined,
+        available: available === 'true',
         city,
         state,
-        categoryId,
-        priceMin != null ? Number(priceMin) : undefined,
-        priceMax != null ? Number(priceMax) : undefined,
-      );
+        categoryId: category_id,
+        priceMin: price_min != null && price_min !== '' ? Number(price_min) : undefined,
+        priceMax: price_max != null && price_max !== '' ? Number(price_max) : undefined,
+        ratingMin: rating_min != null && rating_min !== '' ? Number(rating_min) : undefined,
+        paymentMethodId: payment_method_id,
+        dayOfWeek: day_of_week != null && day_of_week !== '' ? Number(day_of_week) : undefined,
+        excludeKeycloakId: exclude_keycloak_id,
+      });
     }
     return this.providerService.list();
   }

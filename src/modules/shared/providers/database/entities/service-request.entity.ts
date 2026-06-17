@@ -64,13 +64,17 @@ export class ServiceRequest {
   @Column({ name: 'scheduled_at', type: 'timestamp', nullable: true })
   scheduledAt: Date;
 
-  @ApiPropertyOptional({ example: 200.0, nullable: true })
+  @ApiPropertyOptional({ example: 200, nullable: true })
   @Column({ name: 'price_final', type: 'decimal', nullable: true })
   priceFinal: number;
 
   @ApiPropertyOptional({ example: 'uuid-do-tipo-pagamento', nullable: true })
   @Column({ name: 'payment_method_type_id', type: 'uuid', nullable: true })
   paymentMethodTypeId: string | null;
+
+  @ApiPropertyOptional({ example: 2.5, nullable: true })
+  @Column({ name: 'estimated_hours', type: 'decimal', precision: 5, scale: 2, nullable: true })
+  estimatedHours: number | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;

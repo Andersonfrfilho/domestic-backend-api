@@ -45,7 +45,11 @@ export class CreateServiceRequestUseCase implements CreateServiceRequestUseCaseI
       meta: { ...params },
     });
 
-    const verification = await this.providerRepository.getLatestVerification(params.providerId);
+    const [verification, provider] = await Promise.all([
+      this.providerRepository.getLatestVerification(params.providerId),
+      this.providerRepository.findById(params.providerId),
+    ]);
+
     if (verification?.status !== 'APPROVED') {
       this.logProvider.warn({
         message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.PROVIDER_NOT_APPROVED,
@@ -53,6 +57,39 @@ export class CreateServiceRequestUseCase implements CreateServiceRequestUseCaseI
         meta: { providerId: params.providerId },
       });
       throw ServiceRequestErrorFactory.providerNotApproved(params.providerId);
+    }
+
+    if (provider?.userId === params.contractorId) {
+      this.logProvider.warn({
+        message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.SELF_HIRING_ATTEMPT,
+        context: this.logContext,
+        meta: { contractorId: params.contractorId, providerId: params.providerId },
+      });
+      throw ServiceRequestErrorFactory.selfHiring();
+    }
+
+    if (params.scheduledAt) {
+      const conflict = await this.serviceRequestRepository.findConflictingRequest({
+        providerId: params.providerId,
+        scheduledAt: params.scheduledAt,
+        estimatedHours: params.estimatedHours,
+      });
+
+      if (conflict) {
+        this.logProvider.warn({
+          message: CREATE_SERVICE_REQUEST_LOG_MESSAGES.TIME_CONFLICT,
+          context: this.logContext,
+          meta: {
+            providerId: params.providerId,
+            scheduledAt: params.scheduledAt,
+            conflictingRequestId: conflict.id,
+          },
+        });
+        throw ServiceRequestErrorFactory.timeConflict(
+          params.providerId,
+          params.scheduledAt.toISOString(),
+        );
+      }
     }
 
     const serviceRequest = await this.serviceRequestRepository.create(params);

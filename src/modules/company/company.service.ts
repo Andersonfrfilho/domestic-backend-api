@@ -11,6 +11,7 @@ import {
   COMPANY_LIST_USER_COMPANIES_USE_CASE_PROVIDE,
   COMPANY_REPOSITORY_PROVIDE,
   COMPANY_SET_BUSINESS_HOURS_USE_CASE_PROVIDE,
+  COMPANY_UPDATE_USE_CASE_PROVIDE,
 } from './company.token';
 import type { CompanyRepositoryInterface } from './company.repository.interface';
 import type { AddCompanyAddressUseCaseInterface } from './use-cases/add-company-address/add-company-address.interface';
@@ -22,6 +23,7 @@ import type { CreateCompanyUseCaseInterface } from './use-cases/create-company/c
 import type { GetCompanyDetailsUseCaseInterface } from './use-cases/get-company-details/get-company-details.interface';
 import type { ListUserCompaniesUseCaseInterface } from './use-cases/list-user-companies/list-user-companies.interface';
 import type { SetCompanyBusinessHoursUseCaseInterface } from './use-cases/set-company-business-hours/set-company-business-hours.interface';
+import type { UpdateCompanyUseCaseInterface } from './use-cases/update-company/update-company.interface';
 
 @Injectable()
 export class CompanyService {
@@ -46,6 +48,8 @@ export class CompanyService {
     private readonly addProviderUseCase: AddCompanyProviderUseCaseInterface,
     @Inject(COMPANY_GET_DETAILS_USE_CASE_PROVIDE)
     private readonly getDetailsUseCase: GetCompanyDetailsUseCaseInterface,
+    @Inject(COMPANY_UPDATE_USE_CASE_PROVIDE)
+    private readonly updateCompanyUseCase: UpdateCompanyUseCaseInterface,
   ) {}
 
   async createCompany(params: Parameters<CreateCompanyUseCaseInterface['execute']>[0]) {
@@ -82,5 +86,9 @@ export class CompanyService {
 
   async getDetails(companyId: string) {
     return this.getDetailsUseCase.execute({ companyId });
+  }
+
+  async updateCompany(params: Parameters<UpdateCompanyUseCaseInterface['execute']>[0]) {
+    return this.updateCompanyUseCase.execute(params);
   }
 }

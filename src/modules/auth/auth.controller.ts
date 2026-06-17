@@ -38,7 +38,14 @@ import { ListTermsVersionsUseCase } from './use-cases/list-terms-versions/list-t
 import type { LogoutParams } from './use-cases/logout/logout.interface';
 import { LogoutUseCase } from './use-cases/logout/logout.use-case';
 import { LookupCepUseCase } from './use-cases/lookup-cep/lookup-cep.use-case';
+import { AddWorkLocationUseCase } from './use-cases/provider-profile/add-work-location.use-case';
 import { CheckPixKeyAvailabilityUseCase } from './use-cases/provider-profile/check-pix-key-availability.use-case';
+import { GetMyProviderProfileUseCase } from './use-cases/provider-profile/get-my-provider-profile.use-case';
+import { GetMyVerificationUseCase } from './use-cases/provider-profile/get-my-verification.use-case';
+import { GetWorkLocationsUseCase } from './use-cases/provider-profile/get-work-locations.use-case';
+import { RemoveWorkLocationUseCase } from './use-cases/provider-profile/remove-work-location.use-case';
+import { SubmitMyVerificationUseCase } from './use-cases/provider-profile/submit-my-verification.use-case';
+import { UpdateMyProviderProfileUseCase } from './use-cases/provider-profile/update-my-provider-profile.use-case';
 import { CreateProviderServiceUseCase } from './use-cases/provider-profile/create-provider-service.use-case';
 import { DeleteProviderAvailabilityUseCase } from './use-cases/provider-profile/delete-provider-availability.use-case';
 import { DeleteProviderServiceUseCase } from './use-cases/provider-profile/delete-provider-service.use-case';
@@ -94,6 +101,13 @@ export class AuthController {
     private readonly getProviderPaymentMethods: GetProviderPaymentMethodsUseCase,
     private readonly setProviderPaymentMethods: SetProviderPaymentMethodsUseCase,
     private readonly checkPixKeyAvailability: CheckPixKeyAvailabilityUseCase,
+    private readonly getMyProviderProfile: GetMyProviderProfileUseCase,
+    private readonly updateMyProviderProfile: UpdateMyProviderProfileUseCase,
+    private readonly getWorkLocations: GetWorkLocationsUseCase,
+    private readonly addWorkLocation: AddWorkLocationUseCase,
+    private readonly removeWorkLocation: RemoveWorkLocationUseCase,
+    private readonly getMyVerification: GetMyVerificationUseCase,
+    private readonly submitMyVerification: SubmitMyVerificationUseCase,
     @InjectRepository(User, CONNECTIONS_NAMES.POSTGRES)
     private readonly userRepository: Repository<User>,
     @InjectRepository(ProviderProfile, CONNECTIONS_NAMES.POSTGRES)
@@ -386,5 +400,91 @@ export class AuthController {
     const keycloakId = (req.headers['x-user-id'] as string) ?? null;
     const providerId = await this.resolveProviderProfileId(keycloakId);
     return this.checkPixKeyAvailability.execute({ providerId, pixKey: key });
+  }
+
+  @Get('providers/me/profile')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obter perfil profissional do prestador logado' })
+  @ApiResponse({ status: 200, description: 'Perfil retornado.' })
+  @TraceMethod()
+  async getMyProviderProfileHandler(@Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.getMyProviderProfile.execute(providerId);
+  }
+
+  @Put('providers/me/profile')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Atualizar bio, nome comercial e disponibilidade' })
+  @ApiResponse({ status: 200, description: 'Perfil atualizado.' })
+  @TraceMethod()
+  async updateMyProviderProfileHandler(
+    @Body() body: { businessName?: string; description?: string; isAvailable?: boolean },
+    @Req() req: Request,
+  ) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.updateMyProviderProfile.execute({ providerId, ...body });
+  }
+
+  @Get('providers/me/work-locations')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Listar localizações de atendimento do prestador logado' })
+  @ApiResponse({ status: 200, description: 'Lista de localizações.' })
+  @TraceMethod()
+  async getWorkLocationsHandler(@Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.getWorkLocations.execute(providerId);
+  }
+
+  @Post('providers/me/work-locations')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Adicionar localização de atendimento' })
+  @ApiResponse({ status: 201, description: 'Localização adicionada.' })
+  @TraceMethod()
+  async addWorkLocationHandler(
+    @Body() body: { addressId: string; name?: string; isPrimary?: boolean },
+    @Req() req: Request,
+  ) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.addWorkLocation.execute({ providerId, ...body });
+  }
+
+  @Delete('providers/me/work-locations/:locationId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remover localização de atendimento' })
+  @ApiResponse({ status: 204, description: 'Localização removida.' })
+  @TraceMethod()
+  async removeWorkLocationHandler(
+    @Param('locationId') locationId: string,
+    @Req() req: Request,
+  ) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.removeWorkLocation.execute(providerId, locationId);
+  }
+
+  @Get('providers/me/verification')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Obter status de verificação do prestador logado' })
+  @ApiResponse({ status: 200, description: 'Status de verificação.' })
+  @TraceMethod()
+  async getMyVerificationHandler(@Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.getMyVerification.execute(providerId);
+  }
+
+  @Post('providers/me/verification/submit')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Solicitar revisão de cadastro do prestador' })
+  @ApiResponse({ status: 200, description: 'Verificação submetida.' })
+  @TraceMethod()
+  async submitMyVerificationHandler(@Req() req: Request) {
+    const keycloakId = (req.headers['x-user-id'] as string) ?? null;
+    const providerId = await this.resolveProviderProfileId(keycloakId);
+    return this.submitMyVerification.execute(providerId);
   }
 }

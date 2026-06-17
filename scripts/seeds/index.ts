@@ -31,6 +31,7 @@ import { seedReviews } from './seeders/21-review.seeder';
 import { seedNotifications } from './seeders/22-notification.seeder';
 import { seedProviderPaymentMethods } from './seeders/23-provider-payment-method.seeder';
 import { seedProviderAvailability } from './seeders/24-provider-availability.seeder';
+import { seedCompanies } from './seeders/25-company.seeder';
 
 const RESET  = '\x1b[0m';
 const GREEN  = '\x1b[32m';
@@ -143,6 +144,8 @@ async function main() {
       'provider_services', 'provider_addresses', 'provider_phones', 'provider_emails',
       'provider_profiles', 'user_documents', 'documents', 'user_addresses', 'user_phones',
       'user_emails', 'users', 'addresses', 'phones', 'emails', 'services', 'categories',
+      'company_providers', 'company_members', 'company_business_hours',
+      'company_phones', 'company_emails', 'company_addresses', 'companies',
     ];
     for (const table of tables) {
       await ds.query(`TRUNCATE TABLE "${table}" CASCADE`);
@@ -205,6 +208,7 @@ async function main() {
     { name: '21 Reviews',                 fn: async () => { await seedReviews(ds!, ctx, cfg);                 return ctx.reviews.length; } },
     { name: '23 Provider Payment Methods',  fn: async () => { await seedProviderPaymentMethods(ds, ctx, cfg);  return ctx.providerPaymentMethods.length; } },
     { name: '24 Provider Availability',     fn: async () => { await seedProviderAvailability(ds!, ctx, cfg);   return ctx.providerAvailability.length; } },
+    { name: '25 Companies',                 fn: async () => { await seedCompanies(ds!, ctx, cfg);               return ctx.companies.length; } },
   ];
 
   let failed = 0;
@@ -237,7 +241,9 @@ async function main() {
     ctx.providerServices.length + ctx.providerWorkLocations.length + ctx.providerVerifications.length +
     ctx.providerVerificationLogs.length + ctx.providerDocuments.length +
     ctx.serviceRequests.length + ctx.reviews.length + ctx.providerPaymentMethods.length +
-    ctx.notificationsInserted;
+    ctx.companies.length + ctx.companyAddresses.length + ctx.companyEmails.length +
+    ctx.companyPhones.length + ctx.companyBusinessHours.length + ctx.companyMembers.length +
+    ctx.companyProviders.length + ctx.notificationsInserted;
 
   console.log('\n' + '─'.repeat(60));
   console.log(`${DIM}  Total rows inserted  : ${totalRows}`);
